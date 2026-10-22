@@ -157,6 +157,9 @@ function buildShell(){
       el('button', {id:'refreshBtn', onclick: refresh}, '↻ Refresh')),
     el('div', {id:'banner'}),
     el('div', {id:'sec-overview'}), el('div', {id:'sec-activity'}), el('div', {id:'sec-db'}), el('div', {id:'sec-bugs'}), el('div', {id:'sec-visitors'}),
+    el('div', {class:'card'}, el('h2', {}, 'Teach the parser'),
+      el('p', {class:'note'}, 'Train the reader from up to 10 PDFs at a time, or check and publish a rules file made by Claude. It lives in the app, next to the shared source pool: open the app, tap the storage icon, sign in with the admin Google account, then tap \u201cShared pool (admin)\u201d \u203a \u201cTeach the parser\u201d. Every change is checked against all saved test layouts first, so the old rules cannot break.'),
+      el('a', {href:'./', target:'_blank', rel:'noopener'}, 'Open the app \u2197')),
     el('p', {class:'note'}, 'Each refresh uses roughly 150–200 Firestore reads (the free plan allows 50,000 a day). Days are in your device\'s time zone.')
   );
 }

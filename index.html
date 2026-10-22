@@ -2894,16 +2894,21 @@ function profReset(fn){ pendingFurniture=new Set(); matchedProfiles=new Set(); p
 let poolProfiles=[], disablePool=false, lastParseFn=null, prettyOf={}, inGate=false;
 function activeProfiles(){ const a=disablePool ? parseProfiles : parseProfiles.concat(poolProfiles); return gateExtra ? a.concat([gateExtra]) : a; }
 function poolMatched(){ return Array.from(matchedProfiles).filter(id=>String(id).charAt(0)==='s'); }
-function profApplies(p, present){ let h=0; for(const k of p.junk) if(present.has(k)) h++; return h>=2 || (h===1 && p.junk.length===1 && p.junk[0].length>=15) || (h>=1 && p.pool && !inGate && bookMatches(p)); }
+function profApplies(p, present){ let h=0; for(const k of p.junk) if(present.has(k)) h++; return h>=2 || (h===1 && p.junk.length===1 && p.junk[0].length>=15) || (h>=1 && p.pool && !inGate && bookMatches(p))
+  || (!!(p.drop && p.drop.length) && (inGate || (p.pool && bookMatches(p)))); }   /* drop-patterns (rules files only): an entry is switched on by the book name, and the regression gate runs it against EVERY saved layout. Old entries have no .drop, so nothing changes for them */
 /* ----- Book identity: the file name / PDF title is compared with the book names the admin approved ----- */
 function bookWords(s){ return Array.from(new Set(String(s||'').toLowerCase().replace(/\.pdf$/i,'').split(/[^a-z0-9\u0900-\u097F]+/).filter(w=>w.length>=3))); }
 function bookMatches(p){
   if(!p || !p.name) return false;
-  const want=bookWords(String(p.name).split(/\s[\u2014|\-]\s/)[0]);   // the part before the dash is the book name; after it comes the publisher
-  if(want.length<2) return false;   // a one-word name is too generic to trust
   const have=new Set(bookWords((typeof pickedPdfName==='string'?pickedPdfName:'')+' '+(typeof pickedPdfTitle==='string'?pickedPdfTitle:'')));
-  let h=0; want.forEach(w=>{ if(have.has(w)) h++; });
-  return h/want.length>=0.6;
+  const hit=nm=>{
+    const want=bookWords(String(nm).split(/\s[\u2014|\-]\s/)[0]);   // the part before the dash is the book name; after it comes the publisher
+    if(want.length<2) return false;   // a one-word name is too generic to trust
+    let h=0; want.forEach(w=>{ if(have.has(w)) h++; });
+    return h/want.length>=0.6;
+  };
+  if(hit(p.name)) return true;
+  return Array.isArray(p.aka) && p.aka.some(hit);   // other names the same book goes by (rules files only; old entries have none)
 }
 function bookHint(){   // what is sent with a shared profile so the admin can name the book: subject you typed + PDF title or file name, with e-mails, links and long numbers removed
   const g=id=>{ const e=document.getElementById(id); return e&&e.value?String(e.value).trim():''; };
@@ -2920,8 +2925,24 @@ function profileJunk(present){ const junk=new Set(); activeProfiles().forEach(p=
 function applyProfileJunk(text){
   if(!activeProfiles().length) return text;
   const lines=text.split('\n'), present=new Set(); lines.forEach(l=>{ const k=normFurn(l); if(k) present.add(k); });
-  const junk=profileJunk(present); if(!junk.size) return text;
-  return lines.filter(l=>!(junk.has(normFurn(l)) && !FURN_MARK.test(l))).join('\n');
+  const junk=profileJunk(present), dr=profileDrops(); if(!junk.size && !dr.length) return text;
+  return lines.filter(l=>!(junk.has(normFurn(l)) && !FURN_MARK.test(l)) && !dropHit(dr,l)).join('\n');
+}
+/* ----- Drop-patterns: full-line patterns from a checked rules file, used only for the book they belong to ----- */
+function profileDrops(){ const out=[]; activeProfiles().forEach(p=>{ if(p.drop && p.drop.length && matchedProfiles.has(p.id)) p.drop.forEach(r=>{ const re=dropCompile(r); if(re) out.push(re); }); }); return out; }
+const _dropCache=new Map();
+function dropCompile(src){ if(_dropCache.has(src)) return _dropCache.get(src); let re=null; if(dropSafe(src)){ try{ re=new RegExp(src,'i'); }catch(e){ re=null; } } _dropCache.set(src,re); return re; }
+function dropHit(dr,line){ if(!dr.length) return false; const t=String(line).trim(); if(!t || t.length>160 || FURN_MARK.test(t)) return false; for(const re of dr) if(re.test(t)) return true; return false; }
+const DROP_PROBES=['1. The unit of force is :','Q.2) Capital of India?','(a) Newton (b) Joule','a) Ganga','Ans. (a)','Answer: (b)','Correct Ans. (c)','Explanation: Paris is the capital.','Assertion (A): The sky is blue.','Statement 1 is correct.','Which of the following is correct?','Tag: UPSC CSE 2021','Notes','Question Bank','Answer Key','U.P.P.C.S. (Pre) 2012'];
+function dropSafe(src){   // a pattern must cover one WHOLE line, be simple, and never match anything that looks like question content
+  if(typeof src!=='string' || src.length<6 || src.length>100) return false;
+  if(src.charAt(0)!=='^' || src.charAt(src.length-1)!=='$') return false;
+  if(/\\[1-9k]|\(\?[<=!]/.test(src)) return false;                                   // no back-references or look-behind
+  if(/\((?:[^()\\]|\\.)*[+*](?:[^()\\]|\\.)*\)\s*[+*{]/.test(src)) return false;       // no nested repeats (runaway matching)
+  let re; try{ re=new RegExp(src,'i'); }catch(e){ return false; }
+  if(re.test('') || /^\^\.[*+]\$$/.test(src)) return false;
+  if((src.replace(/\\./g,'').match(/[A-Za-z]/g)||[]).length<3) return false;          // needs some real letters to anchor on
+  return !DROP_PROBES.some(t=>re.test(t));
 }
 function profileOrder(text){
   if(activeProfiles().length){ const present=new Set(); String(text).split('\n').forEach(l=>{ const k=normFurn(l); if(k) present.add(k); }); profileJunk(present); }
@@ -2933,8 +2954,8 @@ function pdfDropRunning(pages){
   const total=pages.length;
   if(activeProfiles().length){   // a remembered source: drop its known lines first (works even on a 1-2 page range)
     const present=new Set(); pages.forEach(pg=>pg.forEach(l=>{ const k=normFurn(l.t); if(k) present.add(k); }));
-    const junk=profileJunk(present);
-    if(junk.size) pages=pages.map(pg=>pg.filter(l=>!(junk.has(normFurn(l.t)) && !FURN_MARK.test(l.t))));
+    const junk=profileJunk(present), dr=profileDrops();
+    if(junk.size || dr.length) pages=pages.map(pg=>pg.filter(l=>!(junk.has(normFurn(l.t)) && !FURN_MARK.test(l.t)) && !dropHit(dr,l.t)));
   }
   const cnt={}, pos={}, posKey=l=>normFurn(l.t)+'@'+Math.round(l.y/4)+'/'+Math.round((l.x||0)/24);
   pages.forEach(pg=>{ const seen=new Set(), seenP=new Set(); pg.forEach(l=>{
@@ -3008,7 +3029,9 @@ async function poolSync(){
       const v=d.data(), id='s'+d.id; since=Math.max(since, v.ts&&v.ts.toMillis?v.ts.toMillis():0); by.delete(id); bad.delete(id);
       if(v.off || !Array.isArray(v.junk)) return;
       const cand={id, pool:true, name:String(v.name||'').slice(0,80), junk:poolClean(v.junk.map(String)), strategy:typeof v.strategy==='string'?v.strategy:null};
-      if(!cand.junk.length) return;
+      if(Array.isArray(v.aka)) cand.aka=v.aka.map(x=>String(x).slice(0,80)).filter(Boolean).slice(0,5);
+      if(Array.isArray(v.drop)) cand.drop=v.drop.map(String).filter(dropSafe).slice(0,20);
+      if(!cand.junk.length && !(cand.drop && cand.drop.length)) return;
       let fails=[]; try{ fails=gateCandidate(cand); }catch(e){ fails=['x']; }   // every shared profile must pass this device's regression tests before it is used
       if(fails.length) bad.add(id); else by.set(id,cand);
     });
@@ -3067,6 +3090,7 @@ async function openPoolAdmin(){
 }
 function paRender(){
   const o=paEl(); let h='<div style="'+PA_SHEET+'"><div style="display:flex;justify-content:space-between;align-items:center;"><b style="font-size:16px;">Shared source pool</b><button class="secondary" onclick="document.getElementById(\'poolAdminOv\').remove()">Close</button></div>';
+  h+='<div class="card" style="margin:10px 0;padding:10px;"><b>Teach the parser</b><div class="muted" style="font-size:12px;margin:4px 0 8px;">Improve how every student\u2019s app reads books, without touching the old rules: each change must first pass all saved test layouts.</div><div class="row" style="justify-content:flex-start;"><button class="primary sm" onclick="ptOpen()">Train from PDFs</button><button class="secondary sm" onclick="pkOpen()">Check a rules file</button></div></div>';
   h+='<div class="muted" style="margin:6px 0;">Waiting for review: <b>'+PA.clusters.length+'</b>. Untick any line that could be real content. Name it like <b>Book name \u2014 Publisher</b> (the part before the dash is matched against file names), then approve.</div>';
   PA.clusters.forEach((c,i)=>{
     h+='<div class="card" style="margin:10px 0;padding:10px;"><div><b>'+c.uids.size+' device'+(c.uids.size===1?'':'s')+'</b> \u00b7 '+c.subs.length+' submission'+(c.subs.length===1?'':'s')+(paTop(c.strat)?' \u00b7 style: '+escH(paTop(c.strat)):'')+'</div>';
@@ -3079,7 +3103,7 @@ function paRender(){
   if(!parseProfiles.length) h+='<div class="muted">None yet. Upload a book and let it read completely.</div>';
   parseProfiles.forEach((p,i)=>{ h+='<div class="card" style="margin:8px 0;padding:10px;"><div class="muted" style="font-size:12px;">'+p.junk.length+' repeated lines \u00b7 '+escH(p.strategy||'standard style')+'</div><input id="paLoc'+i+'" type="text" maxlength="80" placeholder="Book name" style="width:100%;box-sizing:border-box;margin:6px 0;"><button class="secondary" onclick="paPublishLocal('+i+')">Publish to pool</button></div>'; });
   h+='<div style="margin-top:14px;"><b>Live in the pool ('+PA.pool.length+')</b></div>';
-  PA.pool.forEach((p,i)=>{ h+='<div class="card" style="margin:8px 0;padding:10px;display:flex;justify-content:space-between;gap:8px;align-items:center;"><div style="min-width:0;"><b>'+escH(p.name||'(no name)')+'</b><div class="muted" style="font-size:12px;">'+(p.junk||[]).length+' lines \u00b7 '+(p.subs||1)+' device(s)</div></div><button class="secondary" onclick="paRemove('+i+')">Remove</button></div>'; });
+  PA.pool.forEach((p,i)=>{ h+='<div class="card" style="margin:8px 0;padding:10px;display:flex;justify-content:space-between;gap:8px;align-items:center;"><div style="min-width:0;"><b>'+escH(p.name||'(no name)')+'</b><div class="muted" style="font-size:12px;">'+(p.junk||[]).length+' lines'+(p.drop&&p.drop.length?' \u00b7 '+p.drop.length+' pattern(s)':'')+' \u00b7 '+(p.subs||1)+' device(s)</div></div><button class="secondary" onclick="paRemove('+i+')">Remove</button></div>'; });
   o.innerHTML=h+'</div>';
 }
 async function paDo(fn, okMsg){ try{ await fn(); showToast(okMsg,'info'); await openPoolAdmin(); poolSync(); }catch(e){ showToast('Failed: '+((e&&e.message)||e),'error'); } }
@@ -3101,6 +3125,395 @@ function paPublishLocal(i){
 }
 function paRemove(i){ const p=PA.pool[i]; if(!confirm('Remove "'+(p.name||'this entry')+'" from the pool? Students stop using it on their next start.')) return;
   paDo(async()=>{ await firebase.firestore().collection('sourcePool').doc(p.id).update({off:true, ts:firebase.firestore.FieldValue.serverTimestamp()}); }, 'Removed.'); }
+/* ===== Teach the parser (admin only) =====
+   A) Train from PDFs: up to 10 books, read page range by page range for as long as it takes. A part that reads COMPLETELY (every printed answer
+      matched) teaches the app that book's repeated header/footer lines and best reading style, exactly like a normal upload does. Nothing reaches
+      students until the admin publishes it, and nothing is kept unless it passes ALL saved test layouts.
+   B) Rules file: ONE JSON file (made by Claude from PDFs) holding per-book rules. Every book is checked here before it can be published: it must
+      pass all saved test layouts (so the old rules cannot change) and, if it carries a sample, it must make that sample read as promised.
+   Rules are DATA only (exact lines, full-line patterns, a reading style, other names): nothing in a file is ever run as code. */
+const PT_MAX=10, PK_FORMAT='testmaker-parser-rules';
+let PT={files:[], rows:[], running:false, cancel:false}, PK={res:[], note:''};
+const ptTick=()=>new Promise(r=>setTimeout(r,0));
+const JUNK_STRUCT=/^(?:explanations?|solutions?|answers?|answerkey|notes?|questionbank|statements?|options?|assertion|reason|hence|therefore|source|tag|exam|question|questions)$/;   // structural words are never header/footer lines
+function ptSheet(inner){ const o=paEl(); o.onclick=e=>{ if(e.target===o && !PT.running) o.remove(); }; o.innerHTML='<div style="'+PA_SHEET+'">'+inner+'</div>'; return o; }
+function ptHead(title, backFn){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><b style="font-size:16px;">'+title+'</b><button class="secondary sm" onclick="'+backFn+'">Back</button></div>'; }
+function ptGuessName(fn){ return String(fn||'').replace(/\.pdf$/i,'').replace(/\S*@\S*|https?:\S+|www\.\S+|\d{8,}/g,'').replace(/[_]+/g,' ').replace(/\s+/g,' ').trim().slice(0,70); }
+function ptNewRow(f){ return {file:f, state:'wait', msg:'Waiting', err:'', pages:0, q:0, win:0, okWin:0, badWin:0, noText:0, prof:null, profs:{}, known:false, rejected:null, problems:[], name:ptGuessName(f.name), pub:true, off:new Set()}; }
+
+/* ---------- A) Train from PDFs ---------- */
+function ptOpen(){
+  if(!poolAdmin()){ showToast('Sign in with the admin Google account first.','error'); return; }
+  PT.files=[]; PT.rows=[]; PT.cancel=false; ptDraw();
+}
+function ptDraw(){
+  ptSheet(ptHead('Teach the parser \u2014 from PDFs','ptBack()')
+   +'<div class="muted" style="margin:6px 0;font-size:12.5px;">Choose up to '+PT_MAX+' book PDFs. Every page is read, however long it takes \u2014 keep this screen open. A book that reads completely teaches the app its repeated header and footer lines and its best reading style. Nothing goes to students until you publish, and nothing is kept unless it passes all saved test layouts, so the old rules cannot break.</div>'
+   +'<div class="row" style="margin:8px 0;"><button class="secondary sm" id="ptPick" onclick="document.getElementById(\'ptFile\').click()">Choose PDFs</button><button class="primary sm" id="ptStart" onclick="ptRun()" disabled>Start</button><button class="secondary sm" id="ptStop" onclick="ptStop()" style="display:none;">Stop</button><span class="muted" id="ptCount"></span></div>'
+   +'<input type="file" id="ptFile" accept="application/pdf,.pdf" multiple style="display:none;" onchange="ptPicked(this)">'
+   +'<div id="ptList"></div><div id="ptFoot"></div>');
+  ptList();
+}
+function ptBack(){
+  if(PT.running){ if(!confirm('Stop reading? PDFs that are not finished will be skipped.')) return; ptStop(); return; }
+  paRender();
+}
+function ptStop(){ PT.cancel=true; const b=document.getElementById('ptStop'); if(b){ b.disabled=true; b.textContent='Stopping\u2026'; } }
+function ptPicked(inp){
+  const fs=Array.from(inp.files||[]).filter(f=>/\.pdf$/i.test(f.name) || f.type==='application/pdf'); inp.value='';
+  if(PT.running || !fs.length) return;
+  const fresh=PT.rows.some(r=>r.state!=='wait');   // after a run, a new choice starts a new batch
+  let all=(fresh?[]:PT.files).concat(fs); const seen=new Set();
+  all=all.filter(f=>{ const k=f.name+'|'+f.size; if(seen.has(k)) return false; seen.add(k); return true; });
+  if(all.length>PT_MAX){ showToast('Only '+PT_MAX+' PDFs at a time \u2014 the first '+PT_MAX+' were kept.','info'); all=all.slice(0,PT_MAX); }
+  PT.files=all; PT.rows=all.map(ptNewRow); ptList();
+}
+function ptRowHtml(r,i){
+  const icon={wait:'\u23F3',run:'\u23F3',taught:'\u2705',known:'\u2705',rejected:'\u26A0\uFE0F',problem:'\u26A0\uFE0F',none:'\u2796',error:'\u274C'}[r.state]||'';
+  let h='<div class="card" id="ptRow'+i+'" style="margin:8px 0;padding:10px;"><div style="display:flex;gap:8px;align-items:flex-start;"><div style="font-size:18px;line-height:1.2;">'+icon+'</div><div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:700;word-break:break-word;">'+escH(r.file.name)+'</div><div class="muted" style="font-size:12px;" id="ptMsg'+i+'">'+escH(r.msg)+'</div></div></div>';
+  if(r.state==='taught' && r.prof){
+    h+='<input type="text" maxlength="80" placeholder="Book name \u2014 Publisher" value="'+escH(r.name)+'" oninput="PT.rows['+i+'].name=this.value" style="width:100%;box-sizing:border-box;margin:8px 0 4px;">'
+     +'<div class="muted" style="font-size:11.5px;">Name it like <b>Book name \u2014 Publisher</b>: the part before the dash is matched against file names.</div>'
+     +'<details style="margin-top:6px;"><summary style="cursor:pointer;font-size:13px;">Learned lines ('+r.prof.junk.length+') \u2014 untick any that could be real content</summary>'
+     +r.prof.junk.map((k,j)=>'<label style="display:block;font-size:12px;margin:3px 0;word-break:break-word;"><input type="checkbox" '+(r.off.has(k)?'':'checked')+' onchange="ptLine('+i+','+j+',this.checked)"> '+escH((r.prof.pretty&&r.prof.pretty[k])||k)+'</label>').join('')+'</details>'
+     +'<label style="display:block;font-size:12.5px;margin-top:6px;"><input type="checkbox" '+(r.pub!==false?'checked':'')+' onchange="PT.rows['+i+'].pub=this.checked"> Include when I publish</label>';
+  }
+  if(r.problems.length){
+    const items=[]; r.problems.forEach(p=>p.items.forEach(it=>items.push(Object.assign({pages:p.pages},it))));
+    h+='<details style="margin-top:6px;"><summary style="cursor:pointer;font-size:13px;">What did not read ('+r.problems.reduce((n,p)=>n+(p.missed||0),0)+')</summary><div style="font-size:12px;line-height:1.5;margin-top:4px;">'
+     +r.problems.map(p=>'<div style="padding:3px 0;border-top:1px solid var(--border);"><b>Pages '+escH(p.pages)+'</b> \u2014 '+escH(p.sum)+'</div>').join('')
+     +(items.length?items.slice(0,15).map(it=>'<div class="muted" style="font-size:11.5px;">Q'+escH(it.num)+' (pages '+escH(it.pages)+') \u2014 '+escH(CHECK_WHY[it.kind]||'')+'</div>').join(''):'')+'</div></details>';
+  }
+  return h+'</div>';
+}
+function ptRefreshRow(i){ const e=document.getElementById('ptRow'+i); if(e && PT.rows[i]) e.outerHTML=ptRowHtml(PT.rows[i],i); }
+function ptLine(i,j,on){ const r=PT.rows[i]; if(!r||!r.prof) return; const k=r.prof.junk[j]; if(on) r.off.delete(k); else r.off.add(k); }
+function ptList(){
+  const host=document.getElementById('ptList'); if(!host) return;
+  host.innerHTML=PT.rows.length ? PT.rows.map(ptRowHtml).join('') : '<div class="muted" style="margin:8px 0;">No PDFs chosen yet.</div>';
+  const c=document.getElementById('ptCount'); if(c) c.textContent=PT.rows.length ? PT.rows.length+' of '+PT_MAX : '';
+  const st=document.getElementById('ptStart'); if(st) st.disabled=PT.running || !PT.rows.some(r=>r.state==='wait');
+  const sp=document.getElementById('ptStop'); if(sp){ sp.style.display=PT.running?'':'none'; sp.disabled=false; sp.textContent='Stop'; }
+  const pk=document.getElementById('ptPick'); if(pk) pk.disabled=PT.running;
+  ptFoot();
+}
+function ptFoot(){
+  const host=document.getElementById('ptFoot'); if(!host) return;
+  const taught=PT.rows.filter(r=>r.state==='taught'), prob=PT.rows.filter(r=>r.problems.length || r.state==='error' || r.state==='none');
+  if(PT.running || (!taught.length && !prob.length)){ host.innerHTML=''; return; }
+  let h='<div class="row" style="margin-top:10px;justify-content:flex-start;">';
+  if(taught.length) h+='<button class="primary sm" onclick="ptPublish()">Publish '+taught.length+' book'+(taught.length===1?'':'s')+' to everyone</button><button class="secondary sm" onclick="ptDownloadRules()">Download rules file</button>';
+  if(prob.length) h+='<button class="secondary sm" onclick="ptDownloadReport()">Download problem report</button>';
+  host.innerHTML=h+'</div><div class="muted" style="font-size:11.5px;margin-top:6px;">'+(prob.length?'The problem report holds the text around every spot that did not read, so Claude can write rules for it. ':'')+'The rules file is the same format you can upload under \u201cCheck a rules file\u201d.</div>';
+}
+async function ptRun(){
+  if(PT.running) return;
+  const todo=PT.rows.filter(r=>r.state==='wait'); if(!todo.length) return;
+  PT.running=true; PT.cancel=false; ptList();
+  const keep={n:pickedPdfName, t:pickedPdfTitle, agg:checkAgg, diag:lastParseDiag, ll:lastLearnedProfile, lh:lastHint, pe:pendingFurniture, mp:matchedProfiles, po:prettyOf};
+  let lock=null; try{ if(navigator.wakeLock) lock=await navigator.wakeLock.request('screen'); }catch(e){}
+  try{
+    const lib=await ensurePdfJs();
+    for(const r of todo){ if(PT.cancel) break; await ptOne(lib,r); ptRefreshRow(PT.rows.indexOf(r)); }
+  }catch(e){ todo.forEach(r=>{ if(r.state==='wait' || r.state==='run'){ r.state='error'; r.err=pdfErrText(e); r.msg=r.err; } }); }
+  finally{
+    pickedPdfName=keep.n; pickedPdfTitle=keep.t; checkAgg=keep.agg; lastParseDiag=keep.diag; lastLearnedProfile=keep.ll; lastHint=keep.lh; pendingFurniture=keep.pe; matchedProfiles=keep.mp; prettyOf=keep.po;
+    if(lock){ try{ lock.release(); }catch(e){} }
+    PT.running=false; PT.rows.forEach((r,i)=>ptRefreshRow(i)); ptList();
+    if(!PT.cancel) showToast('Finished reading '+todo.length+' PDF'+(todo.length===1?'':'s')+'.','info');
+  }
+}
+async function ptOne(lib,row){
+  const i=PT.rows.indexOf(row), say=m=>{ row.msg=m; const e=document.getElementById('ptMsg'+i); if(e) e.textContent=m; };
+  row.state='run'; say('Opening\u2026'); ptRefreshRow(i);
+  let pdf;
+  try{ pdf=await lib.getDocument({data:await row.file.arrayBuffer(), verbosity:0}).promise; }
+  catch(e){ row.state='error'; row.err=pdfErrText(e).replace(/ \u2014 paste the text manually instead\.?/,'.'); row.msg=row.err; return; }
+  const N=pdf.numPages; row.pages=N;
+  let title=''; try{ const m=await pdf.getMetadata(); const t=String((m&&m.info&&m.info.Title)||'').trim(); if(t.length>=4 && !/^(microsoft word|untitled|document\d*)/i.test(t) && !/\.(docx?|pdf|indd|pages)$/i.test(t)) title=t.slice(0,80); }catch(e){}
+  if(title) row.name=ptGuessName(title);
+  pickedPdfName=row.file.name; pickedPdfTitle=title;
+  for(let s=1; s<=N; s+=PDF_RANGE_MAX){
+    if(PT.cancel){ Object.assign(row, ptNewRow(row.file)); row.msg='Stopped. Tap Start to read it again.'; try{ pdf.destroy(); }catch(e){} return; }
+    const e2=Math.min(N,s+PDF_RANGE_MAX-1), tag=s+'\u2013'+e2;
+    profReset(null); checkAgg={expected:0, found:0, items:[], samples:[], used:{}, sample:null};
+    let r;
+    try{ r=await pdfPagesToSegments(pdf,s,e2,m=>say(m.replace(/ of \d+/,' of '+N))); }
+    catch(e){ row.win++; row.badWin++; row.problems.push({pages:tag, sum:'could not be read ('+String((e&&e.message)||e).slice(0,60)+')', items:[], missed:0, sample:''}); continue; }
+    if(!r.segs.some(x=>x.text.trim())){ row.noText++; await ptTick(); continue; }
+    row.win++;
+    say('Finding questions on pages '+tag+' of '+N+'\u2026');
+    const whole=r.segs.map(x=>(x.title?x.title+'\n':'')+x.text).join('\n\n');
+    const fail=(label,why)=>checkAgg.items.push({label, num:'?', kind:'unread', head:why});
+    try{
+      if(r.headCount){
+        for(let k=0;k<r.segs.length;k++){
+          const sg=r.segs[k], lab=sg.title||('Part '+(k+1));
+          try{ const f=parseSmart(sg.text,''); checkAdd(lab, f, lastParseDiag, sg.text); }catch(e){ fail(lab,'parser error: '+String((e&&e.message)||e).slice(0,60)); }
+          await ptTick();
+        }
+      } else { const f=parseSmart(whole,''); checkAdd('Pages '+tag, f, lastParseDiag, whole); }
+    }catch(e){ fail('Pages '+tag,'parser error: '+String((e&&e.message)||e).slice(0,60)); }
+    const a=checkAgg, gap=Math.max(0,a.expected-a.found), ok=a.found>0 && gap===0 && !a.items.length;
+    row.q+=a.found;
+    if(ok){
+      row.okWin++;
+      let lr=null; try{ lr=learnFromUpload(); }catch(e){ console.warn('learn failed',e); }
+      if(lr && (lr.kind==='new' || lr.kind==='updated') && lastLearnedProfile){ row.profs[lastLearnedProfile.id]=lastLearnedProfile; }
+      else if(lr && lr.kind==='rejected') row.rejected=lr.fails;
+      else if(lr && lr.kind==='known') row.known=true;
+    } else {
+      pendingFurniture=new Set(); row.badWin++;
+      const sm=a.samples[0];
+      row.problems.push({pages:tag, sum:'read '+a.found+' question'+(a.found===1?'':'s')+(gap?'; the pages show about '+a.expected+' answers':'')+(a.items.length?'; '+a.items.length+' not read':''), items:a.items.slice(0,25), missed:Math.max(gap,a.items.length), sample:(row.problems.length<3 && sm) ? String(sm.text).slice(0,25000) : ''});
+    }
+    await ptTick();
+  }
+  try{ pdf.destroy(); }catch(e){}
+  const ps=Object.values(row.profs);
+  if(ps.length){   // one entry per book: the lines of every part, with the first reading style found
+    const junk=Array.from(new Set([].concat(...ps.map(p=>p.junk)))).slice(0,30), pretty=Object.assign({}, ...ps.map(p=>p.pretty||{}));
+    row.prof={junk, pretty, strategy:(ps.find(p=>p.strategy)||{}).strategy||null};
+  }
+  const bad=row.problems.reduce((n,p)=>n+(p.missed||0),0), qs=row.q+' question'+(row.q===1?'':'s')+' in '+N+' page'+(N===1?'':'s');
+  if(!row.win){ row.state='none'; row.msg='No selectable text \u2014 this looks like a scanned PDF.'; }
+  else if(row.prof){ row.state='taught'; row.msg='Read '+qs+'. Learned '+row.prof.junk.length+' repeated header/footer line'+(row.prof.junk.length===1?'':'s')+'.'+(row.badWin?' '+row.badWin+' part'+(row.badWin===1?'':'s')+' did not read completely.':''); }
+  else if(row.rejected && !row.problems.length){ row.state='rejected'; row.msg='Read '+qs+'. What it learned would change how '+row.rejected.length+' saved layout'+(row.rejected.length===1?'':'s')+' read, so it was not kept.'; }
+  else if(row.problems.length){ row.state='problem'; row.msg='Read '+qs+'. '+row.badWin+' part'+(row.badWin===1?'':'s')+' did not read completely ('+bad+' question'+(bad===1?'':'s')+' missing or unread) \u2014 nothing learned from it.'; }
+  else { row.state='known'; row.msg='Read '+qs+' completely. '+(row.known?'Already known to the app':'No repeated header/footer lines found')+' \u2014 nothing new to learn.'; }
+}
+function ptPackBooks(onlyTicked){
+  return PT.rows.filter(r=>r.state==='taught' && r.prof && (!onlyTicked || r.pub!==false)).map(r=>({
+    name:String(r.name||'').replace(/\s+/g,' ').trim().slice(0,80), r,
+    junkKeys:poolClean(r.prof.junk.filter(k=>!r.off.has(k))), strategy:paStrat(r.prof.strategy)}));
+}
+async function ptPublish(){
+  const bs=ptPackBooks(true);
+  if(!bs.length){ showToast('Nothing ticked to publish.','info'); return; }
+  for(const b of bs){
+    if(!b.name){ showToast('Give \u201c'+b.r.file.name+'\u201d a book name first.','error'); return; }
+    if(b.junkKeys.length<2){ showToast('\u201c'+b.name+'\u201d has too few ticked lines left to share.','error'); return; }
+  }
+  if(!confirm('Publish '+bs.length+' book'+(bs.length===1?'':'s')+' to all students? You can remove any entry later.')) return;
+  await paPublishAndReturn(bs.map(b=>({name:b.name, junk:b.junkKeys, strategy:b.strategy, aka:[], drop:[]})));
+}
+function ptDownloadRules(){
+  const bs=ptPackBooks(false); if(!bs.length) return;
+  const pack={format:PK_FORMAT, version:1, created:new Date().toISOString().slice(0,10), note:'Made by Train from PDFs.',
+    books:bs.map(b=>({name:b.name||ptGuessName(b.r.file.name), junk:b.junkKeys.map(k=>String((b.r.prof.pretty&&b.r.prof.pretty[k])||k)), strategy:b.strategy||undefined}))};
+  shareFile(JSON.stringify(pack,null,1),'testmaker-parser-rules-'+pack.created+'.json');
+}
+function ptReportText(){
+  const L=['TEST MAKER PARSER TRAINING REPORT','Build: '+APP_BUILD+' | '+new Date().toISOString(),'PDFs read: '+PT.rows.length,''];
+  PT.rows.forEach(r=>{
+    L.push('=== '+r.file.name+' ('+r.pages+' pages) ===','Result: '+r.msg);
+    if(r.prof) L.push('Learned header/footer lines: '+r.prof.junk.map(k=>(r.prof.pretty&&r.prof.pretty[k])||k).join(' | ')+(r.prof.strategy?' | reading style: '+r.prof.strategy:''));
+    r.problems.forEach(p=>{
+      L.push('', '-- Pages '+p.pages+': '+p.sum);
+      p.items.forEach(it=>L.push('   Q'+it.num+' ('+(it.label||'')+') \u2014 '+(CHECK_WHY[it.kind]||'')+(it.head?' | starts: '+String(it.head).slice(0,100):'')));
+      if(p.sample) L.push('<text-sample pages="'+p.pages+'">', p.sample, '</text-sample>');
+    });
+    L.push('');
+  });
+  return L.join('\n');
+}
+function ptDownloadReport(){ shareFile(ptReportText(),'parser-training-report-'+new Date().toISOString().slice(0,10)+'.txt'); }
+
+/* ---------- Publishing (shared by both ways in): additive, and an existing entry is only ever EXTENDED ---------- */
+async function paPublishBooks(books){
+  const fs=firebase.firestore(), col=fs.collection('sourcePool'), TS=firebase.firestore.FieldValue.serverTimestamp();
+  const snap=await col.get(), live=snap.docs.map(d=>Object.assign({id:d.id},d.data())).filter(p=>!p.off && Array.isArray(p.junk));
+  const batch=fs.batch(); let added=0, updated=0, same=0;
+  books.forEach(bk=>{
+    const J=new Set(bk.junk), hit=live.find(p=>{ const pj=new Set(p.junk.map(String)); let h=0; J.forEach(k=>{ if(pj.has(k)) h++; }); return h>=2 || (h===1 && J.size===1 && pj.size===1); });
+    if(hit){
+      const old=hit.junk.map(String), junk=Array.from(new Set(old.concat(bk.junk))).slice(0,30);
+      const drop=Array.from(new Set((hit.drop||[]).concat(bk.drop||[]))).slice(0,20), aka=Array.from(new Set((hit.aka||[]).concat(bk.aka||[]))).slice(0,5);
+      if(junk.length===old.length && drop.length===(hit.drop||[]).length && aka.length===(hit.aka||[]).length && (!bk.strategy || bk.strategy===hit.strategy)){ same++; return; }
+      const upd={junk, ts:TS}; if(bk.strategy) upd.strategy=bk.strategy; if(drop.length) upd.drop=drop; if(aka.length) upd.aka=aka;
+      batch.update(col.doc(hit.id), upd); updated++;
+    } else {
+      const doc={name:bk.name, junk:bk.junk, strategy:bk.strategy||null, subs:1, v:1, off:false, ts:TS};   // the same shape the pool has always had; the two extra fields appear only when used
+      if(bk.drop && bk.drop.length) doc.drop=bk.drop; if(bk.aka && bk.aka.length) doc.aka=bk.aka;
+      batch.set(col.doc(), doc); added++;
+    }
+  });
+  if(added || updated) await batch.commit();
+  return {added, updated, same};
+}
+async function paPublishAndReturn(books){
+  try{
+    const r=await paPublishBooks(books), bits=[]; if(r.added) bits.push(r.added+' new'); if(r.updated) bits.push(r.updated+' extended'); if(r.same) bits.push(r.same+' already there');
+    showToast('Published \u2713 '+bits.join(', ')+'. Students get it on their next start.','info');
+    await openPoolAdmin(); poolSync();
+  }catch(e){ showToast('Failed: '+((e&&e.message)||e)+' \u2014 if it says permission denied, publish the latest Firestore rules.','error'); }
+}
+
+/* ---------- B) Rules file ---------- */
+const PK_SPEC=`You are helping me improve the PDF reader (the "parser") of my study app, Test Maker. Study the PDFs I attach (up to 10) and give me ONE JSON file named testmaker-parser-rules.json that I will upload in the app's admin section. Reply with the file (as a download, or one code block) and a short list of anything you could not handle.
+
+The file holds rules for one or more books. Rules are DATA only, never code. This is the exact format:
+
+{
+  "format": "testmaker-parser-rules",
+  "version": 1,
+  "note": "optional, a few words",
+  "books": [
+    {
+      "name": "Ghatnachakra Indian Polity \u2014 Ghatnachakra Publications",
+      "aka": ["polity ghatnachakra part 4"],
+      "junk": ["Ghatnachakra Indian Polity and Governance", "Page 12"],
+      "dropLines": ["^visit our website for more .{0,40}$"],
+      "strategy": "standard",
+      "sample": {
+        "text": "1. The unit of force is :\\n(a) Newton (b) Joule\\n(c) Watt (d) Pascal\\nAns. (a)\\nForce is measured in newton.\\n2. ...",
+        "count": 5,
+        "keys": "abcda",
+        "forbid": ["Ghatnachakra Indian Polity"]
+      }
+    }
+  ]
+}
+
+Field rules:
+- name: "Book name \u2014 Publisher". The part before the dash needs at least 2 real words that also appear in the PDF's file name or title (the app recognises a book by them).
+- aka (optional): up to 5 other names the same book goes by in file names.
+- junk: lines that print again and again \u2014 running headers, footers, page labels, watermarks \u2014 copied EXACTLY as they appear in the extracted text. Digits may differ from page to page (the app ignores digits). Maximum 30 lines per book. Never include a question line, an option line, an answer line, an explanation, a heading that is real content, or a single structural word such as "Explanation" or "Notes". No e-mail addresses or web links here.
+- dropLines (optional, maximum 20): full-line patterns for noise whose wording varies. Each is a JavaScript regular expression source that must start with ^ and end with $, with no back-references, no look-behind and no nested repeats. They are only used for this book. Use them sparingly.
+- strategy (optional): one of "original rules", "standard", "notes kept", "no old-font filter", "one sequence", "plain". Only if you are sure the book reads better that way.
+- sample (strongly recommended): 3 to 8 consecutive questions copied as plain text from the PDF, including the repeated lines that sit between them. "count" is how many questions the sample holds; "keys" is the correct option letter of each, in order (a-e; use - when none). "forbid" (optional) lists texts that must NOT survive inside any question, option or explanation once the rules are applied (for example the header text). The app refuses a book whose rules do not make the sample read exactly as promised.
+
+How to find the junk: look at the text page by page; a line at the same place on at least 40% of the pages is a header, footer or watermark.
+
+Do not invent rules for deeper problems (questions not recognised at all, answers not matched to questions, options that are pictures, scanned pages). Describe them in "note" and in your reply instead: those need a change to the app's code, not a rules file.`;
+function pkCopySpec(btn){ copyText(PK_SPEC).then(ok=>{ showToast(ok?'Instructions copied \u2713 Paste them into a Claude chat together with your PDFs.':'Could not copy automatically.', ok?'info':'error'); }); }
+function pkOpen(){
+  if(!poolAdmin()){ showToast('Sign in with the admin Google account first.','error'); return; }
+  PK={res:[], note:''}; pkDraw();
+}
+function pkDraw(){
+  ptSheet(ptHead('Teach the parser \u2014 rules file','paRender()')
+   +'<div class="muted" style="margin:6px 0;font-size:12.5px;">Paste or choose the rules file Claude made from your PDFs. Each book is checked here first: it must pass every saved test layout, so the old rules cannot change, and if the file carries a sample it must make that sample read as promised. Nothing is published until you press Publish.</div>'
+   +'<textarea id="pkText" placeholder="Paste the rules file here\u2026" style="min-height:110px;margin:6px 0;"></textarea>'
+   +'<div class="row" style="justify-content:flex-start;"><button class="primary sm" onclick="pkCheck()">Check rules</button><button class="secondary sm" onclick="document.getElementById(\'pkFile\').click()">Choose file</button><button class="secondary sm" onclick="pkCopySpec(this)">Copy instructions for Claude</button></div>'
+   +'<input type="file" id="pkFile" accept=".json,.txt,application/json,text/plain" style="display:none;" onchange="pkLoadFile(this)">'
+   +'<div id="pkOut"></div>');
+}
+async function pkLoadFile(inp){
+  const f=inp.files&&inp.files[0]; inp.value=''; if(!f) return;
+  try{ document.getElementById('pkText').value=await f.text(); pkCheck(); }catch(e){ showToast('Could not read that file.','error'); }
+}
+function pkParse(text){
+  let t=String(text||'').replace(/^\uFEFF/,'').trim(); const m=/^```[A-Za-z]*\s*\n([\s\S]*?)\n?```\s*$/.exec(t); if(m) t=m[1];
+  if(!t) return {error:'Nothing to check \u2014 paste the rules file or choose it.'};
+  if(t.length>2500000) return {error:'The file is too big (over 2.5 MB).'};
+  let j; try{ j=JSON.parse(t); }catch(e){ return {error:'The text is not valid JSON ('+String((e&&e.message)||e).slice(0,70)+'). Ask Claude to send the file again.'}; }
+  if(!j || typeof j!=='object' || j.format!==PK_FORMAT) return {error:'This is not a Test Maker rules file (it should say \u201cformat\u201d: \u201c'+PK_FORMAT+'\u201d).'};
+  if(Number(j.version)!==1) return {error:'This rules file version is not supported by the app.'};
+  if(!Array.isArray(j.books) || !j.books.length) return {error:'The file has no books in it.'};
+  if(j.books.length>40) return {error:'Too many books in one file (maximum 40).'};
+  return {pack:j};
+}
+function pkVerify(cand, s, name){
+  const sm=matchedProfiles, sd=lastParseDiag, sp=disablePool, sg=gateExtra, sn=pickedPdfName, st=pickedPdfTitle, out={};
+  const sig=f=>f.length+' question'+(f.length===1?'':'s')+', answers '+(f.map(q=>q.correctKey||'-').join('')||'none');
+  const dump=f=>f.map(q=>q.text+'\n'+q.options.map(o=>o.text).join('\n')+'\n'+(q.explanation||'')).join('\n').toLowerCase();
+  const dirty=(f,fb)=>fb.filter(x=>dump(f).indexOf(x.toLowerCase())>=0);
+  try{
+    disablePool=true; pickedPdfName=name; pickedPdfTitle='';   // the book is "opened" under its own name, exactly as a student's file would be
+    gateExtra=null; matchedProfiles=new Set(); const b=parseSmart(s.text,'');
+    gateExtra=cand; matchedProfiles=new Set(); const a=parseSmart(s.text,'');
+    out.applied=matchedProfiles.has(cand.id);
+    out.before=sig(b); out.after=sig(a); out.beforeDirty=dirty(b,s.forbid); out.afterDirty=dirty(a,s.forbid);
+    out.ok=a.length===s.count && a.map(q=>q.correctKey||'-').join('')===s.keys && !out.afterDirty.length;
+  }catch(e){ out.error=String((e&&e.message)||e).slice(0,80); }
+  finally{ matchedProfiles=sm; lastParseDiag=sd; disablePool=sp; gateExtra=sg; pickedPdfName=sn; pickedPdfTitle=st; }
+  return out;
+}
+const pkNameOk=n=>bookWords(String(n).split(/\s[\u2014|\-]\s/)[0]).length>=2;
+function pkBook(b,i){
+  const r={name:'', ok:false, why:[], warn:[], cand:null, ver:null, inc:true};
+  if(!b || typeof b!=='object' || Array.isArray(b)){ r.name='Book '+(i+1); r.why.push('this entry is not a book'); return r; }
+  const name=String(b.name||'').replace(/\s+/g,' ').trim().slice(0,80); r.name=name;
+  if(!name) r.why.push('it has no name');
+  // junk lines: exact printed lines, compared the way the app always compares header/footer lines (case, spaces and digits ignored)
+  const keys=[], seen=new Set(); let skipped=0;
+  (Array.isArray(b.junk)?b.junk:[]).forEach(x=>{
+    const t=String(x==null?'':x).trim(); if(!t || t.length>200 || FURN_MARK.test(t)){ skipped++; return; }
+    const k=normFurn(t); if(seen.has(k)) return; seen.add(k); if(JUNK_STRUCT.test(k)){ skipped++; return; } keys.push(k);
+  });
+  const junk=poolClean(keys); skipped+=keys.length-junk.length;
+  if(skipped) r.warn.push(skipped+' junk line'+(skipped===1?' was':'s were')+' left out (question/option/answer-looking, a structural word, too short or long, containing a link or e-mail, or beyond 30)');
+  const drop=[], dseen=new Set();
+  (Array.isArray(b.dropLines)?b.dropLines:[]).forEach(x=>{ const s=String(x==null?'':x); if(dseen.has(s)) return; dseen.add(s); if(dropSafe(s) && drop.length<20) drop.push(s); else r.warn.push('pattern not accepted: '+s.slice(0,50)); });
+  let strategy=null; if(b.strategy!=null && b.strategy!==''){ if(PARSE_STRATEGIES.some(x=>x[0]===b.strategy)) strategy=b.strategy; else r.warn.push('unknown reading style \u201c'+String(b.strategy).slice(0,30)+'\u201d ignored'); }
+  const aka=(Array.isArray(b.aka)?b.aka:[]).map(x=>String(x==null?'':x).replace(/\s+/g,' ').trim().slice(0,80)).filter(Boolean).slice(0,5);
+  if(!junk.length && !drop.length) r.why.push('it has no usable junk lines or patterns');
+  if(drop.length && !junk.length && !(pkNameOk(name) || aka.some(pkNameOk))) r.why.push('it has only line patterns, so its name needs at least 2 real words before any dash');
+  else if(!(pkNameOk(name) || aka.some(pkNameOk))) r.warn.push('the name has fewer than 2 words before the dash, so the book can only be recognised by its repeated lines');
+  let samp=null;
+  if(b.sample!=null){
+    const s=b.sample, fb=Array.isArray(s&&s.forbid)?s.forbid.map(x=>String(x==null?'':x)).filter(x=>x.length>=3&&x.length<=80).slice(0,10):[];
+    if(s && typeof s.text==='string' && s.text.length>=40 && s.text.length<=60000 && Number.isInteger(s.count) && s.count>=1 && s.count<=300 && typeof s.keys==='string' && /^[a-e*\-]+$/i.test(s.keys) && s.keys.length===s.count) samp={text:s.text, count:s.count, keys:s.keys.toLowerCase(), forbid:fb};
+    else r.warn.push('the sample is not usable (it needs text, a count and one answer letter per question), so the rules are not verified on text');
+  }
+  if(r.why.length) return r;
+  r.cand={id:'k'+Date.now().toString(36)+i, pool:true, name, junk, strategy};
+  if(drop.length) r.cand.drop=drop; if(aka.length) r.cand.aka=aka;
+  let fails=[]; try{ fails=gateCandidate(r.cand); }catch(e){ fails=['(the check crashed)']; }
+  if(fails.length) r.why.push('it would change how '+fails.length+' saved test layout'+(fails.length===1?'':'s')+' read ('+fails.slice(0,3).join('; ')+')');
+  else if(samp){
+    r.ver=pkVerify(r.cand, samp, name);
+    if(r.ver.error) r.why.push('the sample check crashed ('+r.ver.error+')');
+    else{
+      if(!r.ver.ok) r.why.push('with the rules the sample reads as '+r.ver.after+(r.ver.afterDirty.length?' and still contains \u201c'+r.ver.afterDirty[0].slice(0,40)+'\u201d':'')+', not '+samp.count+' questions with answers '+samp.keys);
+      if(!r.ver.applied) r.warn.push('the rules did not switch on for the sample \u2014 it should include the repeated lines');
+    }
+  } else r.warn.push('no sample, so the rules were tested against the saved layouts only');
+  r.ok=!r.why.length; return r;
+}
+async function pkCheck(){
+  const out=document.getElementById('pkOut'); if(!out) return;
+  const p=pkParse(document.getElementById('pkText').value);
+  if(p.error){ PK.res=[]; out.innerHTML='<div class="card" style="margin:10px 0;padding:10px;"><b>Cannot use this file</b><div style="font-size:13px;margin-top:4px;color:var(--red);">'+escH(p.error)+'</div></div>'; return; }
+  const bs=p.pack.books; PK.note=String(p.pack.note||'').slice(0,300); PK.res=[];
+  out.innerHTML='<div class="muted" id="pkProg" style="margin:10px 0;">Checking\u2026</div>';
+  for(let i=0;i<bs.length;i++){ const e=document.getElementById('pkProg'); if(e) e.textContent='Checking book '+(i+1)+' of '+bs.length+' against all saved test layouts\u2026'; await ptTick(); PK.res.push(pkBook(bs[i],i)); }
+  pkShow();
+}
+function pkShow(){
+  const out=document.getElementById('pkOut'); if(!out) return;
+  const ok=PK.res.filter(r=>r.ok);
+  let h='<div style="margin:10px 0 4px;font-size:13.5px;"><b>'+ok.length+' of '+PK.res.length+' book'+(PK.res.length===1?'':'s')+' passed.</b></div>'+(PK.note?'<div class="muted" style="font-size:12px;">Note in the file: '+escH(PK.note)+'</div>':'');
+  PK.res.forEach((r,i)=>{
+    const c=r.cand;
+    h+='<div class="card" style="margin:8px 0;padding:10px;"><div style="display:flex;gap:8px;align-items:flex-start;"><div style="font-size:18px;line-height:1.2;">'+(r.ok?'\u2705':'\u274C')+'</div><div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:700;word-break:break-word;">'+escH(r.name||('Book '+(i+1)))+'</div>'
+     +(c?'<div class="muted" style="font-size:12px;">'+c.junk.length+' repeated line'+(c.junk.length===1?'':'s')+(c.drop?' \u00b7 '+c.drop.length+' pattern'+(c.drop.length===1?'':'s'):'')+' \u00b7 style: '+escH(c.strategy||'standard')+(c.aka?' \u00b7 '+c.aka.length+' other name'+(c.aka.length===1?'':'s'):'')+'</div>':'')+'</div></div>';
+    if(r.ver && !r.ver.error) h+='<div style="font-size:12.5px;margin-top:6px;">Sample: without the rules <b>'+escH(r.ver.before)+'</b>'+(r.ver.beforeDirty.length?' (header text inside the questions)':'')+' \u2192 with the rules <b>'+escH(r.ver.after)+'</b> '+(r.ver.ok?'\u2713':'\u2717')+'</div>';
+    r.why.forEach(w=>{ h+='<div style="font-size:12.5px;margin-top:4px;color:var(--red);">Not accepted: '+escH(w)+'.</div>'; });
+    r.warn.forEach(w=>{ h+='<div class="muted" style="font-size:12px;margin-top:3px;">'+escH(w)+'.</div>'; });
+    if(r.ok){
+      h+='<input type="text" maxlength="80" value="'+escH(r.name)+'" placeholder="Book name \u2014 Publisher" oninput="PK.res['+i+'].name=this.value" style="width:100%;box-sizing:border-box;margin:8px 0 4px;">'
+       +'<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:13px;">See the lines and patterns</summary>'+c.junk.map(k=>'<div style="font-size:12px;margin:3px 0;word-break:break-word;">'+escH(k)+'</div>').join('')+(c.drop||[]).map(k=>'<div style="font-size:12px;margin:3px 0;word-break:break-word;">pattern: '+escH(k)+'</div>').join('')+'</details>'
+       +'<label style="display:block;font-size:12.5px;margin-top:6px;"><input type="checkbox" '+(r.inc?'checked':'')+' onchange="PK.res['+i+'].inc=this.checked"> Include when I publish</label>';
+    }
+    h+='</div>';
+  });
+  if(ok.length) h+='<div class="row" style="margin-top:10px;justify-content:flex-start;"><button class="primary sm" onclick="pkPublish()">Publish passed books to everyone</button></div>';
+  out.innerHTML=h;
+}
+async function pkPublish(){
+  const rs=PK.res.filter(r=>r.ok && r.inc), books=[];
+  if(!rs.length){ showToast('Nothing ticked to publish.','info'); return; }
+  for(const r of rs){
+    const name=String(r.name||'').replace(/\s+/g,' ').trim().slice(0,80), c=r.cand;
+    if(!name){ showToast('Every book you publish needs a name.','error'); return; }
+    if(!c.junk.length && !(pkNameOk(name) || (c.aka||[]).some(pkNameOk))){ showToast('\u201c'+name+'\u201d has only line patterns, so its name needs at least 2 real words before any dash.','error'); return; }
+    books.push({name, junk:c.junk, strategy:c.strategy, aka:c.aka||[], drop:c.drop||[]});
+  }
+  if(!confirm('Publish '+books.length+' book'+(books.length===1?'':'s')+' to all students? You can remove any entry later.')) return;
+  await paPublishAndReturn(books);
+}
 function learnNoteText(r){
   if(!r || r.kind==='known') return '';
   if(r.kind==='rejected') return 'Source layout not saved: it would have changed how '+r.fails.length+' saved test layout(s) read.';
@@ -3917,7 +4330,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-23b';
+const APP_BUILD = 'index-24';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
