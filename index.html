@@ -568,6 +568,64 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 #examOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-end;justify-content:center;}
 #examOverlay.open{display:flex;}
 @media (min-width:700px){#examOverlay{align-items:center;} #examOverlay .info-sheet{border-radius:20px;max-width:460px;}}
+/* Planner */
+#plOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-end;justify-content:center;}
+#plOverlay.open{display:flex;}
+@media (min-width:700px){#plOverlay{align-items:center;} #plOverlay .info-sheet{border-radius:20px;max-width:520px;}}
+.pl-head{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 12px;}
+.pl-head h2{margin:0;font-size:20px;}
+.pl-card{margin:0 0 12px!important;}
+.pl-row1{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.pl-row1 b{font-size:15px;}
+.pl-chip{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;}
+.pl-chip.g{background:var(--green-bg);color:var(--green);} .pl-chip.r{background:var(--red-bg);color:var(--red);} .pl-chip.y{background:var(--warn-bg);color:var(--warn);} .pl-chip.n{background:var(--ink-bg);color:var(--text);}
+.pl-sub{font-size:12px;color:var(--muted);margin:3px 0 9px;}
+.pl-bar{position:relative;height:8px;border-radius:5px;background:var(--border);}
+.pl-bar i{position:absolute;left:0;top:0;height:8px;border-radius:5px;background:var(--brand);transition:width .4s;}
+.pl-bar i.g{background:var(--green);} .pl-bar i.r{background:var(--red);}
+.pl-bar u{position:absolute;top:-3px;height:14px;width:2px;background:var(--text);text-decoration:none;}
+.pl-cap{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--muted);margin:5px 0 0;}
+.pl-phase{display:flex;gap:4px;font-size:11px;margin-top:10px;}
+.pl-phase span{padding:4px 6px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-phase .g{background:var(--green-bg);color:var(--green);} .pl-phase .n{background:var(--ink-bg);color:var(--text);} .pl-phase .y{background:var(--warn-bg);color:var(--warn);}
+.pl-note{font-size:12.5px;color:var(--muted);margin:8px 0 0;}
+.pl-btns{display:flex;gap:8px;margin-top:12px;} .pl-btns button{flex:1;}
+.pl-warn{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:13px;}
+.pl-ok{background:var(--green-bg);color:var(--green);border-radius:10px;padding:8px 10px;font-size:13px;}
+.pl-b{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;}
+.pl-bn{width:92px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-bt{position:relative;flex:1;height:12px;border-radius:3px;background:var(--border);}
+.pl-bt i{position:absolute;left:0;top:0;height:12px;border-radius:3px;background:var(--green);}
+.pl-bt i.y{background:var(--orange);} .pl-bt i.r{background:var(--red);}
+.pl-bt u{position:absolute;top:-3px;height:18px;border-left:1.5px dashed var(--text);text-decoration:none;}
+.pl-bv{width:34px;flex:none;text-align:right;}
+.pl-res{border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:10px 0;background:var(--card);}
+.pl-res b{display:block;font-size:14px;} .pl-res small{display:block;color:var(--muted);font-size:12px;margin-top:2px;}
+.plan-card .pl-top{display:flex;align-items:center;gap:14px;}
+.plan-card .ringbox{width:64px;height:64px;}
+.plan-card .ring-pct b{font-size:15px;}
+.plan-card .pl-tx h3{margin:0 0 2px;font-size:16px;}
+.plan-card .pl-tx p{margin:0;font-size:12.5px;color:var(--muted);}
+.plan-card .linkbtn{margin-left:auto;align-self:flex-start;background:none;border:none;min-height:0;padding:2px 4px;color:var(--muted);font-size:12.5px;font-weight:600;}
+#plRows{display:grid;gap:10px;margin:14px 0 12px;}
+.pl-r1{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+.pl-r1 em{font-style:normal;font-size:11.5px;color:var(--muted);margin-left:4px;} .pl-r1 em.b{color:var(--red);}
+#plNote{margin-bottom:12px;}
+#plStart{width:100%;}
+.pl-all{display:flex;align-items:flex-end;gap:10px;margin-bottom:10px;}
+.pl-all label,.pl-set label{display:grid;gap:3px;font-size:11.5px;color:var(--muted);flex:1;}
+.pl-all .pf-field{width:100%;box-sizing:border-box;margin:0;}
+.pl-set{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 6px;}
+.pl-set .num-input{width:100%;box-sizing:border-box;}
+.pl-srow{border-top:1px solid var(--border);padding:10px 0;}
+.pl-sname{display:flex;justify-content:space-between;align-items:baseline;}
+.pl-sname small{color:var(--muted);font-size:12px;}
+.pl-in2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+.pl-in2 label{font-size:11.5px;color:var(--muted);display:grid;gap:3px;}
+.pl-in2 .num-input,.pl-in2 .pf-field{width:100%;box-sizing:border-box;margin:0;}
+#hmChallenge{position:relative;}
+#hmChallenge #dlDot{position:absolute;top:10px;right:12px;}
+#hmChallenge .dl-dot{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}
 #hmExam.has{background:#0B7D63;border-color:#0B7D63;color:#fff;font-size:14.5px;font-weight:700;padding:8px 15px;}
 #hmExam.has b{font-size:19px;font-weight:800;margin:0 1px;}
 :root[data-theme="dark"] #hmExam.has{background:#3DD6A8;border-color:#3DD6A8;color:#06291F;}
@@ -598,6 +656,20 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
     <div id="srCustomRow" class="row" style="display:none;gap:8px;margin-top:10px;justify-content:stretch;"><input id="srCustomInput" type="number" min="1" inputmode="numeric" class="num-input" placeholder="How many questions?" style="flex:1;"><button class="primary" onclick="rvStartCustom()">Start</button></div>
     <div id="srBreakWrap"><div class="gs-lbl" style="margin-top:18px;">What is due</div><div id="srBreak"></div></div>
     <p class="muted" style="font-size:11.5px;margin-top:8px;">Whatever you leave stays pending for next time.</p>
+  </div>
+</div>
+<div id="plOverlay" onclick="if(event.target===this) plCloseSetup()">
+  <div class="info-sheet" style="max-height:92vh;overflow-y:auto;">
+    <div class="gs-head"><h4>Plan my subjects</h4><button class="back" onclick="plCloseSetup()" aria-label="Close" style="font-size:16px;">✕</button></div>
+    <div class="gs-note" style="margin:6px 0 10px;">Enter how many questions you plan to practise in each subject, and the date to finish the first pass by. Leave both empty to keep a subject out of the plan. If you add more questions later, the plan grows with them.</div>
+    <div class="pl-all"><label>Same date for all subjects<input type="date" id="plAllDate" class="pf-field"></label><button class="secondary sm" onclick="plApplyAll()">Set for all</button></div>
+    <div class="pl-set">
+      <label>Review days<input id="plRevDays" type="number" min="1" max="30" inputmode="numeric" class="num-input"></label>
+      <label>Count a skipped question after (s)<input id="plMinSec" type="number" min="1" max="60" inputmode="numeric" class="num-input"></label>
+      <label>Mark complete from (%)<input id="plPass" type="number" min="50" max="100" inputmode="numeric" class="num-input"></label>
+    </div>
+    <div id="plSetupRows"></div>
+    <div class="row pair" style="margin-top:14px;"><button class="primary" onclick="plSaveSetup()">Save plan</button><button class="secondary" onclick="plCloseSetup()">Cancel</button></div>
   </div>
 </div>
 <div id="examOverlay" onclick="if(event.target===this) closeExamDate()">
@@ -667,7 +739,7 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
     <button id="tabbtn-test" onclick="switchTab('test')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span>Practice</button>
     <button id="tabbtn-bank" onclick="switchTab('bank')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6"/></svg></span>Library</button>
     <button id="tabbtn-history" onclick="switchTab('history')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20V11M12 20V4M18 20v-6"/></svg></span>Progress</button>
-    <button id="tabbtn-duel" style="display:none" onclick="Duel.open()"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/><path d="M5 9V5h4M19 9V5h-4"/></svg></span>Duels<span id="dlDot"></span></button>
+    <button id="tabbtn-planner" onclick="switchTab('planner')"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>Planner</button>
   </nav>
 </header>
 <div id="bkBanner" style="display:none;"></div>
@@ -702,6 +774,16 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
         </div>
         <button class="linkbtn" onclick="openGoals()">Edit</button>
       </div>
+      <div class="card plan-card c-day" id="hmPlan" style="display:none">
+        <div class="pl-top">
+          <div class="ringbox"><svg viewBox="0 0 100 100"><circle class="rg-bg" cx="50" cy="50" r="42"/><circle id="plRing" class="rg-fg" cx="50" cy="50" r="42" transform="rotate(-90 50 50)" stroke-dasharray="0 264"/></svg><span class="ring-pct"><b id="plPct">0%</b></span></div>
+          <div class="pl-tx"><h3>Today's plan</h3><p id="plSum"></p></div>
+          <button class="linkbtn" onclick="switchTab('planner')">Planner &rsaquo;</button>
+        </div>
+        <div id="plRows"></div>
+        <div class="pl-warn" id="plNote" style="display:none"></div>
+        <button class="primary" id="plStart" onclick="plStartToday()">Start today's test</button>
+      </div>
       <div class="card sr-card c-sr rv-card" id="hmRev">
         <div class="sr-ic" aria-hidden="true">🔁</div>
         <div class="sr-tx"><h3>Revision</h3><p id="rvText">0 questions pending for revision</p><p class="muted" id="rvSub" style="font-size:11.5px;margin:4px 0 0;"></p>
@@ -719,9 +801,14 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
       </div>
       <div class="c-quick tiles">
         <button class="tile add" onclick="goAdd()"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span>Add questions</span></button>
-        <button id="hmChallenge" class="tile fight" onclick="Duel.open()"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/><path d="M5 9V5h4M19 9V5h-4"/></svg></span><span>Challenge a friend</span></button>
+        <button id="hmChallenge" class="tile fight" onclick="Duel.open()"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/><path d="M5 9V5h4M19 9V5h-4"/></svg></span><span>Challenge a friend</span><span id="dlDot"></span></button>
       </div>
     </div>
+  </section>
+
+  <section id="screen-planner" class="screen">
+    <div class="pl-head"><h2>Planner</h2><button class="secondary sm" onclick="plOpenSetup()">Plan subjects</button></div>
+    <div id="plBody"></div>
   </section>
 
   <section id="screen-profile" class="screen">
@@ -860,21 +947,21 @@ Ans. (b)
     <div id="msCard" class="card" style="display:none;">
       <h3 style="margin:0 0 4px;">Topics in these pages</h3>
       <p class="muted" style="font-size:11.5px;margin:0 0 6px;">Found from the headings. Rename, untick, or tap ↑ to merge a topic into the one above.</p>
-      <input type="text" id="msSubject" class="tag-input" style="width:100%;margin-bottom:6px;" placeholder="Subject (optional, blank = use the book's heading)">
+      <input type="text" id="msSubject" class="tag-input" style="width:100%;margin-bottom:6px;" placeholder="Subject (required)" oninput="syncMsBtn()">
       <div id="msList"></div>
-      <div class="row pair" style="margin-top:12px;"><button class="primary" onclick="msAdd()">Add to my questions</button><button class="secondary" onclick="msCancel()">Cancel</button></div>
+      <div class="row pair" style="margin-top:12px;"><button class="primary" id="msAddBtn" onclick="msAdd()">Add to my questions</button><button class="secondary" onclick="msCancel()">Cancel</button></div>
     </div>
 
     <div id="previewCard" class="card" style="display:none;">
       <div class="row" style="justify-content:space-between;align-items:center;"><h3 style="margin:0;">Check your questions</h3><button class="info-btn" onclick="showInfo('preview')">i</button></div>
       <div id="batchTagRow" class="row" style="margin:8px 0 4px;display:none;">
-        <input type="text" id="batchSubj" class="tag-input" placeholder="Subject (optional)">
+        <input type="text" id="batchSubj" class="tag-input" placeholder="Subject (required)">
         <input type="text" id="batchTopic" class="tag-input" placeholder="Topic (optional)">
       </div>
       <p id="batchTagHint" class="muted" style="font-size:11px;margin:0 0 6px;display:none;">Names are picked up from the PDF headings. You can change them here before saving.</p>
       <div id="previewList"></div>
       <div class="row" id="saveRow" style="margin-top:10px;">
-        <button class="primary" onclick="saveBatch()">Save questions</button>
+        <button class="primary" id="saveBatchBtn" onclick="saveBatch()">Save questions</button>
         <button class="secondary" onclick="discardBatch()">Discard</button>
       </div>
     </div>
@@ -2716,7 +2803,7 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeo
 window.addEventListener('focus',()=>setTimeout(ensureKeys,60));
 window.addEventListener('pageshow',()=>setTimeout(ensureKeys,60));
 function switchTab(name){
-  ['home','bank','test','history','profile'].forEach(n=>{
+  ['home','bank','test','history','planner','profile'].forEach(n=>{
     const sc=document.getElementById('screen-'+n); if(sc) sc.classList.toggle('active', n===name);
     const tb=document.getElementById('tabbtn-'+n); if(tb) tb.classList.toggle('active', n===name || (n==='home' && name==='profile'));
   });
@@ -2726,6 +2813,7 @@ function switchTab(name){
   if(name==='test') setTimeout(ensureKeys,30);
   if(name==='history'){ renderProgress(); renderHistory(); }
   if(name==='home') renderHome();
+  if(name==='planner') plRender();
   if(name==='profile') renderProfile();
   if(session && !session.done){ if(name==='test') unpauseTest(); else pauseTest(); }
   syncBody();
@@ -3233,14 +3321,16 @@ async function ptOne(lib,row){
   let title=''; try{ const m=await pdf.getMetadata(); const t=String((m&&m.info&&m.info.Title)||'').trim(); if(t.length>=4 && !/^(microsoft word|untitled|document\d*)/i.test(t) && !/\.(docx?|pdf|indd|pages)$/i.test(t)) title=t.slice(0,80); }catch(e){}
   if(title) row.name=ptGuessName(title);
   pickedPdfName=row.file.name; pickedPdfTitle=title;
-  for(let s=1; s<=N; s+=PDF_RANGE_MAX){
+  let nextS=1, resume=null;
+  for(let s=1; s<=N; s=nextS){
     if(PT.cancel){ Object.assign(row, ptNewRow(row.file)); row.msg='Stopped. Tap Start to read it again.'; try{ pdf.destroy(); }catch(e){} return; }
-    const e2=Math.min(N,s+PDF_RANGE_MAX-1), tag=s+'\u2013'+e2;
+    const e2=Math.min(N,s+PDF_RANGE_MAX-1), rs=resume; let tag=s+'\u2013'+e2; resume=null; nextS=e2+1;
     profReset(null); checkAgg={expected:0, found:0, items:[], samples:[], used:{}, sample:null};
     let r;
-    try{ r=await pdfPagesToSegments(pdf,s,e2,m=>say(m.replace(/ of \d+/,' of '+N))); }
+    try{ r=await pdfPagesToSegments(pdf,s,e2,m=>say(m.replace(/ of \d+/,' of '+N)), rs?{skipTo:rs.h0}:null); }
     catch(e){ row.win++; row.badWin++; row.problems.push({pages:tag, sum:'could not be read ('+String((e&&e.message)||e).slice(0,60)+')', items:[], missed:0, sample:''}); continue; }
     if(!r.segs.some(x=>x.text.trim())){ row.noText++; await ptTick(); continue; }
+    { const cut=(e2<N) ? pdfCutLast(r,s) : null; if(cut){ nextS=cut.at; resume={h0:cut.h0}; tag=s+'\u2013'+(cut.at-1); } }   // a topic is never split between two windows
     row.win++;
     say('Finding questions on pages '+tag+' of '+N+'\u2026');
     const whole=r.segs.map(x=>(x.title?x.title+'\n':'')+x.text).join('\n\n');
@@ -3575,11 +3665,11 @@ function pdfSegmentPages(pages){
         if(kid){
           const name=t.replace(ROM,'').replace(LET,'').trim();
           if(lastHead && !hasText() && cur.kind==='chapter'){ cur.title=childOf(cur.title,name); cur.kind='kid'; return; }   // chapter title straight followed by its first topic
-          flush(); cur={title:childOf(parent,name),subject,lines:[],kind:'kid'}; lastHead=true; return;
+          flush(); cur={title:childOf(parent,name),subject,lines:[],kind:'kid',pgi:pi,h0:t}; lastHead=true; return;
         }
         if(lastHead && !hasText()){ cur.title=(cur.title?cur.title+' ':'')+t; if(cur.kind!=='kid') parent=cur.title; return; }   // wrapped title, or the title right under a subject heading
         if(cur.kind==='chapter' && cur.page===pi-1 && cur.title.toLowerCase().replace(/[^a-z0-9]/g,'')===t.toLowerCase().replace(/[^a-z0-9]/g,'')){ return; }   // the same chapter title printed again on the very next page: the chapter goes on, it does not start again
-        flush(); cur={title:t,subject,lines:[],kind:'chapter',page:pi}; parent=t; lastHead=true; return;
+        flush(); cur={title:t,subject,lines:[],kind:'chapter',page:pi,pgi:pi,h0:t}; parent=t; lastHead=true; return;
       }
       lastHead=false; romanOnly=false; cur.lines.push(l.t);
     });
@@ -3588,10 +3678,22 @@ function pdfSegmentPages(pages){
   segs.forEach(sg=>{ delete sg.kind; delete sg.page; });
   return {segs, headCount};
 }
-async function pdfPagesToSegments(pdf, startP, endP, setStatus){
+async function pdfPagesToSegments(pdf, startP, endP, setStatus, opts){
   const pages=pdfDropRunning(await pdfBuildPages(pdf, startP, endP, setStatus));
   pdfFindHeadings(pages);
+  if(opts && opts.skipTo && pages.length){   // an automatic window that carries on from the last one starts at that topic's heading: what is printed above it on this first page was already read with the previous window
+    const nk=t=>String(t).trim().toLowerCase().replace(/\d+/g,'#').replace(/\s+/g,''), k=nk(opts.skipTo), i=pages[0].findIndex(l=>l.head && nk(l.t)===k);
+    if(i>0) pages[0]=pages[0].slice(i);
+  }
   return pdfSegmentPages(pages);
+}
+/* Automatic page windows: the topic that is still running at the end of the window is left out, and the next window starts at its heading, so a topic is never split between two windows.
+   Returns {at: page where the next window starts, h0: its heading, title} (and removes that topic from r.segs), or null when nothing can be cut. */
+function pdfCutLast(r, startP){
+  const segs=r.segs, last=segs[segs.length-1];
+  if(!r.headCount || segs.length<2 || !last || last.pgi==null || !last.h0 || !segs.slice(0,-1).some(x=>x.text.trim())) return null;
+  const at=startP+last.pgi; if(at<=startP) return null;   // always moves forward
+  segs.pop(); return {at, h0:last.h0, title:last.title||last.h0};
 }
 function tagKeywordOk(namePart){
   const compact = namePart.replace(/[.\s]/g,'').toUpperCase();
@@ -4330,7 +4432,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-24';
+const APP_BUILD = 'index-26';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -4691,7 +4793,7 @@ async function parseSelectedChapters(){
     const c=sel[i], from=Math.max(1,c.from||1), to=Math.min(autoPdf.numPages,Math.max(from,c.to||from));
     const text=await pdfPagesToText(autoPdf,from,to,m=>{ st.textContent='Topic '+(i+1)+'/'+sel.length+': '+m; });
     let found=[]; try{ found=parseSmart(text,''); checkAdd(c.topic, found, lastParseDiag, text); }catch(e){ console.warn('Parse failed for',c.topic,e); }
-    found.forEach(q=>all.push({...q, tempId:uid(), subject:c.subject.trim(), topic:c.topic.trim()}));
+    found.forEach(q=>all.push({...q, tempId:uid(), subject:c.subject.trim(), sj:true, topic:c.topic.trim()}));
     await new Promise(r=>setTimeout(r,0));
   }
   st.textContent='';
@@ -4717,7 +4819,7 @@ function setAddMode(m){
   $id('pdfPagesBox').style.display=m==='series'?'none':'';
   $id('pdfPickBtn').textContent = m==='series' ? 'Choose question paper PDF' : 'Choose your PDF';
 }
-let pickedPdf=null, pickedPdfName='', pickedPdfTitle='', lastRangeEnd=0;
+let pickedPdf=null, pickedPdfName='', pickedPdfTitle='', lastRangeEnd=0, pdfAuto=false, pdfResume=null;   // pdfAuto: the page boxes were filled by the app (not typed); pdfResume: where the next automatic window must start
 const $id=id=>document.getElementById(id);
 function bigPdfExample(from){ from=from||1; return from+'-'+(from+PDF_RANGE_MAX-1); }
 async function handlePdfPick(ev){
@@ -4727,7 +4829,7 @@ async function handlePdfPick(ev){
   try{
     const lib=await ensurePdfJs();
     const pdf=await lib.getDocument({data:await file.arrayBuffer(), verbosity:0}).promise;
-    pickedPdf=pdf; pickedPdfName=file.name; lastRangeEnd=0; pickedPdfTitle='';
+    pickedPdf=pdf; pickedPdfName=file.name; lastRangeEnd=0; pickedPdfTitle=''; pdfAuto=false; pdfResume=null;
     try{ const m=await pdf.getMetadata(); const t=String((m&&m.info&&m.info.Title)||'').trim(); if(t.length>=4 && !/^(microsoft word|untitled|document\d*)/i.test(t) && !/\.(docx?|pdf|indd|pages)$/i.test(t)) pickedPdfTitle=t.slice(0,80); }catch(e){}
     $id('pdfFileName').textContent=file.name+' \u00b7 '+pdf.numPages+' pages'; $id('pdfClearBtn').style.display='inline-block';
     $id('pdfFrom').value=''; $id('pdfTo').value=''; st.textContent='';
@@ -4739,7 +4841,7 @@ async function handlePdfPick(ev){
   ev.target.value='';
 }
 function clearPdf(){
-  pickedPdf=null; pickedPdfName=''; pickedPdfTitle=''; lastRangeEnd=0; $id('pdfFileName').textContent=''; $id('pdfClearBtn').style.display='none';
+  pickedPdf=null; pickedPdfName=''; pickedPdfTitle=''; lastRangeEnd=0; pdfAuto=false; pdfResume=null; $id('pdfFileName').textContent=''; $id('pdfClearBtn').style.display='none';
   $id('pdfFrom').value=''; $id('pdfTo').value=''; $id('pdfStatus').textContent=''; syncPdfUi();
 }
 /* Updates the hint under the page boxes, the big-PDF note and the Parse button. */
@@ -4754,7 +4856,7 @@ function syncPdfUi(){
     hint.textContent='Your PDF has '+N+' pages. Pick up to '+PDF_RANGE_MAX+' pages at a time.';
     note.style.display='block';
     note.innerHTML='<b>Big PDF? Do it in parts.</b><br>1. Type <b>'+bigPdfExample(1)+'</b>, tap Create questions, then Save.<br>2. Then type <b>'+bigPdfExample(101)+'</b>, and so on.';
-    if(!$id('pdfFrom').value && !$id('pdfTo').value){ $id('pdfFrom').value=1; $id('pdfTo').value=PDF_RANGE_MAX; }
+    if(!$id('pdfFrom').value && !$id('pdfTo').value){ $id('pdfFrom').value=1; $id('pdfTo').value=PDF_RANGE_MAX; pdfAuto=true; pdfResume=null; }
   } else {
     hint.textContent='Your PDF has '+N+' pages. Leave empty to use all of it.';
     note.style.display='none';
@@ -4785,9 +4887,14 @@ async function doParsePdf(){
   btn.disabled=true; st.textContent='Reading pages '+startP+'-'+endP+'\u2026';
   try{
     const noText=()=>{ st.textContent='No selectable text found \u2014 this looks like a scanned PDF. Try the \u2728 AI help tab.'; logIssue('pdf-no-text','pages '+startP+'-'+endP+' of '+pdf.numPages,'nt'+pdf.numPages+'-'+pickedPdfName.length); };
-    const r=await pdfPagesToSegments(pdf,startP,endP,m=>{ st.textContent=m; });
+    const resume=(pdfAuto && pdfResume && pdfResume.page===startP) ? pdfResume : null;   // this window carries on where the last automatic one stopped
+    if(!resume) pdfResume=null;
+    const r=await pdfPagesToSegments(pdf,startP,endP,m=>{ st.textContent=m; }, resume?{skipTo:resume.h0}:null);
     if(!r.segs.some(x=>x.text.trim())){ noText(); return; }
-    lastRangeEnd=endP;
+    let cut=null; if(pdfAuto && addMode!=='series' && endP<pdf.numPages && !$id('solutionsArea').value.trim()) cut=pdfCutLast(r,startP);   // only for automatic pages: typed pages are read exactly as typed
+    if(cut) pdfResume={page:cut.at, h0:cut.h0};
+    lastRangeEnd=cut?cut.at-1:endP;
+    const endShown=lastRangeEnd, cutNote=cut?' The topic \u201c'+cut.title+'\u201d starts on page '+cut.at+', so it is left for the next go.':'';
     const whole=r.segs.map(x=>(x.title?x.title+'\n':'')+x.text).join('\n\n');
     multiSegs=[]; checkReset();
     const hasSol=!!$id('solutionsArea').value.trim();
@@ -4802,8 +4909,9 @@ async function doParsePdf(){
     }
     if(multiSegs.length>=2){
       const total=multiSegs.reduce((n,x)=>n+x.found.length,0);
-      st.textContent=total+' question(s) found in '+multiSegs.length+' topics. Check the names, merge if needed, then tap Add to my questions.';
-      $id('msSubject').value='';
+      st.textContent=total+' question(s) found in '+multiSegs.length+' topics. Check the names, merge if needed, then tap Add to my questions.'+cutNote;
+      { const ss=[...new Set(multiSegs.map(x=>x.subject).filter(Boolean))], named=multiSegs.every(x=>x.subject);   // the book names the subject: show it, so it is visible and can be changed
+        $id('msSubject').value = (ss.length===1 && named) ? ss[0] : ''; $id('msSubject').placeholder = named ? 'Subject (blank = use the book\u2019s headings)' : 'Subject (required)'; }
       renderMultiSegs(); renderCheck(); $id('msCard').style.display='block';
       $id('msCard').scrollIntoView({behavior:'smooth',block:'start'});
     } else {   // one topic (or no headings): parse straight to the review list
@@ -4811,11 +4919,11 @@ async function doParsePdf(){
       if(multiSegs.length===1){ subject=multiSegs[0].subject||''; topic=multiSegs[0].title||''; }
       if(addMode==='series'){ subject=subject||'Test series'; topic=topic||pickedPdfName.replace(/\.pdf$/i,''); }
       lastParseDiag=null; let found=[];
-      try{ checkReset(); found=parseSmart(whole, $id('solutionsArea').value); checkAdd('Pages '+startP+'\u2013'+endP, found, lastParseDiag, whole); renderCheck(); }
+      try{ checkReset(); found=parseSmart(whole, $id('solutionsArea').value); checkAdd('Pages '+startP+'\u2013'+endShown, found, lastParseDiag, whole); renderCheck(); }
       catch(e){ console.warn('Parse crashed',e); logIssue('parse-crash', e && e.message, e && e.message); st.textContent='Something went wrong while parsing \u2014 the admin has been notified.'; return; }
-      if(!found.length){ st.textContent=/[\u0900-\u097F]/.test(whole) ? 'No English questions detected \u2014 Hindi text is ignored for now.' : 'No questions found in pages '+startP+'-'+endP+'. Check the page range.'; return; }
-      st.textContent=found.length+' question(s) found in pages '+startP+'-'+endP+'. Check them below, then Save.';
-      parsedBatch=found.map(q=>({...q, tempId:uid(), subject:subject||'General', topic:topic||'General'}));
+      if(!found.length){ st.textContent=/[\u0900-\u097F]/.test(whole) ? 'No English questions detected \u2014 Hindi text is ignored for now.' : 'No questions found in pages '+startP+'-'+endShown+'. Check the page range.'; return; }
+      st.textContent=found.length+' question(s) found in pages '+startP+'-'+endShown+'. Check them below, then Save.'+cutNote;
+      parsedBatch=found.map(q=>({...q, tempId:uid(), subject:subject||'General', sj:!!subject, topic:topic||'General'}));   // sj: the subject was really named (by the book's heading), not the 'General' placeholder
       $id('previewCard').style.display='block'; renderPreview();
       $id('previewCard').scrollIntoView({behavior:'smooth',block:'start'});
     }
@@ -4827,21 +4935,28 @@ async function doParsePdf(){
 function suggestNextRange(){
   if(!pickedPdf || !lastRangeEnd) return;
   const N=pickedPdf.numPages;
-  if(lastRangeEnd>=N){ $id('pdfStatus').textContent='\u2705 All '+N+' pages are done!'; $id('pdfFrom').value=''; $id('pdfTo').value=''; lastRangeEnd=0; return; }
+  if(lastRangeEnd>=N){ $id('pdfStatus').textContent='\u2705 All '+N+' pages are done!'; $id('pdfFrom').value=''; $id('pdfTo').value=''; lastRangeEnd=0; pdfAuto=false; pdfResume=null; return; }
   const f=lastRangeEnd+1, t=Math.min(N,lastRangeEnd+PDF_RANGE_MAX);
   $id('pdfFrom').value=f; $id('pdfTo').value=t;
-  $id('pdfStatus').textContent='Saved! Next pages '+f+'-'+t+' are ready. Tap Create questions.';
+  if(!pdfAuto) pdfResume=null; pdfAuto=true;
+  $id('pdfStatus').textContent='Saved! Next pages '+f+'-'+t+' are ready'+((pdfResume && pdfResume.page===f)?' (they start where the last topic was cut off)':'')+'. Tap Create questions.';
 }
 function renderMultiSegs(){
   const el=document.getElementById('msList'); el.innerHTML='';
   multiSegs.forEach((c,i)=>{
     const d=document.createElement('div'); d.className='filter-topic'; d.style.paddingLeft='0';
-    d.innerHTML=`<input type="checkbox" ${c.on?'checked':''} ${c.found.length?'':'disabled'} onchange="multiSegs[${i}].on=this.checked">`
+    d.innerHTML=`<input type="checkbox" ${c.on?'checked':''} ${c.found.length?'':'disabled'} onchange="multiSegs[${i}].on=this.checked;syncMsBtn()">`
       +`<input type="text" class="tag-input" style="flex:1;min-width:0;" placeholder="Topic name" value="${acEsc(c.title)}" oninput="multiSegs[${i}].title=this.value">`
       +`<span class="muted" style="font-size:12px;white-space:nowrap;">${c.found.length} Q</span>`
       +(i>0?`<button class="secondary" style="padding:4px 9px;" title="Merge into the topic above" onclick="msMerge(${i})">\u2191</button>`:'');
     el.appendChild(d);
   });
+  syncMsBtn();
+}
+/* The Add button stays off while no subject is named: typed in the box, or given by the book's own subject heading for every ticked topic. */
+function syncMsBtn(){
+  const b=document.getElementById('msAddBtn'), m=document.getElementById('msSubject'); if(!b||!m) return;
+  b.disabled = !m.value.trim() && multiSegs.some(c=>c.on && c.found.length && !c.subject);
 }
 function msMerge(i){   // fold topic i into the one above it (for chapters that are not worth splitting)
   const a=multiSegs[i-1], b=multiSegs[i]; if(!a||!b) return;
@@ -4853,8 +4968,9 @@ function msAdd(){
   const sel=multiSegs.filter(c=>c.on && c.found.length);
   if(!sel.length){ showToast('Tick at least one topic.','error'); return; }
   const subjAll=document.getElementById('msSubject').value.trim();
+  if(sel.some(c=>!(subjAll||c.subject))){ showToast('Type the subject name first.','error'); flagFieldError(document.getElementById('msSubject')); return; }   // a subject is required: typed here, or named by the book's own subject heading
   if(sel.some(c=>!c.title.trim())){ showToast('Give every ticked topic a name.','error'); return; }
-  const all=[]; sel.forEach(c=>c.found.forEach(q=>all.push({...q, tempId:uid(), subject:subjAll||c.subject||'General', topic:c.title.trim()})));
+  const all=[]; sel.forEach(c=>c.found.forEach(q=>all.push({...q, tempId:uid(), subject:subjAll||c.subject, sj:true, topic:c.title.trim()})));
   parsedBatch=all; document.getElementById('msCard').style.display='none'; multiSegs=[];
   document.getElementById('pdfStatus').textContent=all.length+' question(s) in '+sel.length+' topic(s). Check them below, then Save.';
   document.getElementById('parseMsg').textContent='';
@@ -4880,19 +4996,23 @@ function doParse(){
   renderPreview();
   document.getElementById('previewCard').scrollIntoView({behavior:'smooth',block:'start'});
 }
+/* A question can only be saved under a real subject name: typed by the student, or named by the book's own subject heading ('General' is only the placeholder). */
+const subjOk=q=>!!(q && String(q.subject||'').trim() && (q.subject!=='General' || q.sj));
+function syncSaveBtn(){ const b=document.getElementById('saveBatchBtn'); if(b) b.disabled = parsedBatch.some(q=>!subjOk(q)); }
 function renderBatchTags(){
   const row=document.getElementById('batchTagRow'), hint=document.getElementById('batchTagHint'); if(!row) return;
   const subs=new Set(parsedBatch.map(q=>q.subject)), tops=new Set(parsedBatch.map(q=>q.topic));
   const one = parsedBatch.length && tops.size===1;   // several topics (from the merge screen) keep their own names
   row.style.display = hint.style.display = one ? '' : 'none';
   if(one){ const sv=document.getElementById('batchSubj'), tv=document.getElementById('batchTopic');
-    if(document.activeElement!==sv) sv.value = subs.size===1 ? [...subs][0] : '';
+    if(document.activeElement!==sv) sv.value = (subs.size===1 && parsedBatch.every(subjOk)) ? [...subs][0] : '';
     if(document.activeElement!==tv) tv.value = [...tops][0]; }
 }
 function onBatchTag(){   // optional Subject / Topic typed above the review list: applies to every question in this batch
-  const s=document.getElementById('batchSubj').value.trim()||'General', t=document.getElementById('batchTopic').value.trim()||'General';
-  parsedBatch.forEach(q=>{ q.subject=s; q.topic=t; });
+  const sRaw=document.getElementById('batchSubj').value.trim(), s=sRaw||'General', t=document.getElementById('batchTopic').value.trim()||'General';
+  parsedBatch.forEach(q=>{ q.subject=s; q.topic=t; q.sj=!!sRaw; });
   document.querySelectorAll('#previewList .pq-tag').forEach(el=>{ el.textContent=s+' › '+t; });
+  syncSaveBtn();
 }
 function renderPreview(){
   renderBatchTags();
@@ -4916,6 +5036,7 @@ function renderPreview(){
       </div>`;
     el.appendChild(div);
   });
+  syncSaveBtn();
 }
 function setBatchAnswer(tempId,key){ const q=parsedBatch.find(x=>x.tempId===tempId); if(q) q.correctKey=key; renderPreview(); }
 function setBatchTag(tempId,val){ const q=parsedBatch.find(x=>x.tempId===tempId); if(q) q.sourceTag = val.trim()||null; }
@@ -4925,6 +5046,7 @@ function removeBatchItem(tempId){
   if(!parsedBatch.length) document.getElementById('previewCard').style.display='none';
 }
 function saveBatch(){
+  if(parsedBatch.some(q=>!subjOk(q))){ showToast('Type the subject name first.','error'); flagFieldError(document.getElementById('batchSubj')); return; }   // nothing is saved without a subject
   const ready = parsedBatch.filter(q=>q.correctKey);
   const skipped = parsedBatch.length - ready.length;
   const allNew = ready.map(q=>({id:uid(), num:q.num, subject:q.subject, topic:q.topic, text:q.text, options:q.options, correctKey:q.correctKey, sourceTag:q.sourceTag||null, explanation:q.explanation||null, flagged:false, issue:false, attemptCount:0}));
@@ -5487,7 +5609,9 @@ function settleSnapshot(s){
   const byId=new Map(bank.map(q=>[q.id,q])), qs=[], map={};
   s.ids.forEach((id,i)=>{ const q=byId.get(id); if(q){ map[i]=qs.length; qs.push(q); } });
   const ans={}; Object.keys(s.answers||{}).forEach(i=>{ if(map[i]!==undefined) ans[map[i]]=s.answers[i]; });
-  const n=Object.keys(ans).length; if(!n) return 0;
+  const n=Object.keys(ans).length;
+  try{ const qtm={}; Object.keys(s.qt||{}).forEach(i=>{ if(map[i]!==undefined) qtm[map[i]]=s.qt[i]; }); plAfterTest({questions:qs,answers:ans,qt:qtm},true); }catch(e){ console.warn(e); }
+  if(!n) return 0;
   const sess={questions:qs,answers:ans,marking:null,mask:{},recallMiss:{},flagTouched:{},liveFlag:{},pendFlag:{},testMode:s.testMode||'practice'};
   Object.keys(s.mk||{}).forEach(i=>{ if(map[i]!==undefined) sess.mask[map[i]]=s.mk[i]; });
   Object.keys(s.rm||{}).forEach(i=>{ if(map[i]!==undefined) sess.recallMiss[map[i]]=1; });
@@ -5685,7 +5809,7 @@ function initSuggest(){
     return uniq((inSubj.length ? inSubj : bank).map(q=>q.topic));
   }, null);
   ['batchSubj','batchTopic'].forEach(id=>{ const el=document.getElementById(id); if(el) ['input','change'].forEach(ev=>el.addEventListener(ev,onBatchTag)); });
-  ['pdfFrom','pdfTo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',()=>{ const st=document.getElementById('pdfStatus'); if(st && /pages|page range|PDF/.test(st.textContent) && pickedPdf) st.textContent=''; }); });
+  ['pdfFrom','pdfTo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',()=>{ pdfAuto=false; pdfResume=null; const st=document.getElementById('pdfStatus'); if(st && /pages|page range|PDF/.test(st.textContent) && pickedPdf) st.textContent=''; }); });
   syncPdfUi();
 }
 /* Long review lists: a floating button appears while the Save button is below the screen and scrolls to it. */
@@ -5769,7 +5893,9 @@ function testScopes(){
   Object.keys(testFilterSel).forEach(s=>{ const c=testFilterSel[s]; if(c==='all') out.push({subject:s,topic:null}); else if(c && c.forEach) c.forEach(t=>out.push({subject:s,topic:t})); });
   return out;
 }
-function refreshNotesBtn(){ const el=document.getElementById('notesTestCount'); if(el) el.textContent=notesForScopes(testScopes()).length; }
+/* Notes belong to a subject: wherever the notes are opened from (a topic, a question, the test set-up), every note of that subject is reachable, so nothing written under another topic gets forgotten. */
+function subjScopes(sc){ return [...new Set((sc||[]).map(x=>x.subject))].map(s=>({subject:s,topic:null})); }
+function refreshNotesBtn(){ const el=document.getElementById('notesTestCount'); if(el) el.textContent=notesForScopes(subjScopes(testScopes())).length; }
 function nIcon(s,t){
   const c=notes.filter(n=>!n.del && n.subject===s && (t==null || n.topic===t)).length;
   return c ? '<span class="nicon" onclick="event.stopPropagation();openNotes([{subject:\''+esc(s)+'\',topic:'+(t==null?'null':'\''+esc(t)+'\'')+'}])" title="'+c+' note'+(c===1?'':'s')+'">'+NOTE_ICON+'</span>' : '';
@@ -5816,9 +5942,9 @@ function toggleRecallMiss(idx){
   const fb=document.getElementById('flagBtn'); if(fb){ fb.classList.toggle('on',!!q.flagged); fb.textContent=q.flagged?'🚩 Flagged':'⚑ Flag'; }
   syncRecallFab(idx); saveSessionSoon();
 }
-function noteCountForQ(q){ return notesForScopes([{subject:q.subject||'General',topic:q.topic||'General'}]).length; }
+function noteCountForQ(q){ return notesForScopes(subjScopes([{subject:q.subject||'General',topic:q.topic||'General'}])).length; }
 function refreshNotesFab(){ const b=document.getElementById('notesFab'); if(!b||!session||session.done) return; const q=session.questions[session.currentIdx]; if(q) b.dataset.n=noteCountForQ(q); }
-/* From a question: the notes of its topic (and its subject) open here, so a note made on one question can be added to from any other question of that topic. The test clock stops while the panel is open. */
+/* From a question: all the notes of its subject open here (the question's own topic first), so a note made under any topic can be added to or edited from any question of that subject. The test clock stops while the panel is open. */
 function openQuestionNotes(idx, viaKey){
   if(!session || session.done || session.testMode==='exam') return;
   const q=session.questions[idx]; if(!q) return;
@@ -5826,7 +5952,8 @@ function openQuestionNotes(idx, viaKey){
   openNotes([{subject:q.subject||'General',topic:q.topic||'General'}],{addSubject:true,focus:!!viaKey});
 }
 function openNotes(scopes,opts){
-  notesCtx={scopes, addSubject:!!(opts&&opts.addSubject), focus:!!(opts&&opts.focus)}; noteEdit=null;
+  const pref=(scopes||[]).filter(x=>x.topic!=null);   // the topic(s) it was opened from: listed first and preselected when adding
+  notesCtx={scopes:subjScopes(scopes), pref, addSubject:!!(opts&&opts.addSubject), focus:!!(opts&&opts.focus)}; noteEdit=null;
   let p=document.getElementById('notesPanel');
   if(!p){ noteDraft=''; p=document.createElement('div'); p.id='notesPanel'; p.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;overflow:auto;padding:12px;'; p.onclick=e=>{ if(e.target===p) closeNotes(); }; document.body.appendChild(p); }
   drawNotes();
@@ -5849,7 +5976,9 @@ function noteCount(){
 function drawNotes(){
   const p=document.getElementById('notesPanel'); if(!p || !notesCtx) return;
   const prev=document.getElementById('noteText'); if(prev) noteDraft=prev.value;
+  { const ps=document.getElementById('noteScope'); if(ps && panelOpts && panelOpts[+ps.value]) notesCtx.sel=panelOpts[+ps.value]; }   // keep the topic chosen for a new note across redraws
   const sc=notesCtx.scopes, list=notesForScopes(sc), opts=scopeOptions(sc);
+  if(notesCtx.pref && notesCtx.pref.length){ const rk=n=>notesCtx.pref.some(x=>x.subject===n.subject && x.topic===n.topic) ? 0 : (n.topic==null ? 1 : 2); list.sort((a,b)=>rk(a)-rk(b)); }   // stable: newest first inside each group
   if(notesCtx.addSubject) [...new Set(sc.map(x=>x.subject))].forEach(sj=>{ if(!opts.some(o=>o.subject===sj && o.topic==null)) opts.push({subject:sj,topic:null}); });
   panelOpts=opts;
   if(noteEdit && !list.some(n=>n.id===noteEdit.id)) noteEdit=null;
@@ -5867,7 +5996,7 @@ function drawNotes(){
         + '<div class="row pair" style="margin-top:8px;"><button class="primary" onclick="noteEditSave()">Save</button><button class="secondary" onclick="noteEditCancel()">Cancel</button></div></div></div>';
     }
     return '<div class="hrow" style="align-items:flex-start;"><div style="min-width:0;flex:1;">'+meta(n)+'<div style="white-space:pre-wrap;margin-top:4px;word-break:break-word;">'+escH(n.text)+'</div>'
-      + '<div class="row nacts"><button class="secondary sm" data-id="'+id+'" onclick="noteEditStart(this.dataset.id,\'add\')">Add more</button><button class="secondary sm" data-id="'+id+'" onclick="noteEditStart(this.dataset.id,\'edit\')">Edit</button></div></div>'
+      + '<div class="row nacts"><button class="secondary sm" data-id="'+id+'" onclick="noteEditStart(this.dataset.id,\'edit\')">Edit</button></div></div>'
       + '<button class="del-x" data-id="'+id+'" onclick="deleteNote(this.dataset.id)" title="Delete note">🗑</button></div>';
   };
   p.innerHTML='<div class="card" style="max-width:640px;margin:0 auto;"><div class="row" style="justify-content:space-between;align-items:center;"><h3 style="margin:0;">'+NOTE_ICON+' Notes</h3><button class="secondary" onclick="closeNotes()">Close</button></div>'
@@ -5877,6 +6006,8 @@ function drawNotes(){
   const cur = noteEdit ? list.find(n=>n.id===noteEdit.id) : null;
   draftTags = (cur && noteEdit.mode==='edit') ? noteTagsOf(cur).slice() : []; tagInputOpen=false; drawTagUi();
   const nt=document.getElementById('noteText'); if(nt) nt.value=noteDraft;
+  { const ns=document.getElementById('noteScope'), want=notesCtx.sel || (notesCtx.pref && notesCtx.pref[0]);
+    if(ns && want){ const i=panelOpts.findIndex(o=>o.subject===want.subject && o.topic===want.topic); if(i>=0) ns.value=String(i); } }
   const et=document.getElementById('noteEditText'); if(et && cur && noteEdit.mode==='edit') et.value=cur.text;
   noteCount();
   setTimeout(()=>{ const f=et || (notesCtx && notesCtx.focus ? nt : null); if(!f) return; f.focus(); try{ f.setSelectionRange(f.value.length,f.value.length); }catch(e){} if(notesCtx) notesCtx.focus=false; },30);
@@ -5891,7 +6022,7 @@ function addNote(auto){      // auto = true when the panel is being closed with 
 }
 function noteEditStart(id,mode){ const t=document.getElementById('noteText'); if(t) noteDraft=t.value; noteEdit={id,mode}; drawNotes(); }
 function noteEditCancel(){ noteEdit=null; drawNotes(); }
-/* "Add more" appends to the end of the note; "Edit" changes the whole text and the tags. Either way the note is stamped newer, so it wins when devices sync. */
+/* "Edit" changes the whole text and the tags (the cursor starts at the end, so adding more is just typing). The note is stamped newer, so it wins when devices sync. */
 function noteEditSave(){
   const n=noteEdit && notes.find(x=>x.id===noteEdit.id && !x.del), box=document.getElementById('noteEditText');
   if(!n || !box){ noteEdit=null; drawNotes(); return; }
@@ -6592,7 +6723,7 @@ function renderBankBreakdown(){
       topicsHtml = Object.keys(bySubj[s].topics).sort(topicCmp(ord,s)).map(t=>
         `<div class="hrow" style="padding-left:12px;"><span>${nIcon(s,t)}${escH(t)} <span class="muted">(${bySubj[s].topics[t]})</span></span>
         <span class="row" style="gap:0;">
-          <button class="del-x" onclick="event.stopPropagation();openNotes([{subject:'${esc(s)}',topic:'${esc(t)}'}])" title="Notes for this topic"><svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg></button>
+          <button class="del-x" onclick="event.stopPropagation();openNotes([{subject:'${esc(s)}',topic:'${esc(t)}'}])" title="Notes for this subject"><svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg></button>
           <button class="del-x" onclick="event.stopPropagation();shareTopic('${esc(s)}','${esc(t)}')" title="Share this topic as a JSON file">📤</button>
           <button class="del-x" onclick="event.stopPropagation();requestDelete('topic','${esc(s)}','${esc(t)}')" title="Delete this topic">🗑</button>
         </span></div>`
@@ -6896,7 +7027,7 @@ function showKeysIntro(go){
   const row=(k,t)=>'<div class="kirow"><span class="kk">'+k+'</span><span>'+t+'</span></div>', K=x=>'<b class="kbd">'+x+'</b>';
   let rows=row(K('1')+'\u2013'+K('5'),'Choose option A to E')+row(K('\u2190')+K('\u2192'),'Previous / next question (\u2191 \u2193 work too)')+row(K('Space'),'Flag the question');
   if(testMode==='exam') rows+=row(K('B'),'Bookmark the question');
-  else { rows+=row(K('E'),'Show or hide the explanation')+row(K('N'),'Open your notes for this topic'); if((settings.maskMode||'off')!=='off') rows+=row(K('R')+K('T'),'Options hidden: I recall it / Show options'); }
+  else { rows+=row(K('E'),'Show or hide the explanation')+row(K('N'),'Open your notes for this subject'); if((settings.maskMode||'off')!=='off') rows+=row(K('R')+K('T'),'Options hidden: I recall it / Show options'); }
   const o=document.createElement('div'); o.id='keysIntro';
   o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
   o.innerHTML='<div class="card" style="max-width:400px;width:100%;margin:0;max-height:92vh;overflow:auto;"><h3 style="margin:0 0 4px;font-size:18px;">Keyboard keys</h3><p class="muted" style="margin:0 0 8px;font-size:13px;">With a keyboard, these keys work during the test.</p>'+rows+'<div class="row pair" style="margin-top:14px;"><button class="primary" id="kiOk">OK</button><button class="secondary" id="kiNever">Don\'t show again</button></div></div>';
@@ -7387,6 +7518,7 @@ function finishTest(){
   const answeredCount = Object.keys(session.answers).length;
   const timeSec = Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000);
   const avgTimeQ = answeredCount ? (timeSec/answeredCount) : 0;
+  try{ plAfterTest(session); }catch(e){ console.warn(e); }
   const R = applyAttempts(session, avgTimeQ), mk = session.marking, topicBreakdown = R.topicBreakdown, marksBy = R.marksBy;
   let {correct, incorrect, wrongIds, reviewItems, dayNew, dayRev, maskTally} = R;
   try{ recordDay(dayNew, dayRev); }catch(e){}
@@ -7420,6 +7552,7 @@ function renderResults(total,correct,incorrect,unattempted,accuracy,timeSec,wron
       <div class="stat"><div class="num">${total}</div><div class="lbl">Total</div></div>
       <div class="stat" style="grid-column:span 2;"><div class="num">${avgQ}s</div><div class="lbl">Avg time / question</div></div>
     </div>
+    ${plResultHtml()}
     <div class="row">
       ${wrongIds.length ? `<button class="primary" onclick='startRetest(${JSON.stringify(wrongIds)})'>Retest incorrect (${wrongIds.length})</button>` : ''}
       <button class="secondary" onclick="openNotesAfterTest()"><svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg> Add a note</button>
@@ -7605,11 +7738,294 @@ function renderHome(){
   const wk=weakTopics(4), box=$h('hmWeak');
   box.innerHTML = wk.length ? wk.map(w=>'<button class="wk-row" data-s="'+escH(w.s)+'" data-t="'+escH(w.t)+'"><span><b>'+escH(w.t)+'</b><small>'+escH(w.s)+'</small></span><span class="pct '+(w.acc<60?'r':(w.acc<80?'y':'g'))+'">'+w.acc+'%</span></button>').join('')
     : '<p class="wk-empty">Finish a test and your weakest topics will show up here.</p>';
+  try{ plRenderHome(); }catch(e){ console.warn(e); }
   $h('hmChallenge').style.display = (typeof EDITION!=='undefined' && EDITION==='full') ? '' : 'none';
 }
 document.addEventListener('click',function(e){
   const b=e.target.closest && e.target.closest('#hmWeak .wk-row, #weakList .wk-row'); if(b){ closeWeak(); practiseTopic(b.dataset.s,b.dataset.t); }
 });
+/* ===== Planner: subject plans tracked from the questions you cover =====
+   A question is "covered" when it was answered, or skipped but stayed on screen for at least the set seconds (default 5).
+   Answered questions use the normal attempt counts. Seen-only questions live in their own small set (gc_seen), so accuracy,
+   flags and spaced revision are never touched. Plans live in settings.planner (synced with the other settings). */
+var plSeen=null, plSeenP=null, plSeenQ=[], plLast=null, plList=[];
+function plP(){ return settings.planner && settings.planner.subs ? settings.planner : null; }
+function plHas(){ const P=plP(); return !!(P && Object.keys(P.subs).length); }
+function plEnsure(){ if(!plP()) settings.planner={v:1,rev:3,min:5,pass:90,subs:{}}; return settings.planner; }
+function plSeenLoad(){
+  if(plSeen) return Promise.resolve(plSeen);
+  if(plSeenP) return plSeenP;
+  plSeenP=(async()=>{
+    let a=null; try{ a=await idbGet('gc_seen'); }catch(e){}
+    if(!Array.isArray(a)) a=loadLS('gc_seen',[]);
+    plSeen=new Set(a);
+    if(plSeenQ.length){ plSeenQ.forEach(id=>plSeen.add(id)); plSeenQ=[]; plSeenSave(); }
+    return plSeen;
+  })();
+  return plSeenP;
+}
+function plSeenSave(){ if(!plSeen) return; const a=Array.from(plSeen); try{ idbSet('gc_seen',a).catch(()=>{ saveLS('gc_seen',a); }); }catch(e){ saveLS('gc_seen',a); } }
+function plAdd(s,n){ const d=new Date((dayStrN(s)+n)*864e5); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function plFmt(s){ if(!s) return ''; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
+function plCover(){
+  const m={}, S=plSeen||new Set();
+  liveBank().forEach(q=>{ const s=q.subject||'General', o=m[s]||(m[s]={t:0,a:0,s:0,r:0,o:0}); o.t++; const n=q.attemptCount||0; if(n>0){ o.a++; if(n>1) o.r++; else o.o++; } else if(S.has(q.id)) o.s++; });
+  return m;
+}
+/* Where one subject stands: phase 1 = first pass, phase 2 = review, phase 3 = both done */
+function plStat(pl,cv,P){
+  const N=Math.max(pl.n||0,cv.t||0); if(!N) return null;
+  const pass=P.pass>0?P.pass:90, rev=P.rev>0?P.rev:3;
+  const T1=Math.ceil(N*pass/100), c1=cv.a+cv.s, B=Math.max(1,cv.a), T2=Math.ceil(B*pass/100);
+  const td=localDayStr(), tn=dayStrN(td);
+  const done1=!!pl.d1||c1>=N, done2=!!pl.d2||(done1&&cv.a>0&&cv.r>=B);
+  const o={N,c1,a:cv.a,s:cv.s,r:cv.r,B,T1,T2,pass,rev,done1,done2,kind:null,status:'open',need:0,avail:0,exp:null,el:0,total:0,left:0,canMark:false,ph:1,rs:null,re:null,end:pl.end||null,tn};
+  o.rs = pl.d1 ? plAdd(pl.d1,1) : (pl.end ? plAdd(pl.end,1) : null);
+  o.re = o.rs ? plAdd(o.rs,rev-1) : null;
+  if(pl.end){ const st=dayStrN(pl.start||td), en=dayStrN(pl.end); o.total=Math.max(1,en-st+1); o.el=Math.min(o.total,Math.max(0,tn-st+1)); o.left=en-tn+1; }
+  if(!done1){
+    o.ph=1; o.kind='f'; o.avail=Math.max(0,cv.t-cv.a-cv.s); o.canMark=c1>=T1;
+    if(c1>=T1) o.status='ready';
+    else if(pl.end){
+      const b0=pl.b0||0; o.exp=b0+(T1-b0)*(o.el/o.total);
+      const diff=c1-o.exp;
+      o.status = tn>dayStrN(pl.end) ? 'overdue' : (diff>=0.10*N ? 'ahead' : (diff<=-0.10*N ? 'behind' : 'on'));
+      o.need=Math.ceil((T1-c1)/Math.max(1,o.left));
+    }
+  } else if(!done2){
+    o.ph=2; o.kind='r'; o.avail=cv.o; o.canMark=cv.r>=T2;
+    if(o.rs && tn<dayStrN(o.rs)) o.status='wait';
+    else if(cv.r>=T2) o.status='ready';
+    else if(o.re && tn>dayStrN(o.re)) o.status='overdue';
+    else o.status='on';
+    if(o.re && o.status!=='wait' && o.status!=='ready'){ o.need=Math.ceil((T2-cv.r)/Math.max(1,dayStrN(o.re)-tn+1)); }
+  } else { o.ph=3; o.status='complete'; }
+  return o;
+}
+/* Time share over the last 14 days, estimated from each test's time split across its subjects */
+function plBalance(P,cov){
+  const subs=Object.keys(P.subs), out={t:{},tot:0,share:{},fair:{},flag:{},ok:false};
+  if(subs.length<2) return out;
+  const cut=Date.now()-14*864e5;
+  (history||[]).forEach(h=>{ if(!h||!h.date||!h.topicBreakdown) return; if(new Date(h.date).getTime()<cut) return;
+    Object.keys(h.topicBreakdown).forEach(k=>{ const s=k.split('|||')[0]; if(P.subs[s]){ const sec=h.topicBreakdown[k].timeSec||0; out.t[s]=(out.t[s]||0)+sec; out.tot+=sec; } }); });
+  let sumN=0; subs.forEach(s=>{ const c=cov[s]||{t:0}; sumN+=Math.max(P.subs[s].n||0,c.t||0); });
+  if(!sumN) return out;
+  subs.forEach(s=>{ const c=cov[s]||{t:0}, N=Math.max(P.subs[s].n||0,c.t||0); out.fair[s]=N/sumN; });
+  if(out.tot<1800) return out;
+  out.ok=true;
+  subs.forEach(s=>{ const sh=(out.t[s]||0)/out.tot; out.share[s]=sh; const r=sh/(out.fair[s]||1); out.flag[s]=(P.subs[s].d1&&P.subs[s].d2)?'fair':(r>1.5?'over':(r<0.6?'low':'fair')); });
+  return out;
+}
+/* Today's quotas are fixed when the day's plan is first built, so the ring does not jump while you practise */
+function plToday(cov,bal){
+  const P=plP(); if(!P) return null;
+  const td=localDayStr();
+  if(!P.today||P.today.d!==td) P.today={d:td,q:{},c:{}};
+  const T=P.today; let ch=false;
+  Object.keys(P.subs).forEach(s=>{
+    if(T.q[s]) return;
+    const st=plStat(P.subs[s],cov[s]||{t:0,a:0,s:0,r:0,o:0},P); if(!st||!st.kind||st.need<=0||st.avail<=0) return;
+    if(bal.flag[s]==='over' && st.status!=='behind' && st.status!=='overdue') T.q[s]={k:st.kind,n:0,skip:1};
+    else T.q[s]={k:st.kind,n:Math.min(st.need,st.avail)};
+    ch=true;
+  });
+  if(ch) persistSettings();
+  return T;
+}
+/* Runs when a test ends (before attempts are saved) and when an unfinished test is discarded */
+function plAfterTest(sess,quiet){
+  const P=plP(); if(!P||!Object.keys(P.subs).length) return;
+  if(!plSeen) plSeenLoad();
+  const min=P.min>0?P.min:5, qt=sess.qt||{}, out={tot:sess.questions.length,cnt:0,np:0,short:0,nw:{},min};
+  const cov=plCover(), T=plToday(cov,plBalance(P,cov)), add=[];
+  sess.questions.forEach((q,i)=>{
+    const s=q.subject||'General'; if(!P.subs[s]){ out.np++; return; }
+    const ans=sess.answers[i], sec=qt[i]||0, att=q.attemptCount||0, had=!!(plSeen&&plSeen.has(q.id));
+    const seenNow=!ans && sec>=min;
+    if(!ans && !seenNow){ out.short++; return; }
+    out.cnt++;
+    const c=T.c[s]||(T.c[s]={f:0,r:0});
+    if(att===0 && !had){ out.nw[s]=(out.nw[s]||0)+1; c.f++; }
+    if(ans && att===1) c.r++;
+    if(seenNow && att===0 && !had) add.push(q.id);
+  });
+  if(add.length){ if(plSeen){ add.forEach(id=>plSeen.add(id)); plSeenSave(); } else plSeenQ=plSeenQ.concat(add); }
+  persistSettings();
+  if(!quiet) plLast=out;
+}
+function plResultHtml(){
+  const r=plLast; plLast=null; if(!r) return '';
+  const pct=r.tot?Math.round(r.cnt/r.tot*100):0, bits=[];
+  const nw=Object.keys(r.nw).map(s=>escH(s)+' +'+r.nw[s]).join(', ');
+  if(nw) bits.push('New: '+nw);
+  if(r.short) bits.push(r.short+' skipped in under '+r.min+' seconds');
+  if(r.np) bits.push(r.np+' from subjects not in your plan');
+  return '<div class="pl-res"><b>'+(r.cnt?'Planner: '+r.cnt+' of '+r.tot+' questions counted ('+pct+'%)':'Planner: none of these questions counted')+'</b>'+(bits.length?'<small>'+bits.join(' \u00b7 ')+'</small>':'')+'</div>';
+}
+/* ---- Home tile ---- */
+function plRenderHome(){
+  const card=$h('hmPlan'), day=document.querySelector('#screen-home .day-card'); if(!card||!day) return;
+  const show=on=>{ card.style.display=on?'':'none'; day.style.display=on?'none':''; };
+  if(!plHas()){ show(false); return; }
+  if(!plSeen){ plSeenLoad().then(()=>{ try{ renderHome(); }catch(e){} }); show(false); return; }
+  const P=plP(), cov=plCover(), bal=plBalance(P,cov), T=plToday(cov,bal);
+  const rows=Object.keys(T.q).filter(s=>P.subs[s]).map(s=>{ const q=T.q[s], c=T.c[s]||{f:0,r:0}, st=plStat(P.subs[s],cov[s]||{t:0,a:0,s:0,r:0,o:0},P); return {s,k:q.k,n:q.n,skip:q.skip,d:q.k==='r'?c.r:c.f,beh:!!st&&(st.status==='behind'||st.status==='overdue')}; });
+  const act=rows.filter(r=>!r.skip&&r.n>0).sort((a,b)=>((b.n-Math.min(b.d,b.n))-(a.n-Math.min(a.d,a.n))));
+  if(!act.length){ show(false); return; }
+  let Q=0,D=0; act.forEach(r=>{ Q+=r.n; D+=Math.min(r.d,r.n); });
+  const pct=Q?Math.round(D/Q*100):0, R=Q-D;
+  $h('plRing').setAttribute('stroke-dasharray',(pct/100*263.9).toFixed(1)+' 264');
+  $h('plPct').textContent=pct+'%';
+  $h('plSum').textContent=D+' of '+Q+' questions';
+  $h('plRows').innerHTML=act.map(r=>{ const dn=Math.min(r.d,r.n), w=Math.round(dn/r.n*100), done=dn>=r.n;
+    return '<div class="pl-r"><div class="pl-r1"><span>'+escH(r.s)+(r.k==='r'?' <em>review</em>':'')+(r.beh&&!done?' <em class="b">behind</em>':'')+'</span><span>'+dn+' / '+r.n+'</span></div><div class="pl-bar"><i class="'+(done?'g':(r.beh?'r':''))+'" style="width:'+w+'%"></i></div></div>'; }).join('');
+  const sk=rows.filter(r=>r.skip).map(r=>escH(r.s)), nt=$h('plNote');
+  nt.style.display=sk.length?'':'none';
+  nt.textContent=sk.length?(sk.slice(0,2).join(' and ')+(sk.length>2?' and more':'')+(sk.length===1?' is':' are')+' taking more than their share of your time, so '+(sk.length===1?'it gets':'they get')+' nothing new today.'):'';
+  $h('plStart').textContent = R>0 ? 'Start today\u2019s test \u00b7 '+R+' left' : 'Plan done \u00b7 practise more';
+  show(true);
+}
+async function plStartToday(){
+  await plSeenLoad();
+  const P=plP(); if(!P) return;
+  const cov=plCover(), T=plToday(cov,plBalance(P,cov)), parts=[];
+  const d=leanBusy('Choosing questions\u2026');
+  try{
+    for(const s of Object.keys(T.q)){
+      const q=T.q[s]; if(!P.subs[s]||q.skip||!(q.n>0)) continue;
+      const c=T.c[s]||{f:0,r:0}, rem=q.n-(q.k==='r'?c.r:c.f); if(rem<=0) continue;
+      const pool=liveBank().filter(x=>(x.subject||'General')===s && (q.k==='r' ? (x.attemptCount||0)===1 : !((x.attemptCount||0)>0) && !plSeen.has(x.id)));
+      if(pool.length) parts.push(...await pickUniqA(pool,Math.min(rem,pool.length),true));
+    }
+  } finally { d(); }
+  if(!parts.length){ practiseMore(); return; }
+  startPractice(shuffle(parts));
+}
+/* ---- Planner screen ---- */
+var PL_RANK={overdue:0,behind:1,on:2,open:3,ahead:4,ready:5,wait:6,complete:9};
+function plRender(){
+  const box=$h('plBody'); if(!box) return;
+  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects to enter how many questions you will practise in each subject and the date to finish the first pass by.</p></div>'; plList=[]; return; }
+  if(!plSeen){ plSeenLoad().then(()=>{ try{ plRender(); }catch(e){} }); box.innerHTML='<p class="muted">Loading\u2026</p>'; return; }
+  const P=plP(), cov=plCover(), bal=plBalance(P,cov), empty={t:0,a:0,s:0,r:0,o:0};
+  const items=Object.keys(P.subs).map(s=>({s,st:plStat(P.subs[s],cov[s]||empty,P)})).filter(x=>x.st);
+  items.sort((x,y)=>(PL_RANK[x.st.status]-PL_RANK[y.st.status]));
+  plList=items.map(x=>x.s);
+  let sumN=0,sumC=0,nDone=0; items.forEach(x=>{ sumN+=x.st.N; sumC+=Math.min(x.st.c1,x.st.N); if(x.st.ph===3) nDone++; });
+  const op=sumN?Math.round(sumC/sumN*100):0;
+  let h='<div class="card pl-card"><div class="pl-row1"><b>Overall first pass</b><span class="pl-chip n">'+nDone+' of '+items.length+' complete</span></div><div class="pl-bar" style="margin-top:10px;"><i style="width:'+op+'%"></i></div><div class="pl-cap"><span>'+op+'% covered</span><span>'+fmtN(sumC)+' of '+fmtN(sumN)+' questions</span></div></div>';
+  if(bal.ok){
+    const names=Object.keys(P.subs).filter(s=>bal.share[s]!=null).sort((a,b)=>bal.share[b]-bal.share[a]);
+    const over=names.filter(s=>bal.flag[s]==='over'), low=names.filter(s=>bal.flag[s]==='low');
+    const mx=Math.max.apply(null,names.map(s=>Math.max(bal.share[s],bal.fair[s])))*1.1||1;
+    h+='<div class="card pl-card"><div class="pl-row1"><b>Time balance</b><span class="pl-sub" style="margin:0;">last 14 days</span></div>';
+    if(over.length) h+='<div class="pl-warn" style="margin-top:10px;">'+escH(over[0])+' has '+Math.round(bal.share[over[0]]*100)+'% of your time. A fair share is '+Math.round(bal.fair[over[0]]*100)+'%.</div>';
+    else if(low.length) h+='<div class="pl-warn" style="margin-top:10px;">'+escH(low[0])+' is getting '+Math.round(bal.share[low[0]]*100)+'% of your time. A fair share is '+Math.round(bal.fair[low[0]]*100)+'%.</div>';
+    else h+='<div class="pl-ok" style="margin-top:10px;">Your time is spread fairly across your subjects.</div>';
+    h+=names.map(s=>{ const cl=bal.flag[s]==='over'?'y':(bal.flag[s]==='low'?'r':'g'); return '<div class="pl-b"><span class="pl-bn">'+escH(s)+'</span><span class="pl-bt"><i class="'+cl+'" style="width:'+(bal.share[s]/mx*100).toFixed(1)+'%"></i><u style="left:'+(bal.fair[s]/mx*100).toFixed(1)+'%"></u></span><span class="pl-bv">'+Math.round(bal.share[s]*100)+'%</span></div>'; }).join('');
+    h+='<div class="pl-cap" style="margin-top:8px;"><span>Dashed line is each subject\u2019s fair share, based on its size. Time is estimated from your tests.</span></div>';
+    if(over.length||low.length) h+='<p class="pl-sub" style="margin:8px 0 0;font-size:13px;color:var(--text);">'+(over.length?'Ease off '+over.map(escH).join(', ')+'. ':'')+(low.length?'Give more time to '+low.map(escH).join(', ')+'.':'')+'</p>';
+    h+='</div>';
+  }
+  items.forEach((x,i)=>{ h+=plCardHtml(i,x.s,P.subs[x.s],x.st,bal); });
+  box.innerHTML=h;
+}
+function plCardHtml(i,s,pl,st,bal){
+  const chip=(t,c)=>'<span class="pl-chip '+c+'">'+t+'</span>';
+  let head='', sub='', pct=0, mk=null, capL='', capR='', note='', btns='';
+  const nm=escH(s);
+  if(st.ph===1){
+    pct=Math.round(Math.min(st.c1,st.N)/st.N*100);
+    const lab={ready:'Ready \u00b7 '+pct+'%',ahead:'Ahead',on:'On track',behind:'Behind',overdue:'Overdue',open:'In progress'}[st.status];
+    head=chip(lab,(st.status==='behind'||st.status==='overdue')?'r':(st.status==='open'?'n':'g'));
+    sub=pl.end?'First pass \u00b7 day '+st.el+' of '+st.total+' \u00b7 '+plFmt(pl.start)+' to '+plFmt(pl.end):'First pass \u00b7 no deadline set';
+    capL=pct+'% covered \u00b7 '+fmtN(st.a)+' answered \u00b7 '+fmtN(st.s)+' seen';
+    if(st.exp!=null){ mk=st.exp/st.N*100; capR='Plan: '+Math.round(mk)+'% by today'; } else capR='Complete from '+st.pass+'%';
+    if(st.status==='ready') note='You have covered '+st.pass+'% or more. Mark it complete, or keep going to cover the rest.';
+    else if(st.need>0 && pl.end) note='Needs about '+fmtN(st.need)+' a day to reach '+st.pass+'% by '+plFmt(pl.end)+'.';
+    if(st.avail===0 && !st.canMark) note='Every '+nm+' question you added is covered. Add more to continue (you planned '+fmtN(st.N)+').';
+  } else if(st.ph===2){
+    pct=Math.round(Math.min(st.r,st.B)/st.B*100);
+    const lab={wait:'Review starts '+plFmt(st.rs),ready:'Review ready \u00b7 '+pct+'%',overdue:'Review overdue',on:'Reviewing'}[st.status];
+    head=chip(lab,st.status==='overdue'?'r':(st.status==='ready'?'g':'y'));
+    sub='Review \u00b7 '+plFmt(st.rs)+' to '+plFmt(st.re)+' \u00b7 first pass done';
+    capL=pct+'% attempted again \u00b7 '+fmtN(st.r)+' of '+fmtN(st.B); capR='Complete from '+st.pass+'%';
+    if(st.need>0) note='Needs about '+fmtN(st.need)+' a day to finish the review by '+plFmt(st.re)+'.';
+  } else {
+    pct=100; head=chip('Complete','g'); sub='First pass and review are done'; capL='All phases complete'; capR='';
+  }
+  const fl=bal.flag[s]; if(fl==='over') note+=(note?' ':'')+'This subject is using more than its share of your time.'; else if(fl==='low') note+=(note?' ':'')+'This subject is getting less than its share of your time.';
+  let strip='';
+  if(pl.end){ strip='<div class="pl-phase"><span class="'+(st.done1?'g':'n')+'" style="flex:'+st.total+';">First pass \u00b7 '+st.total+' days'+(st.done1?' \u2713':'')+'</span><span class="'+(st.done2?'g':'y')+'" style="flex:'+Math.max(2,st.rev)+';text-align:center;">Review \u00b7 '+st.rev+'d'+(st.done2?' \u2713':'')+'</span></div>'; }
+  if(st.ph===3){
+    btns=(pl.d1||pl.d2)?'<div class="pl-btns"><button class="secondary" onclick="plUndo('+i+')">Undo complete</button></div>':'';
+  } else {
+    const n=Math.min(st.avail,100,Math.max(st.need,10));
+    const pr='<button class="'+(st.canMark?'secondary':'primary')+'" '+(n>0&&st.status!=='wait'?'':'disabled ')+'onclick="plPractise('+i+')">Practise '+(n>0?n:'')+'</button>';
+    const mkb='<button class="'+(st.canMark?'primary':'secondary')+'" '+(st.canMark?'':'disabled ')+'onclick="plMark('+i+')">Mark complete</button>';
+    btns='<div class="pl-btns">'+(st.canMark?mkb+pr:pr+mkb)+'</div>'+(st.canMark?'':'<div class="pl-cap" style="margin-top:6px;"><span>Mark complete unlocks at '+st.pass+'% covered.</span></div>');
+  }
+  return '<div class="card pl-card"><div class="pl-row1"><b>'+nm+'</b>'+head+'</div><p class="pl-sub">'+sub+'</p><div class="pl-bar"><i class="'+(st.status==='behind'||st.status==='overdue'?'r':'')+'" style="width:'+pct+'%"></i>'+(mk!=null?'<u style="left:'+Math.min(100,mk).toFixed(1)+'%"></u>':'')+'</div><div class="pl-cap"><span>'+capL+'</span><span>'+capR+'</span></div>'+strip+(note?'<p class="pl-note">'+note+'</p>':'')+btns+'</div>';
+}
+async function plPractise(i){
+  const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
+  await plSeenLoad();
+  const cov=plCover()[s]||{t:0,a:0,s:0,r:0,o:0}, st=plStat(pl,cov,P); if(!st) return;
+  const pool=liveBank().filter(q=>(q.subject||'General')===s && (st.ph===2 ? (q.attemptCount||0)===1 : !((q.attemptCount||0)>0) && !plSeen.has(q.id)));
+  if(!pool.length){ showToast('Nothing left to practise here.','info'); return; }
+  const n=Math.min(pool.length,100,Math.max(st.need,10)), d=leanBusy('Choosing questions\u2026');
+  try{ startPractice(await pickUniqA(pool,n,true)); } finally{ d(); }
+}
+function plMark(i){
+  const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
+  const st=plStat(pl,plCover()[s]||{t:0,a:0,s:0,r:0,o:0},P);
+  if(!st||!st.canMark){ showToast('Needs '+(P.pass||90)+'% covered first.','warn'); return; }
+  const td=localDayStr(); if(st.ph===1) pl.d1=td; else if(st.ph===2) pl.d2=td; else return;
+  persistSettings(); plRender(); try{ renderHome(); }catch(e){}
+  showToast(st.ph===1?s+': first pass marked complete.':s+': review marked complete.','info');
+}
+function plUndo(i){
+  const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
+  if(pl.d2) pl.d2=null; else pl.d1=null;
+  persistSettings(); plRender(); try{ renderHome(); }catch(e){}
+}
+/* ---- Setup sheet ---- */
+function plSubjectNames(){
+  const seen=new Set(), out=[]; liveBank().forEach(q=>{ const s=q.subject||'General'; if(!seen.has(s)){ seen.add(s); out.push(s); } });
+  const P=plP(); if(P) Object.keys(P.subs).forEach(s=>{ if(!seen.has(s)){ seen.add(s); out.push(s); } });
+  return out;
+}
+function plOpenSetup(){
+  const P=plP()||{rev:3,min:5,pass:90,subs:{}}, cov=plCover(), names=plSubjectNames();
+  if(!names.length){ showToast('Add some questions in Library first.','warn'); return; }
+  $h('plRevDays').value=P.rev||3; $h('plMinSec').value=P.min||5; $h('plPass').value=P.pass||90; $h('plAllDate').value='';
+  $h('plSetupRows').innerHTML=names.map((s,i)=>{ const pl=P.subs[s]||{}, c=cov[s]||{t:0};
+    return '<div class="pl-srow" data-i="'+i+'"><div class="pl-sname"><b>'+escH(s)+'</b><small>'+fmtN(c.t)+' added</small></div><div class="pl-in2"><label>Questions to practise<input class="num-input pl-n" type="number" min="0" inputmode="numeric" value="'+(pl.n||'')+'"></label><label>First pass by<input class="pf-field pl-d" type="date" value="'+(pl.end||'')+'"></label></div></div>'; }).join('');
+  window._plNames=names;
+  $h('plOverlay').classList.add('open');
+}
+function plCloseSetup(){ $h('plOverlay').classList.remove('open'); }
+function plApplyAll(){ const v=$h('plAllDate').value; if(!v){ showToast('Pick a date first.','warn'); return; } document.querySelectorAll('#plSetupRows .pl-d').forEach(e=>{ e.value=v; }); }
+function plSaveSetup(){
+  const P=plEnsure(), cov=plCover(), td=localDayStr(), names=window._plNames||[];
+  const rev=Math.max(1,Math.min(30,parseInt($h('plRevDays').value)||3)), min=Math.max(1,Math.min(60,parseInt($h('plMinSec').value)||5)), pass=Math.max(50,Math.min(100,parseInt($h('plPass').value)||90));
+  P.rev=rev; P.min=min; P.pass=pass;
+  document.querySelectorAll('#plSetupRows .pl-srow').forEach(row=>{
+    const s=names[+row.dataset.i]; if(s==null) return;
+    const n=Math.max(0,parseInt(row.querySelector('.pl-n').value)||0), d=row.querySelector('.pl-d').value||'';
+    if(!n && !d){ delete P.subs[s]; return; }
+    const old=P.subs[s], c=cov[s]||{a:0,s:0};
+    const pl=old||{start:td,b0:c.a+c.s,d1:null,d2:null};
+    pl.n=n; pl.end=d||null; if(!pl.start) pl.start=td; if(pl.end && dayStrN(pl.end)<dayStrN(pl.start)) pl.start=pl.end;
+    P.subs[s]=pl;
+  });
+  P.today=null;
+  persistSettings(); plCloseSetup(); plRender();
+  try{ renderHome(); }catch(e){}
+  showToast(Object.keys(P.subs).length?'Plan saved':'No subjects planned','info');
+}
+
 function goAdd(){ switchTab('bank'); setTimeout(()=>{ const c=$h('addTabs'); if(c) c.scrollIntoView({behavior:'smooth',block:'center'}); },80); }
 
 /* Starting practice from Home / Smart Practice */
@@ -8778,7 +9194,6 @@ function renderMaskCard(){
 /* EDITION: 'full' = learning + practice + duels (version 2). 'lite' = the simple test-making tool, duels completely off. */
 const EDITION='full';
 const Duel=EDITION!=='full'?{open(){}}:(()=>{
-document.getElementById('tabbtn-duel').style.display='';
 const $=i=>document.getElementById(i),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const db=()=>firebase.firestore(),SV=()=>firebase.firestore.FieldValue.serverTimestamp(),INC=n=>firebase.firestore.FieldValue.increment(n);
 const inH=h=>firebase.firestore.Timestamp.fromMillis(Date.now()+h*36e5);
