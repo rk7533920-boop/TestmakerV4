@@ -571,6 +571,9 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 /* Planner */
 #plOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:flex-end;justify-content:center;}
 #plOverlay.open{display:flex;}
+#plBkOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:61;display:none;align-items:flex-end;justify-content:center;}
+#plBkOverlay.open{display:flex;}
+@media (min-width:700px){#plBkOverlay{align-items:center;} #plBkOverlay .info-sheet{border-radius:20px;max-width:520px;}}
 @media (min-width:700px){#plOverlay{align-items:center;} #plOverlay .info-sheet{border-radius:20px;max-width:520px;}}
 .pl-head{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 12px;}
 .pl-head h2{margin:0;font-size:20px;}
@@ -615,7 +618,7 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 .pl-all{display:flex;align-items:flex-end;gap:10px;margin-bottom:10px;}
 .pl-all label,.pl-set label{display:grid;gap:3px;font-size:11.5px;color:var(--muted);flex:1;}
 .pl-all .pf-field{width:100%;box-sizing:border-box;margin:0;}
-.pl-set{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 6px;}
+.pl-set{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 6px;align-items:end;}
 .pl-set .num-input{width:100%;box-sizing:border-box;}
 .pl-srow{border-top:1px solid var(--border);padding:10px 0;}
 .pl-sname{display:flex;justify-content:space-between;align-items:baseline;}
@@ -623,6 +626,20 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 .pl-in2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
 .pl-in2 label{font-size:11.5px;color:var(--muted);display:grid;gap:3px;}
 .pl-in2 .num-input,.pl-in2 .pf-field{width:100%;box-sizing:border-box;margin:0;}
+.pl-hd{cursor:pointer;}
+.pl-dots{display:flex;gap:6px;margin-top:9px;align-items:center;font-size:11.5px;color:var(--muted);} .pl-dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--border);display:inline-block;} .pl-dots i.g{background:var(--green);border-color:var(--green);} .pl-dots i.c{background:var(--brand);border-color:var(--brand);} .pl-dots i.p{border-color:var(--muted);} .pl-dots em{margin-left:auto;font-style:normal;}
+.pl-stg{border-top:1px solid var(--border);margin-top:12px;padding-top:10px;}
+.pl-stg .pl-r1 em{font-style:normal;color:var(--muted);font-size:11.5px;margin-left:4px;}
+.pl-ed{background:none;border:none;color:var(--brand);font-size:12.5px;font-weight:600;padding:2px 6px;min-height:0;cursor:pointer;}
+.pl-win{background:var(--ink-bg);border-radius:10px;padding:8px 10px;font-size:12.5px;margin:0 0 10px;} .pl-win.now{background:var(--green-bg);color:var(--green);} .pl-win span{color:var(--muted);}
+.pl-wins .pl-win{margin:10px 0 0;}
+.pl-days{position:relative;display:flex;gap:3px;align-items:flex-end;height:76px;margin-top:10px;border-bottom:1px solid var(--border);}
+.pl-day{flex:1;display:flex;flex-direction:column-reverse;height:100%;} .pl-day i{display:block;width:100%;}
+.pl-bud{position:absolute;left:0;right:0;border-top:1.5px dashed var(--muted);pointer-events:none;}
+.pl-dl{display:flex;gap:3px;font-size:10.5px;color:var(--muted);margin-top:3px;} .pl-dl span{flex:1;text-align:center;} .pl-dl .o{color:var(--red);font-weight:700;} .pl-dl .t{color:var(--text);font-weight:700;}
+.pl-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin-top:8px;} .pl-leg b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:baseline;}
+#plBkInfo .row.pair button{flex:1;}
+
 #hmChallenge{position:relative;}
 #hmChallenge #dlDot{position:absolute;top:10px;right:12px;}
 #hmChallenge .dl-dot{background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:700;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}
@@ -661,15 +678,29 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 <div id="plOverlay" onclick="if(event.target===this) plCloseSetup()">
   <div class="info-sheet" style="max-height:92vh;overflow-y:auto;">
     <div class="gs-head"><h4>Plan my subjects</h4><button class="back" onclick="plCloseSetup()" aria-label="Close" style="font-size:16px;">✕</button></div>
-    <div class="gs-note" style="margin:6px 0 10px;">Enter how many questions you plan to practise in each subject, and the date to finish the first pass by. Leave both empty to keep a subject out of the plan. If you add more questions later, the plan grows with them.</div>
-    <div class="pl-all"><label>Same date for all subjects<input type="date" id="plAllDate" class="pf-field"></label><button class="secondary sm" onclick="plApplyAll()">Set for all</button></div>
-    <div class="pl-set">
-      <label>Review days<input id="plRevDays" type="number" min="1" max="30" inputmode="numeric" class="num-input"></label>
+    <div class="gs-note" style="margin:6px 0 10px;">The planner paces everything by your daily goal, which is <b id="plBud">25</b> questions a day. To change it, use Edit on Home. Enter how many questions you plan to practise in each subject. Dates are suggested for you, and you can change them from each subject.</div>
+    <div class="pl-set" style="grid-template-columns:1fr;">
+      <label>Study style<select id="plStyle" class="pf-field" onchange="plStyleChange()" style="width:100%;box-sizing:border-box;margin:0;"></select></label>
+      <label id="plSplitRow">How the daily goal is shared: <span id="plSplitTx"></span><input type="range" id="plSplit" min="40" max="80" step="5" oninput="plStyleChange()" style="width:100%;"></label>
+      <label>Start planning from<input type="date" id="plFrom" class="pf-field" style="width:100%;box-sizing:border-box;margin:0;"></label>
+    </div>
+    <div class="pl-set" style="grid-template-columns:1fr 1fr;margin-top:10px;">
       <label>Count a skipped question after (s)<input id="plMinSec" type="number" min="1" max="60" inputmode="numeric" class="num-input"></label>
       <label>Mark complete from (%)<input id="plPass" type="number" min="50" max="100" inputmode="numeric" class="num-input"></label>
     </div>
     <div id="plSetupRows"></div>
     <div class="row pair" style="margin-top:14px;"><button class="primary" onclick="plSaveSetup()">Save plan</button><button class="secondary" onclick="plCloseSetup()">Cancel</button></div>
+  </div>
+</div>
+<div id="plBkOverlay" onclick="if(event.target===this) plBkClose()">
+  <div class="info-sheet" style="max-height:92vh;overflow-y:auto;">
+    <div class="gs-head"><h4 id="plBkTitle">Block</h4><button class="back" onclick="plBkClose()" aria-label="Close" style="font-size:16px;">✕</button></div>
+    <div class="gs-note" id="plBkSize" style="margin:6px 0 10px;"></div>
+    <div class="pl-in2"><label>Starts<input type="date" id="plBkS" class="pf-field" oninput="plBkChange('s')"></label><label>Ends<input type="date" id="plBkE" class="pf-field" oninput="plBkChange('e')"></label></div>
+    <div class="pl-in2"><label>From time (optional)<input type="time" id="plBkF" class="pf-field"></label><label>To time (optional)<input type="time" id="plBkT" class="pf-field"></label></div>
+    <div id="plBkInfo"></div>
+    <div class="row pair" style="margin-top:14px;"><button class="primary" onclick="plBkSave()">Save</button><button class="secondary" onclick="plBkSuggest()">Suggest dates</button></div>
+    <div class="row pair" style="margin-top:8px;"><button class="secondary" id="plBkDel" onclick="plBkDelete()">Remove block</button><button class="secondary" onclick="plBkClose()">Cancel</button></div>
   </div>
 </div>
 <div id="examOverlay" onclick="if(event.target===this) closeExamDate()">
@@ -758,12 +789,11 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
     <button id="hmResume" class="resume" onclick="switchTab('test')" style="display:none"><span id="hmResumeTx"></span><b>Resume ›</b></button>
     <div class="hm-grid">
       <div class="goal-tile c-goal">
-        <div class="gt-row"><span>My big goal</span><span class="gt-btns"><button class="gt-edit" id="gtDetailBtn" aria-expanded="false" onclick="toggleGoalDetail()">Details</button><button class="gt-edit" onclick="openGoals()">Edit</button></span></div>
+        <div class="gt-row"><span>My big goal</span><span class="gt-btns"><button class="gt-edit" onclick="openGoals()">Edit</button></span></div>
         <div class="gt-num"><b id="gtDone">0</b> <span>/ <span id="gtTarget">500</span></span></div>
         <div class="gt-sub">questions solved</div>
         <div class="gt-bar"><i id="gtFill" style="width:0%"></i></div>
         <div class="gt-foot"><span id="gtPct">0% done</span><span id="gtLeft"></span></div>
-        <div class="gt-detail" id="gtDetail" style="display:none"></div>
       </div>
       <div class="card day-card c-day">
         <div class="ringbox"><svg viewBox="0 0 100 100"><circle class="rg-bg" cx="50" cy="50" r="42"/><circle id="dgRing" class="rg-fg" cx="50" cy="50" r="42" transform="rotate(-90 50 50)" stroke-dasharray="0 264"/></svg><span class="ring-pct"><b id="dgPct">0%</b></span></div>
@@ -780,6 +810,7 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
           <div class="pl-tx"><h3>Today's plan</h3><p id="plSum"></p></div>
           <button class="linkbtn" onclick="switchTab('planner')">Planner &rsaquo;</button>
         </div>
+        <div class="pl-wins" id="plWin" style="display:none"></div>
         <div id="plRows"></div>
         <div class="pl-warn" id="plNote" style="display:none"></div>
         <button class="primary" id="plStart" onclick="plStartToday()">Start today's test</button>
@@ -4432,7 +4463,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-26';
+const APP_BUILD = 'index-27';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -6531,28 +6562,6 @@ async function executeDelete(){
 /* ---------- Progress bar + revision detail + target/exam date ---------- */
 function totalAttempted(){ return bank.reduce((s,q)=>s+(q.attemptCount||0),0); }
 function renderProgress(){ try{ renderDayChart(); }catch(e){} }
-/* Home › My big goal › Details: how many questions were never attempted / attempted once, twice or 3+ times (hidden until the button is tapped) */
-function toggleGoalDetail(){
-  const box=document.getElementById('gtDetail'), btn=document.getElementById('gtDetailBtn'); if(!box||!btn) return;
-  const open=box.style.display==='none';
-  if(open){ renderGoalDetail(); box.style.display='block'; } else box.style.display='none';
-  btn.textContent=open?'Hide':'Details'; btn.setAttribute('aria-expanded',open?'true':'false');
-}
-function renderGoalDetail(){
-  const box=document.getElementById('gtDetail'); if(!box) return;
-  let never=0, once=0, twice=0, thricePlus=0;
-  liveBank().forEach(q=>{
-    const c = q.attemptCount||0;
-    if(c===0) never++; else if(c===1) once++; else if(c===2) twice++; else thricePlus++;
-  });
-  box.innerHTML = `<div class="stats">
-    <div class="stat"><div class="num">${never}</div><div class="lbl">Never attempted</div></div>
-    <div class="stat"><div class="num">${once}</div><div class="lbl">Attempted once</div></div>
-    <div class="stat"><div class="num">${twice}</div><div class="lbl">Attempted twice</div></div>
-    <div class="stat"><div class="num">${thricePlus}</div><div class="lbl">Attempted 3+ times</div></div>
-  </div>`;
-}
-
 /* ---------- Questions tab rendering ---------- */
 function renderBank(){
   { let live=0, fl=0, is=0, ar=0;   // one pass over the bank instead of six
@@ -7473,11 +7482,12 @@ function buildReviewHtml(items){
 /* The question-by-question scoring of a test (attempt counts, wrong counts, flags, review schedules, history of each question).
    It runs when a test is finished and also when an unfinished test is discarded, so an answer you gave is never lost. */
 function applyAttempts(sess, avgTimeQ){
-  let correct=0, incorrect=0, dayNew=0, dayRev=0; const wrongIds=[], reviewItems=[], maskTally={}, topicBreakdown={}, marksBy={};
+  let correct=0, incorrect=0, dayNew=0, dayRev=0; const wrongIds=[], reviewItems=[], maskTally={}, topicBreakdown={}, marksBy={}, subSec={};
   const mk = sess.marking;
   sess.questions.forEach((q,idx)=>{
     const a = sess.answers[idx];
     if(mk){ const k0=(q.subject||'General')+'|||'+(q.topic||'General'), b=marksBy[k0]||(marksBy[k0]={m:0,x:0}); b.x+=mk.r; if(a) b.m += (a===q.correctKey||q.correctKey==='*') ? mk.r : -mk.w; }
+    { const _t=sess.qt&&sess.qt[idx]; if(_t>0){ const _s=q.subject||'General'; subSec[_s]=(subSec[_s]||0)+_t; } }   // real seconds on every question you opened, for the planner's time balance
     if(!a) return;
     const _pl=q.ls, _first=!(q.attemptCount>0);
     q.attemptCount = (q.attemptCount||0)+1; q.ls = Date.now();
@@ -7506,7 +7516,7 @@ function applyAttempts(sess, avgTimeQ){
     { const _ok=(a===q.correctKey||q.correctKey==='*'); const _ms=sess.mask&&sess.mask[idx], _ev=_rm?'miss':(_ms==='rec'?'strong':(_ms==='show'?'weak':null)); if(_ev){ const t=(maskTally[_ms]=maskTally[_ms]||{n:0,ok:0}); t.n++; if(_rm) t.miss=(t.miss||0)+1; else if(_ok) t.ok++; } try{ attemptLog(q,_ok,idx,_rm?'miss':_ms); smartAfter(q,_ok,_pl,_first,_ev); }catch(e){} }
     persistQuestion(q);
   });
-  return {correct, incorrect, dayNew, dayRev, wrongIds, reviewItems, maskTally, topicBreakdown, marksBy};
+  return {correct, incorrect, dayNew, dayRev, wrongIds, reviewItems, maskTally, topicBreakdown, marksBy, subSec};
 }
 function finishTest(){
   if(!session) return;
@@ -7526,6 +7536,7 @@ function finishTest(){
   const accuracy = answeredCount ? Math.round((correct/answeredCount)*100) : 0;
   const entry = {date:new Date().toISOString(), mode:session.mode, tm:session.testMode||'practice', total, correct, incorrect, unattempted, accuracy, timeSec, topicBreakdown};
   if(mk){ Object.values(marksBy).forEach(b=>{ b.m=Math.round(b.m*100)/100; b.x=Math.round(b.x*100)/100; }); entry.marks=Math.round((correct*mk.r-incorrect*mk.w)*100)/100; entry.maxMarks=Math.round(total*mk.r*100)/100; entry.marksBy=marksBy; }
+  if(R.subSec && Object.keys(R.subSec).length){ Object.keys(R.subSec).forEach(k=>{ R.subSec[k]=Math.round(R.subSec[k]); }); entry.subSec=R.subSec; }
   history.push(entry);
   persistHistoryEntry(entry);
   document.getElementById('testRunning').style.display='none';
@@ -7729,7 +7740,6 @@ function renderHome(){
   $h('gtDone').textContent=fmtN(done); $h('gtTarget').textContent=fmtN(target);
   $h('gtFill').style.width=pct+'%'; $h('gtPct').textContent=pct+'% done';
   $h('gtLeft').textContent = done>=target ? 'Goal reached' : fmtN(target-done)+' to go';
-  { const gd=$h('gtDetail'); if(gd && gd.style.display!=='none') renderGoalDetail(); }
   const dg=dayGoal(), td=todayCount(), dp=Math.min(100,Math.round(td/dg*100)), left=Math.max(0,dg-td);
   $h('dgRing').setAttribute('stroke-dasharray', (dp/100*263.9).toFixed(1)+' 264');
   $h('dgPct').textContent=dp+'%';
@@ -7744,14 +7754,29 @@ function renderHome(){
 document.addEventListener('click',function(e){
   const b=e.target.closest && e.target.closest('#hmWeak .wk-row, #weakList .wk-row'); if(b){ closeWeak(); practiseTopic(b.dataset.s,b.dataset.t); }
 });
-/* ===== Planner: subject plans tracked from the questions you cover =====
+/* ===== Planner v2: blocks (1 reading + up to 3 reviews per subject), paced by the Daily goal =====
    A question is "covered" when it was answered, or skipped but stayed on screen for at least the set seconds (default 5).
    Answered questions use the normal attempt counts. Seen-only questions live in their own small set (gc_seen), so accuracy,
-   flags and spaced revision are never touched. Plans live in settings.planner (synced with the other settings). */
-var plSeen=null, plSeenP=null, plSeenQ=[], plLast=null, plList=[];
-function plP(){ return settings.planner && settings.planner.subs ? settings.planner : null; }
+   flags and spaced revision are never touched. Plans live in settings.planner (synced with the other settings).
+   Stage bars come straight from attempt counts: Reading = attempted at least once; Review k = attempted at least k+1 times,
+   out of (those) + (flagged questions that have not yet reached that attempt). Nothing new is stored per question. */
+var plSeen=null, plSeenP=null, plSeenQ=[], plLast=null, plList=[], plOpen={}, plEd=null;
+var PL_COL=['#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922'];
+var PL_STYLES=[['one','One subject at a time'],['n1r1','1 new + 1 review'],['n1r2','1 new + 2 reviews'],['free','Free (no limit)']];
+function plEC(){ return {t:0,a:0,s:0,c2:0,c3:0,c4:0,fl:0,f1:0,f2:0,f3:0}; }
+function plMigrate(P){
+  if(!P||P.v>=2) return;
+  const td=localDayStr(), rev=P.rev>0?P.rev:3;
+  Object.keys(P.subs||{}).forEach(s=>{
+    const pl=P.subs[s]; if(pl.blocks) return; pl.blocks=[];
+    pl.blocks.push({t:'r',s:pl.end?(pl.start||td):null,e:pl.end||null,from:'',to:'',done:pl.d1||null,b0:pl.b0||0});
+    if(pl.end||pl.d1){ const rs=pl.d1?plAdd(pl.d1,1):plAdd(pl.end,1); pl.blocks.push({t:'v1',s:rs,e:plAdd(rs,rev-1),from:'',to:'',done:pl.d2||null}); }
+  });
+  P.v=2; if(!P.style) P.style='one'; if(!P.split) P.split=60; if(!(P.min>0)) P.min=5; if(!(P.pass>0)) P.pass=90;
+}
+function plP(){ const P=settings.planner; if(P && P.subs){ if(P.v!==2) plMigrate(P); return P; } return null; }
 function plHas(){ const P=plP(); return !!(P && Object.keys(P.subs).length); }
-function plEnsure(){ if(!plP()) settings.planner={v:1,rev:3,min:5,pass:90,subs:{}}; return settings.planner; }
+function plEnsure(){ if(!plP()) settings.planner={v:2,min:5,pass:90,style:'one',split:60,subs:{}}; return settings.planner; }
 function plSeenLoad(){
   if(plSeen) return Promise.resolve(plSeen);
   if(plSeenP) return plSeenP;
@@ -7765,59 +7790,134 @@ function plSeenLoad(){
   return plSeenP;
 }
 function plSeenSave(){ if(!plSeen) return; const a=Array.from(plSeen); try{ idbSet('gc_seen',a).catch(()=>{ saveLS('gc_seen',a); }); }catch(e){ saveLS('gc_seen',a); } }
-function plAdd(s,n){ const d=new Date((dayStrN(s)+n)*864e5); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function plAdd(s,n){ return plDS(dayStrN(s)+n); }
+function plDS(n){ const d=new Date(n*864e5); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
 function plFmt(s){ if(!s) return ''; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
+function plTm(t){ if(!t) return ''; const p=t.split(':').map(Number), h=p[0]%12||12; return h+':'+String(p[1]||0).padStart(2,'0')+' '+(p[0]<12?'am':'pm'); }
+function plStyleName(v){ const r=PL_STYLES.find(x=>x[0]===v); return r?r[1]:PL_STYLES[0][1]; }
 function plCover(){
   const m={}, S=plSeen||new Set();
-  liveBank().forEach(q=>{ const s=q.subject||'General', o=m[s]||(m[s]={t:0,a:0,s:0,r:0,o:0}); o.t++; const n=q.attemptCount||0; if(n>0){ o.a++; if(n>1) o.r++; else o.o++; } else if(S.has(q.id)) o.s++; });
+  liveBank().forEach(q=>{
+    const s=q.subject||'General', o=m[s]||(m[s]=plEC()); o.t++; const n=q.attemptCount||0;
+    if(n>0){ o.a++; if(n>1) o.c2++; if(n>2) o.c3++; if(n>3) o.c4++; if(q.flagged){ o.fl++; if(n<=1) o.f1++; if(n<=2) o.f2++; if(n<=3) o.f3++; } }
+    else if(S.has(q.id)) o.s++;
+  });
   return m;
 }
-/* Where one subject stands: phase 1 = first pass, phase 2 = review, phase 3 = both done */
-function plStat(pl,cv,P){
-  const N=Math.max(pl.n||0,cv.t||0); if(!N) return null;
-  const pass=P.pass>0?P.pass:90, rev=P.rev>0?P.rev:3;
-  const T1=Math.ceil(N*pass/100), c1=cv.a+cv.s, B=Math.max(1,cv.a), T2=Math.ceil(B*pass/100);
-  const td=localDayStr(), tn=dayStrN(td);
-  const done1=!!pl.d1||c1>=N, done2=!!pl.d2||(done1&&cv.a>0&&cv.r>=B);
-  const o={N,c1,a:cv.a,s:cv.s,r:cv.r,B,T1,T2,pass,rev,done1,done2,kind:null,status:'open',need:0,avail:0,exp:null,el:0,total:0,left:0,canMark:false,ph:1,rs:null,re:null,end:pl.end||null,tn};
-  o.rs = pl.d1 ? plAdd(pl.d1,1) : (pl.end ? plAdd(pl.end,1) : null);
-  o.re = o.rs ? plAdd(o.rs,rev-1) : null;
-  if(pl.end){ const st=dayStrN(pl.start||td), en=dayStrN(pl.end); o.total=Math.max(1,en-st+1); o.el=Math.min(o.total,Math.max(0,tn-st+1)); o.left=en-tn+1; }
-  if(!done1){
-    o.ph=1; o.kind='f'; o.avail=Math.max(0,cv.t-cv.a-cv.s); o.canMark=c1>=T1;
-    if(c1>=T1) o.status='ready';
-    else if(pl.end){
-      const b0=pl.b0||0; o.exp=b0+(T1-b0)*(o.el/o.total);
-      const diff=c1-o.exp;
-      o.status = tn>dayStrN(pl.end) ? 'overdue' : (diff>=0.10*N ? 'ahead' : (diff<=-0.10*N ? 'behind' : 'on'));
-      o.need=Math.ceil((T1-c1)/Math.max(1,o.left));
-    }
-  } else if(!done2){
-    o.ph=2; o.kind='r'; o.avail=cv.o; o.canMark=cv.r>=T2;
-    if(o.rs && tn<dayStrN(o.rs)) o.status='wait';
-    else if(cv.r>=T2) o.status='ready';
-    else if(o.re && tn>dayStrN(o.re)) o.status='overdue';
-    else o.status='on';
-    if(o.re && o.status!=='wait' && o.status!=='ready'){ o.need=Math.ceil((T2-cv.r)/Math.max(1,dayStrN(o.re)-tn+1)); }
-  } else { o.ph=3; o.status='complete'; }
-  return o;
+/* ---- pace, limits and stage maths ---- */
+function plBud(){ return Math.max(1,dayGoal()); }
+function plRate(P,t){
+  const B=plBud(), st=P.style||'one', sp=Math.min(80,Math.max(40,P.split||60));
+  if(st==='n1r1'||st==='n1r2'){ const nv=st==='n1r2'?2:1; return Math.max(1,t==='r'?Math.round(B*sp/100):Math.round(B*(100-sp)/100/nv)); }
+  return B;
 }
-/* Time share over the last 14 days, estimated from each test's time split across its subjects */
+function plCaps(P){ const st=P.style||'one'; return st==='one'?{tot:1,n:9,v:9}:(st==='n1r1'?{tot:9,n:1,v:1}:(st==='n1r2'?{tot:9,n:1,v:2}:{tot:99,n:99,v:99})); }
+function plStages(pl,cv,P){
+  const N=Math.max(pl.n||0,cv.t||0); if(!N) return null;
+  const pass=P.pass>0?P.pass:90, c1=cv.a+cv.s, T1=Math.ceil(N*pass/100), rb=(pl.blocks||[]).find(b=>b.t==='r');
+  const readDone=c1>=N||!!(rb&&rb.done);
+  const D=[cv.c2,cv.c3,cv.c4], W=[cv.f1,cv.f2,cv.f3], rate=cv.a>=30?cv.fl/cv.a:0.25, estPool=Math.round(rate*N), v=[];
+  for(let k=0;k<3;k++){
+    const done=D[k]||0, wait=W[k]||0; let pool=done+wait, est=false;
+    if(!readDone && estPool>pool){ pool=estPool; est=true; }
+    const T=Math.ceil(pool*pass/100);
+    v.push({k:k+1,done,wait,pool,T,est,pct:pool?Math.min(100,Math.round(done/pool*100)):0});
+  }
+  return {N,c1,T1,pass,readDone,v,c4:cv.c4||0,pct1:Math.round(Math.min(c1,N)/N*100)};
+}
+/* Everything about one subject's blocks; cur = the block the student is on now */
+function plInfo(P,s,pl,cv){
+  const stg=plStages(pl,cv,P); if(!stg) return null;
+  const tn=dayStrN(localDayStr()), out=[];
+  (pl.blocks||[]).forEach((b,i)=>{
+    const rd=b.t==='r', k=rd?0:(+b.t.slice(1)||1), o={i,b,t:b.t,k,s:b.s||null,e:b.e||null,from:b.from||'',to:b.to||''};
+    if(rd){ o.dn=stg.c1; o.pool=stg.N; o.T=stg.T1; o.avail=Math.max(0,cv.t-cv.a-cv.s); o.pct=stg.pct1; o.est=false; o.auto=stg.c1>=stg.N; }
+    else { const v=stg.v[k-1]; o.dn=v.done; o.pool=v.pool; o.T=v.T; o.avail=v.wait; o.pct=v.pct; o.est=v.est; o.auto=stg.readDone&&v.pool>0&&v.wait===0; }
+    o.complete=!!b.done||o.auto;
+    o.canMark=rd?stg.c1>=stg.T1:(stg.readDone&&(o.pool===0||o.dn>=o.T));
+    o.rate=plRate(P,rd?'r':'v');
+    o.total=(b.s&&b.e)?dayStrN(b.e)-dayStrN(b.s)+1:0;
+    o.el=o.total?Math.min(o.total,Math.max(0,tn-dayStrN(b.s)+1)):0;
+    o.left=b.e?dayStrN(b.e)-tn+1:0;
+    o.rem=Math.max(0,o.T-o.dn);
+    o.need=(o.rem>0&&b.e)?Math.ceil(o.rem/Math.max(1,o.left)):0;
+    o.blocked=!rd&&!stg.readDone;
+    o.exp=null;
+    if(o.complete) o.status='complete';
+    else if(o.blocked||(b.s&&tn<dayStrN(b.s))) o.status='wait';
+    else if(o.canMark) o.status='ready';
+    else if(b.e&&tn>dayStrN(b.e)) o.status='overdue';
+    else if(b.e&&o.total){
+      const b0=rd?Math.min(b.b0||0,o.T):0; o.exp=b0+(o.T-b0)*(Math.max(0,o.el-1)/o.total);   // planned progress at the start of today
+      const diff=o.dn-o.exp, tol=0.10*Math.max(1,o.pool);
+      o.status=diff>=tol?'ahead':(diff<=-tol?'behind':'on');
+    } else o.status='open';
+    out.push(o);
+  });
+  const cur=out.find(o=>!o.complete&&o.status!=='wait')||out.find(o=>!o.complete)||null;
+  return {stg,bl:out,cur,allDone:out.length>0&&!cur};
+}
+/* Planned questions per day, from today on, across all blocks (and how many blocks sit on each day) */
+function plLoad(P,cov,skipB){
+  const m={}, tn=dayStrN(localDayStr());
+  Object.keys(P.subs).forEach(s=>{
+    const inf=plInfo(P,s,P.subs[s],cov[s]||plEC()); if(!inf) return;
+    inf.bl.forEach(o=>{
+      if(o.b===skipB||o.complete||!o.s||!o.e) return;
+      const a=Math.max(dayStrN(o.s),tn), z=dayStrN(o.e); if(z<a) return;
+      const per=o.rem/(z-a+1);
+      for(let d=a;d<=z;d++){ const c=m[d]||(m[d]={tot:0,n:0,v:0,by:{}}); c.tot+=per; c.by[s]=(c.by[s]||0)+per; if(o.k===0) c.n++; else c.v++; }
+    });
+  });
+  return m;
+}
+/* First run of days where the style's limits allow this block, and how many days it needs at the student's pace */
+function plPropose(P,cov,t,rem,from,skipB){
+  const rate=plRate(P,t==='r'?'r':'v'), days=Math.max(1,Math.ceil(rem/rate)), caps=plCaps(P), m=plLoad(P,cov,skipB);
+  let d=Math.max(dayStrN(from||localDayStr()),dayStrN(localDayStr()));
+  for(let tries=0;tries<500;tries++,d++){
+    let ok=true;
+    for(let j=0;j<days;j++){ const c=m[d+j]||{n:0,v:0}; if(c.n+c.v>=caps.tot||(t==='r'?c.n>=caps.n:c.v>=caps.v)){ ok=false; break; } }
+    if(ok) return {s:plDS(d),e:plDS(d+days-1),days,rate};
+  }
+  const f=from||localDayStr(); return {s:f,e:plAdd(f,days-1),days,rate};
+}
+function plReviewFrom(pl,k){
+  const gaps=[1,7,30], rb=(pl.blocks||[]).find(b=>b.t==='r'), tn=dayStrN(localDayStr());
+  let from=(rb&&rb.e?dayStrN(rb.e):tn)+gaps[k-1];
+  const pv=(pl.blocks||[]).find(b=>b.t==='v'+(k-1)); if(pv&&pv.e) from=Math.max(from,dayStrN(pv.e)+1);
+  return plDS(Math.max(from,tn));
+}
+/* ---- time balance: your plan's share against real seconds from your own question timers ---- */
 function plBalance(P,cov){
-  const subs=Object.keys(P.subs), out={t:{},tot:0,share:{},fair:{},flag:{},ok:false};
+  const subs=Object.keys(P.subs), out={t:{},tot:0,share:{},plan:{},flag:{},over:{},waiting:0,ok:false,bySize:false};
   if(subs.length<2) return out;
-  const cut=Date.now()-14*864e5;
-  (history||[]).forEach(h=>{ if(!h||!h.date||!h.topicBreakdown) return; if(new Date(h.date).getTime()<cut) return;
-    Object.keys(h.topicBreakdown).forEach(k=>{ const s=k.split('|||')[0]; if(P.subs[s]){ const sec=h.topicBreakdown[k].timeSec||0; out.t[s]=(out.t[s]||0)+sec; out.tot+=sec; } }); });
-  let sumN=0; subs.forEach(s=>{ const c=cov[s]||{t:0}; sumN+=Math.max(P.subs[s].n||0,c.t||0); });
-  if(!sumN) return out;
-  subs.forEach(s=>{ const c=cov[s]||{t:0}, N=Math.max(P.subs[s].n||0,c.t||0); out.fair[s]=N/sumN; });
+  const tn=dayStrN(localDayStr()), a=tn-13, cut=Date.now()-14*864e5, infos={};
+  (history||[]).forEach(h=>{
+    if(!h||!h.date||new Date(h.date).getTime()<cut) return;
+    if(h.subSec){ Object.keys(h.subSec).forEach(s=>{ if(P.subs[s]){ const v=h.subSec[s]||0; out.t[s]=(out.t[s]||0)+v; out.tot+=v; } }); }
+    else if(h.topicBreakdown){ Object.keys(h.topicBreakdown).forEach(k=>{ const s=k.split('|||')[0]; if(P.subs[s]){ const v=h.topicBreakdown[k].timeSec||0; out.t[s]=(out.t[s]||0)+v; out.tot+=v; } }); }
+  });
+  let sumP=0;
+  subs.forEach(s=>{
+    const inf=infos[s]=plInfo(P,s,P.subs[s],cov[s]||plEC()); let w=0;
+    if(inf) inf.bl.forEach(o=>{ if(!o.s||!o.e) return; const bs=dayStrN(o.s), be=dayStrN(o.e), ov=Math.min(be,tn)-Math.max(bs,a)+1; if(ov>0) w+=o.T/(be-bs+1)*ov; });
+    out.plan[s]=w; sumP+=w;
+  });
+  if(sumP<=0){ out.bySize=true; sumP=0; subs.forEach(s=>{ const c=cov[s]||plEC(); out.plan[s]=Math.max(P.subs[s].n||0,c.t||0); sumP+=out.plan[s]; }); }
+  if(!sumP) return out;
+  subs.forEach(s=>{ out.plan[s]/=sumP; const inf=infos[s]; if(inf&&inf.cur){ if(inf.cur.status==='overdue'&&inf.cur.e) out.over[s]=tn-dayStrN(inf.cur.e); if(inf.cur.status==='wait') out.waiting++; } });
   if(out.tot<1800) return out;
   out.ok=true;
-  subs.forEach(s=>{ const sh=(out.t[s]||0)/out.tot; out.share[s]=sh; const r=sh/(out.fair[s]||1); out.flag[s]=(P.subs[s].d1&&P.subs[s].d2)?'fair':(r>1.5?'over':(r<0.6?'low':'fair')); });
+  subs.forEach(s=>{
+    const sh=(out.t[s]||0)/out.tot, inf=infos[s]; out.share[s]=sh;
+    if(!inf||inf.allDone||!out.plan[s]){ out.flag[s]='fair'; return; }
+    const r=sh/out.plan[s], started=inf.cur&&inf.cur.status!=='wait';
+    out.flag[s]=r>1.5?'over':(r<0.6&&started?'low':'fair');
+  });
   return out;
 }
-/* Today's quotas are fixed when the day's plan is first built, so the ring does not jump while you practise */
+/* ---- today's quotas: fixed when the day's plan is first built, so the ring does not jump while you practise ---- */
 function plToday(cov,bal){
   const P=plP(); if(!P) return null;
   const td=localDayStr();
@@ -7825,29 +7925,32 @@ function plToday(cov,bal){
   const T=P.today; let ch=false;
   Object.keys(P.subs).forEach(s=>{
     if(T.q[s]) return;
-    const st=plStat(P.subs[s],cov[s]||{t:0,a:0,s:0,r:0,o:0},P); if(!st||!st.kind||st.need<=0||st.avail<=0) return;
-    if(bal.flag[s]==='over' && st.status!=='behind' && st.status!=='overdue') T.q[s]={k:st.kind,n:0,skip:1};
-    else T.q[s]={k:st.kind,n:Math.min(st.need,st.avail)};
+    const inf=plInfo(P,s,P.subs[s],cov[s]||plEC()); if(!inf||!inf.cur) return;
+    const o=inf.cur; if(o.status==='wait'||o.need<=0||o.avail<=0) return;
+    const kind=o.k===0?'f':'r';
+    if(bal.flag[s]==='over'&&o.status!=='behind'&&o.status!=='overdue') T.q[s]={k:kind,bk:o.k,n:0,skip:1};
+    else T.q[s]={k:kind,bk:o.k,n:Math.min(o.need,o.avail)};
     ch=true;
   });
   if(ch) persistSettings();
   return T;
 }
-/* Runs when a test ends (before attempts are saved) and when an unfinished test is discarded */
+/* Runs when a test ends (before attempts are saved) and when an unfinished test is discarded.
+   Every question goes to its own subject, so a mixed test fills each subject's bar and quota separately. */
 function plAfterTest(sess,quiet){
   const P=plP(); if(!P||!Object.keys(P.subs).length) return;
   if(!plSeen) plSeenLoad();
-  const min=P.min>0?P.min:5, qt=sess.qt||{}, out={tot:sess.questions.length,cnt:0,np:0,short:0,nw:{},min};
+  const min=P.min>0?P.min:5, qt=sess.qt||{}, out={tot:sess.questions.length,cnt:0,np:0,short:0,nw:{},by:{},min};
   const cov=plCover(), T=plToday(cov,plBalance(P,cov)), add=[];
   sess.questions.forEach((q,i)=>{
     const s=q.subject||'General'; if(!P.subs[s]){ out.np++; return; }
     const ans=sess.answers[i], sec=qt[i]||0, att=q.attemptCount||0, had=!!(plSeen&&plSeen.has(q.id));
     const seenNow=!ans && sec>=min;
     if(!ans && !seenNow){ out.short++; return; }
-    out.cnt++;
+    out.cnt++; out.by[s]=(out.by[s]||0)+1;
     const c=T.c[s]||(T.c[s]={f:0,r:0});
     if(att===0 && !had){ out.nw[s]=(out.nw[s]||0)+1; c.f++; }
-    if(ans && att===1) c.r++;
+    if(ans && att>=1) c.r++;
     if(seenNow && att===0 && !had) add.push(q.id);
   });
   if(add.length){ if(plSeen){ add.forEach(id=>plSeen.add(id)); plSeenSave(); } else plSeenQ=plSeenQ.concat(add); }
@@ -7857,11 +7960,33 @@ function plAfterTest(sess,quiet){
 function plResultHtml(){
   const r=plLast; plLast=null; if(!r) return '';
   const pct=r.tot?Math.round(r.cnt/r.tot*100):0, bits=[];
-  const nw=Object.keys(r.nw).map(s=>escH(s)+' +'+r.nw[s]).join(', ');
-  if(nw) bits.push('New: '+nw);
+  const by=Object.keys(r.by).sort((a,b)=>r.by[b]-r.by[a]).map(s=>escH(s)+' +'+r.by[s]).join(', ');
+  if(by) bits.push('Counted: '+by);
   if(r.short) bits.push(r.short+' skipped in under '+r.min+' seconds');
   if(r.np) bits.push(r.np+' from subjects not in your plan');
+  if(r.cnt) bits.push('Today: '+fmtN(todayCount())+' of '+fmtN(plBud())+' (daily goal)');
   return '<div class="pl-res"><b>'+(r.cnt?'Planner: '+r.cnt+' of '+r.tot+' questions counted ('+pct+'%)':'Planner: none of these questions counted')+'</b>'+(bits.length?'<small>'+bits.join(' \u00b7 ')+'</small>':'')+'</div>';
+}
+/* ---- study window: "time to study" banner ---- */
+function plWindows(P,cov){
+  const now=new Date(), mins=now.getHours()*60+now.getMinutes(), tn=dayStrN(localDayStr()), out={now:[],later:[]};
+  Object.keys(P.subs).forEach(s=>{
+    const inf=plInfo(P,s,P.subs[s],cov[s]||plEC()); if(!inf) return;
+    inf.bl.forEach(o=>{
+      if(o.complete||!o.s||!o.e||!o.from||!o.to) return;
+      if(tn<dayStrN(o.s)||tn>dayStrN(o.e)) return;
+      const f=o.from.split(':').map(Number), t=o.to.split(':').map(Number), a=f[0]*60+f[1], z=t[0]*60+t[1];
+      const it={s,label:escH(s)+' \u00b7 '+(o.k===0?'Reading':'Review '+o.k),win:plTm(o.from)+' to '+plTm(o.to)};
+      if(mins>=a&&mins<z) out.now.push(it); else if(mins<a) out.later.push(it);
+    });
+  });
+  return out;
+}
+function plWinHtml(w){
+  let h='';
+  if(w.now.length) h+='<div class="pl-win now"><b>Time to study</b> '+w.now.map(x=>x.label+' \u00b7 '+x.win).join(' &nbsp;|&nbsp; ')+'</div>';
+  if(w.later.length) h+='<div class="pl-win"><span>Later today</span> '+w.later.map(x=>x.label+' \u00b7 '+x.win).join(' &nbsp;|&nbsp; ')+'</div>';
+  return h;
 }
 /* ---- Home tile ---- */
 function plRenderHome(){
@@ -7870,7 +7995,10 @@ function plRenderHome(){
   if(!plHas()){ show(false); return; }
   if(!plSeen){ plSeenLoad().then(()=>{ try{ renderHome(); }catch(e){} }); show(false); return; }
   const P=plP(), cov=plCover(), bal=plBalance(P,cov), T=plToday(cov,bal);
-  const rows=Object.keys(T.q).filter(s=>P.subs[s]).map(s=>{ const q=T.q[s], c=T.c[s]||{f:0,r:0}, st=plStat(P.subs[s],cov[s]||{t:0,a:0,s:0,r:0,o:0},P); return {s,k:q.k,n:q.n,skip:q.skip,d:q.k==='r'?c.r:c.f,beh:!!st&&(st.status==='behind'||st.status==='overdue')}; });
+  const rows=Object.keys(T.q).filter(s=>P.subs[s]).map(s=>{
+    const q=T.q[s], c=T.c[s]||{f:0,r:0}, inf=plInfo(P,s,P.subs[s],cov[s]||plEC()), cu=inf&&inf.cur;
+    return {s,k:q.k,bk:q.bk||1,n:q.n,skip:q.skip,d:q.k==='r'?c.r:c.f,beh:!!cu&&(cu.status==='behind'||cu.status==='overdue')};
+  });
   const act=rows.filter(r=>!r.skip&&r.n>0).sort((a,b)=>((b.n-Math.min(b.d,b.n))-(a.n-Math.min(a.d,a.n))));
   if(!act.length){ show(false); return; }
   let Q=0,D=0; act.forEach(r=>{ Q+=r.n; D+=Math.min(r.d,r.n); });
@@ -7879,10 +8007,11 @@ function plRenderHome(){
   $h('plPct').textContent=pct+'%';
   $h('plSum').textContent=D+' of '+Q+' questions';
   $h('plRows').innerHTML=act.map(r=>{ const dn=Math.min(r.d,r.n), w=Math.round(dn/r.n*100), done=dn>=r.n;
-    return '<div class="pl-r"><div class="pl-r1"><span>'+escH(r.s)+(r.k==='r'?' <em>review</em>':'')+(r.beh&&!done?' <em class="b">behind</em>':'')+'</span><span>'+dn+' / '+r.n+'</span></div><div class="pl-bar"><i class="'+(done?'g':(r.beh?'r':''))+'" style="width:'+w+'%"></i></div></div>'; }).join('');
+    return '<div class="pl-r"><div class="pl-r1"><span>'+escH(r.s)+(r.k==='r'?' <em>review '+r.bk+'</em>':'')+(r.beh&&!done?' <em class="b">behind</em>':'')+'</span><span>'+dn+' / '+r.n+'</span></div><div class="pl-bar"><i class="'+(done?'g':(r.beh?'r':''))+'" style="width:'+w+'%"></i></div></div>'; }).join('');
   const sk=rows.filter(r=>r.skip).map(r=>escH(r.s)), nt=$h('plNote');
   nt.style.display=sk.length?'':'none';
   nt.textContent=sk.length?(sk.slice(0,2).join(' and ')+(sk.length>2?' and more':'')+(sk.length===1?' is':' are')+' taking more than their share of your time, so '+(sk.length===1?'it gets':'they get')+' nothing new today.'):'';
+  const wn=$h('plWin'); if(wn){ const h=plWinHtml(plWindows(P,cov)); wn.innerHTML=h; wn.style.display=h?'':'none'; }
   $h('plStart').textContent = R>0 ? 'Start today\u2019s test \u00b7 '+R+' left' : 'Plan done \u00b7 practise more';
   show(true);
 }
@@ -7895,7 +8024,8 @@ async function plStartToday(){
     for(const s of Object.keys(T.q)){
       const q=T.q[s]; if(!P.subs[s]||q.skip||!(q.n>0)) continue;
       const c=T.c[s]||{f:0,r:0}, rem=q.n-(q.k==='r'?c.r:c.f); if(rem<=0) continue;
-      const pool=liveBank().filter(x=>(x.subject||'General')===s && (q.k==='r' ? (x.attemptCount||0)===1 : !((x.attemptCount||0)>0) && !plSeen.has(x.id)));
+      const bk=q.bk||1;
+      const pool=liveBank().filter(x=>(x.subject||'General')===s && (q.k==='r' ? (x.flagged&&(x.attemptCount||0)>=1&&(x.attemptCount||0)<=bk) : !((x.attemptCount||0)>0) && !plSeen.has(x.id)));
       if(pool.length) parts.push(...await pickUniqA(pool,Math.min(rem,pool.length),true));
     }
   } finally { d(); }
@@ -7904,127 +8034,285 @@ async function plStartToday(){
 }
 /* ---- Planner screen ---- */
 var PL_RANK={overdue:0,behind:1,on:2,open:3,ahead:4,ready:5,wait:6,complete:9};
+function plStageName(o){ return o.k===0?'Reading':'Review '+o.k; }
 function plRender(){
   const box=$h('plBody'); if(!box) return;
-  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects to enter how many questions you will practise in each subject and the date to finish the first pass by.</p></div>'; plList=[]; return; }
+  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects to choose how many questions you will practise in each subject. The planner then suggests dates that fit your daily goal.</p></div>'; plList=[]; return; }
   if(!plSeen){ plSeenLoad().then(()=>{ try{ plRender(); }catch(e){} }); box.innerHTML='<p class="muted">Loading\u2026</p>'; return; }
-  const P=plP(), cov=plCover(), bal=plBalance(P,cov), empty={t:0,a:0,s:0,r:0,o:0};
-  const items=Object.keys(P.subs).map(s=>({s,st:plStat(P.subs[s],cov[s]||empty,P)})).filter(x=>x.st);
-  items.sort((x,y)=>(PL_RANK[x.st.status]-PL_RANK[y.st.status]));
+  const P=plP(), cov=plCover(), bal=plBalance(P,cov), names=Object.keys(P.subs);
+  const items=names.map(s=>({s,inf:plInfo(P,s,P.subs[s],cov[s]||plEC())})).filter(x=>x.inf);
+  items.sort((x,y)=>(PL_RANK[x.inf.cur?x.inf.cur.status:'complete']-PL_RANK[y.inf.cur?y.inf.cur.status:'complete']));
   plList=items.map(x=>x.s);
-  let sumN=0,sumC=0,nDone=0; items.forEach(x=>{ sumN+=x.st.N; sumC+=Math.min(x.st.c1,x.st.N); if(x.st.ph===3) nDone++; });
+  let sumN=0,sumC=0,nDone=0; items.forEach(x=>{ sumN+=x.inf.stg.N; sumC+=Math.min(x.inf.stg.c1,x.inf.stg.N); if(x.inf.allDone) nDone++; });
   const op=sumN?Math.round(sumC/sumN*100):0;
-  let h='<div class="card pl-card"><div class="pl-row1"><b>Overall first pass</b><span class="pl-chip n">'+nDone+' of '+items.length+' complete</span></div><div class="pl-bar" style="margin-top:10px;"><i style="width:'+op+'%"></i></div><div class="pl-cap"><span>'+op+'% covered</span><span>'+fmtN(sumC)+' of '+fmtN(sumN)+' questions</span></div></div>';
-  if(bal.ok){
-    const names=Object.keys(P.subs).filter(s=>bal.share[s]!=null).sort((a,b)=>bal.share[b]-bal.share[a]);
-    const over=names.filter(s=>bal.flag[s]==='over'), low=names.filter(s=>bal.flag[s]==='low');
-    const mx=Math.max.apply(null,names.map(s=>Math.max(bal.share[s],bal.fair[s])))*1.1||1;
-    h+='<div class="card pl-card"><div class="pl-row1"><b>Time balance</b><span class="pl-sub" style="margin:0;">last 14 days</span></div>';
-    if(over.length) h+='<div class="pl-warn" style="margin-top:10px;">'+escH(over[0])+' has '+Math.round(bal.share[over[0]]*100)+'% of your time. A fair share is '+Math.round(bal.fair[over[0]]*100)+'%.</div>';
-    else if(low.length) h+='<div class="pl-warn" style="margin-top:10px;">'+escH(low[0])+' is getting '+Math.round(bal.share[low[0]]*100)+'% of your time. A fair share is '+Math.round(bal.fair[low[0]]*100)+'%.</div>';
-    else h+='<div class="pl-ok" style="margin-top:10px;">Your time is spread fairly across your subjects.</div>';
-    h+=names.map(s=>{ const cl=bal.flag[s]==='over'?'y':(bal.flag[s]==='low'?'r':'g'); return '<div class="pl-b"><span class="pl-bn">'+escH(s)+'</span><span class="pl-bt"><i class="'+cl+'" style="width:'+(bal.share[s]/mx*100).toFixed(1)+'%"></i><u style="left:'+(bal.fair[s]/mx*100).toFixed(1)+'%"></u></span><span class="pl-bv">'+Math.round(bal.share[s]*100)+'%</span></div>'; }).join('');
-    h+='<div class="pl-cap" style="margin-top:8px;"><span>Dashed line is each subject\u2019s fair share, based on its size. Time is estimated from your tests.</span></div>';
-    if(over.length||low.length) h+='<p class="pl-sub" style="margin:8px 0 0;font-size:13px;color:var(--text);">'+(over.length?'Ease off '+over.map(escH).join(', ')+'. ':'')+(low.length?'Give more time to '+low.map(escH).join(', ')+'.':'')+'</p>';
-    h+='</div>';
-  }
-  items.forEach((x,i)=>{ h+=plCardHtml(i,x.s,P.subs[x.s],x.st,bal); });
+  let h=plWinHtml(plWindows(P,cov));
+  h+='<div class="card pl-card"><div class="pl-row1"><b>Overall reading</b><span class="pl-chip n">'+nDone+' of '+items.length+' fully done</span></div><div class="pl-bar" style="margin-top:10px;"><i style="width:'+op+'%"></i></div><div class="pl-cap"><span>'+op+'% covered</span><span>'+fmtN(sumC)+' of '+fmtN(sumN)+' questions</span></div></div>';
+  h+=plStripHtml(P,cov,names);
+  h+=plBalHtml(P,bal,names);
+  items.forEach((x,i)=>{ h+=plCardHtml(i,x.s,P.subs[x.s],x.inf,bal); });
   box.innerHTML=h;
 }
-function plCardHtml(i,s,pl,st,bal){
-  const chip=(t,c)=>'<span class="pl-chip '+c+'">'+t+'</span>';
-  let head='', sub='', pct=0, mk=null, capL='', capR='', note='', btns='';
-  const nm=escH(s);
-  if(st.ph===1){
-    pct=Math.round(Math.min(st.c1,st.N)/st.N*100);
-    const lab={ready:'Ready \u00b7 '+pct+'%',ahead:'Ahead',on:'On track',behind:'Behind',overdue:'Overdue',open:'In progress'}[st.status];
-    head=chip(lab,(st.status==='behind'||st.status==='overdue')?'r':(st.status==='open'?'n':'g'));
-    sub=pl.end?'First pass \u00b7 day '+st.el+' of '+st.total+' \u00b7 '+plFmt(pl.start)+' to '+plFmt(pl.end):'First pass \u00b7 no deadline set';
-    capL=pct+'% covered \u00b7 '+fmtN(st.a)+' answered \u00b7 '+fmtN(st.s)+' seen';
-    if(st.exp!=null){ mk=st.exp/st.N*100; capR='Plan: '+Math.round(mk)+'% by today'; } else capR='Complete from '+st.pass+'%';
-    if(st.status==='ready') note='You have covered '+st.pass+'% or more. Mark it complete, or keep going to cover the rest.';
-    else if(st.need>0 && pl.end) note='Needs about '+fmtN(st.need)+' a day to reach '+st.pass+'% by '+plFmt(pl.end)+'.';
-    if(st.avail===0 && !st.canMark) note='Every '+nm+' question you added is covered. Add more to continue (you planned '+fmtN(st.N)+').';
-  } else if(st.ph===2){
-    pct=Math.round(Math.min(st.r,st.B)/st.B*100);
-    const lab={wait:'Review starts '+plFmt(st.rs),ready:'Review ready \u00b7 '+pct+'%',overdue:'Review overdue',on:'Reviewing'}[st.status];
-    head=chip(lab,st.status==='overdue'?'r':(st.status==='ready'?'g':'y'));
-    sub='Review \u00b7 '+plFmt(st.rs)+' to '+plFmt(st.re)+' \u00b7 first pass done';
-    capL=pct+'% attempted again \u00b7 '+fmtN(st.r)+' of '+fmtN(st.B); capR='Complete from '+st.pass+'%';
-    if(st.need>0) note='Needs about '+fmtN(st.need)+' a day to finish the review by '+plFmt(st.re)+'.';
-  } else {
-    pct=100; head=chip('Complete','g'); sub='First pass and review are done'; capL='All phases complete'; capR='';
+/* Next 14 days: planned questions per day against the daily goal (red = above it) */
+function plStripHtml(P,cov,names){
+  const B=plBud(), m=plLoad(P,cov,null), tn=dayStrN(localDayStr()), H=76;
+  let mx=B*1.25; for(let d=tn;d<tn+14;d++) if(m[d]&&m[d].tot>mx) mx=m[d].tot;
+  let cols='', lab='', used={}, any=false;
+  for(let d=tn;d<tn+14;d++){
+    const c=m[d], over=!!c&&c.tot>B*1.05; let seg='';
+    if(c){ any=true; Object.keys(c.by).forEach(s=>{ used[s]=1; const ix=names.indexOf(s), hp=Math.max(2,Math.round(c.by[s]/mx*H)); seg+='<i style="height:'+hp+'px;background:'+PL_COL[ix%PL_COL.length]+(over?';opacity:.85':'')+'"></i>'; }); }
+    cols+='<div class="pl-day">'+seg+'</div>';
+    const dt=new Date(d*864e5);
+    lab+='<span class="'+(d===tn?'t':'')+(over?' o':'')+'">'+dt.getUTCDate()+'</span>';
   }
-  const fl=bal.flag[s]; if(fl==='over') note+=(note?' ':'')+'This subject is using more than its share of your time.'; else if(fl==='low') note+=(note?' ':'')+'This subject is getting less than its share of your time.';
-  let strip='';
-  if(pl.end){ strip='<div class="pl-phase"><span class="'+(st.done1?'g':'n')+'" style="flex:'+st.total+';">First pass \u00b7 '+st.total+' days'+(st.done1?' \u2713':'')+'</span><span class="'+(st.done2?'g':'y')+'" style="flex:'+Math.max(2,st.rev)+';text-align:center;">Review \u00b7 '+st.rev+'d'+(st.done2?' \u2713':'')+'</span></div>'; }
-  if(st.ph===3){
-    btns=(pl.d1||pl.d2)?'<div class="pl-btns"><button class="secondary" onclick="plUndo('+i+')">Undo complete</button></div>':'';
-  } else {
-    const n=Math.min(st.avail,100,Math.max(st.need,10));
-    const pr='<button class="'+(st.canMark?'secondary':'primary')+'" '+(n>0&&st.status!=='wait'?'':'disabled ')+'onclick="plPractise('+i+')">Practise '+(n>0?n:'')+'</button>';
-    const mkb='<button class="'+(st.canMark?'primary':'secondary')+'" '+(st.canMark?'':'disabled ')+'onclick="plMark('+i+')">Mark complete</button>';
-    btns='<div class="pl-btns">'+(st.canMark?mkb+pr:pr+mkb)+'</div>'+(st.canMark?'':'<div class="pl-cap" style="margin-top:6px;"><span>Mark complete unlocks at '+st.pass+'% covered.</span></div>');
-  }
-  return '<div class="card pl-card"><div class="pl-row1"><b>'+nm+'</b>'+head+'</div><p class="pl-sub">'+sub+'</p><div class="pl-bar"><i class="'+(st.status==='behind'||st.status==='overdue'?'r':'')+'" style="width:'+pct+'%"></i>'+(mk!=null?'<u style="left:'+Math.min(100,mk).toFixed(1)+'%"></u>':'')+'</div><div class="pl-cap"><span>'+capL+'</span><span>'+capR+'</span></div>'+strip+(note?'<p class="pl-note">'+note+'</p>':'')+btns+'</div>';
+  const leg=Object.keys(used).map(s=>'<span><b style="background:'+PL_COL[names.indexOf(s)%PL_COL.length]+'"></b>'+escH(s)+'</span>').join('');
+  return '<div class="card pl-card"><div class="pl-row1"><b>Days ahead</b><button class="pl-ed" onclick="plOpenSetup()">Settings</button></div>'
+    +'<div class="pl-sub" style="margin:2px 0 0;">Daily goal '+fmtN(B)+' \u00b7 '+plStyleName(P.style)+'</div>'
+    +(any?'<div class="pl-days">'+cols+'<div class="pl-bud" style="bottom:'+Math.round(B/mx*H)+'px"></div></div><div class="pl-dl">'+lab+'</div><div class="pl-leg">'+leg+'</div><div class="pl-cap" style="margin-top:6px;"><span>Dashed line is your daily goal. A red date is planned above it.</span></div>'
+        :'<p class="pl-note">Nothing is scheduled in the next 14 days. Open a subject below to set dates.</p>')+'</div>';
 }
+function plBalHtml(P,bal,names){
+  if(!bal.ok) return '';
+  const subs=names.filter(s=>bal.share[s]!=null).sort((a,b)=>bal.share[b]-bal.share[a]);
+  const over=subs.filter(s=>bal.flag[s]==='over'), low=subs.filter(s=>bal.flag[s]==='low'), run=subs.filter(s=>bal.over[s]>=1);
+  const mx=Math.max.apply(null,subs.map(s=>Math.max(bal.share[s],bal.plan[s]||0)))*1.1||1;
+  let h='<div class="card pl-card"><div class="pl-row1"><b>Time balance</b><span class="pl-sub" style="margin:0;">last 14 days</span></div>';
+  const msgs=[];
+  if(over.length) msgs.push(escH(over[0])+' has '+Math.round(bal.share[over[0]]*100)+'% of your time. Your plan gave it '+Math.round((bal.plan[over[0]]||0)*100)+'%.'+(bal.waiting?' '+bal.waiting+' subject'+(bal.waiting>1?'s are':' is')+' still waiting.':''));
+  if(run.length) msgs.push(escH(run[0])+' is '+bal.over[run[0]]+' day'+(bal.over[run[0]]>1?'s':'')+' past its planned end.');
+  if(!over.length&&low.length) msgs.push(escH(low[0])+' is getting '+Math.round(bal.share[low[0]]*100)+'% of your time. Your plan gave it '+Math.round((bal.plan[low[0]]||0)*100)+'%.');
+  if(msgs.length) h+=msgs.map(t=>'<div class="pl-warn" style="margin-top:10px;">'+t+'</div>').join('');
+  else h+='<div class="pl-ok" style="margin-top:10px;">Your time is following your plan.</div>';
+  h+=subs.map(s=>{ const cl=bal.flag[s]==='over'?'y':(bal.flag[s]==='low'?'r':'g'); return '<div class="pl-b"><span class="pl-bn">'+escH(s)+'</span><span class="pl-bt"><i class="'+cl+'" style="width:'+(bal.share[s]/mx*100).toFixed(1)+'%"></i><u style="left:'+((bal.plan[s]||0)/mx*100).toFixed(1)+'%"></u></span><span class="pl-bv">'+Math.round(bal.share[s]*100)+'%</span></div>'; }).join('');
+  h+='<div class="pl-cap" style="margin-top:8px;"><span>'+(bal.bySize?'No schedule in this period, so the dashed line is each subject\u2019s size.':'Dashed line is each subject\u2019s planned share from your schedule.')+' Time comes from your own question timers.</span></div></div>';
+  return h;
+}
+function plPlanned(inf,pl){ return !!(pl.blocks&&pl.blocks.length); }
+function plCardHtml(i,s,pl,inf,bal){
+  const chip=(t,c)=>'<span class="pl-chip '+c+'">'+t+'</span>';
+  const nm=escH(s), cur=inf.cur, stg=inf.stg, open=!!plOpen[s];
+  let head, line, pct, mk=null, bad=false;
+  if(!cur){ head=chip('Complete','g'); line='Reading and every planned review are done'; pct=100; }
+  else {
+    pct=cur.pct; bad=cur.status==='behind'||cur.status==='overdue';
+    const lab={wait:cur.blocked?'After reading':'Starts '+plFmt(cur.s),ready:'Ready \u00b7 '+pct+'%',ahead:'Ahead',on:'On track',behind:'Behind',overdue:'Overdue',open:'In progress'}[cur.status];
+    head=chip(lab,bad?'r':(cur.status==='open'?'n':(cur.status==='wait'?'y':'g')));
+    line=plStageName(cur)+' \u00b7 '+pct+'%'+(cur.s&&cur.e?' \u00b7 '+plFmt(cur.s)+' to '+plFmt(cur.e):'')+(cur.from&&cur.to?' \u00b7 '+plTm(cur.from)+' to '+plTm(cur.to):'');
+    if(cur.exp!=null&&cur.pool) mk=Math.min(100,cur.exp/cur.pool*100);
+  }
+  const dots=[0,1,2,3].map(k=>{ const o=inf.bl.find(x=>x.k===k); const c=o?(o.complete?'g':(cur&&cur.k===k?'c':'p')):''; return '<i class="'+c+'"></i>'; }).join('')+'<span>Reading + 3 reviews</span>';
+  let h='<div class="card pl-card"><div class="pl-hd" onclick="plToggle('+i+')"><div class="pl-row1"><b>'+nm+'</b>'+head+'</div><p class="pl-sub">'+line+'</p><div class="pl-bar"><i class="'+(bad?'r':(!cur?'g':''))+'" style="width:'+pct+'%"></i>'+(mk!=null?'<u style="left:'+mk.toFixed(1)+'%"></u>':'')+'</div><div class="pl-dots">'+dots+'<em>'+(open?'tap to close':'tap to open')+'</em></div></div>';
+  if(open){
+    const nextK=[1,2,3].find(k=>!inf.bl.find(x=>x.k===k)), canAdd=!!inf.bl.find(x=>x.k===0)&&nextK;
+    let rows='';
+    for(let k=0;k<4;k++){
+      const o=inf.bl.find(x=>x.k===k), v=k?stg.v[k-1]:null;
+      const pc=k?v.pct:stg.pct1, done=o?o.complete:false;
+      const txt=k===0?fmtN(stg.c1)+' of '+fmtN(stg.N)+' practised at least once':(v.pool===0?'No flagged questions yet':(v.est?'About '+fmtN(v.pool)+' flagged expected':fmtN(v.done)+' reviewed \u00b7 '+fmtN(v.wait)+' flagged still waiting'));
+      let right='Not planned';
+      if(o) right=done?'Done':(o.s&&o.e?plFmt(o.s)+' to '+plFmt(o.e):'No dates')+(o.from&&o.to?' \u00b7 '+plTm(o.from):'');
+      let act='';
+      if(o) act='<button class="pl-ed" onclick="plBkOpen('+i+','+o.i+')">Edit</button>';
+      else if(canAdd&&k===nextK) act='<button class="pl-ed" onclick="plBkOpen('+i+',-1,\'v'+k+'\')">+ Add</button>';
+      rows+='<div class="pl-stg"><div class="pl-r1"><span>'+(k===0?'Reading':'Review '+k)+' <em>'+right+'</em></span><span>'+pc+'% '+act+'</span></div><div class="pl-bar"><i class="'+(done?'g':'')+'" style="width:'+pc+'%"></i></div><div class="pl-cap"><span>'+txt+'</span></div></div>';
+    }
+    h+=rows;
+    if(stg.c4>0) h+='<p class="pl-note">'+fmtN(stg.c4)+' question'+(stg.c4>1?'s have':' has')+' been practised 4 or more times.</p>';
+    let note='';
+    if(cur){
+      if(cur.status==='ready') note=cur.pool===0&&cur.k>0?'Nothing is flagged here yet. Mark this review complete, or keep practising.':'You have covered '+stg.pass+'% or more. Mark it complete, or keep going to cover the rest.';
+      else if(cur.blocked) note='This review waits until the reading is complete.';
+      else if(cur.need>0&&cur.e) note='Needs about '+fmtN(cur.need)+' a day to finish by '+plFmt(cur.e)+'.';
+      if(cur.k===0&&cur.avail===0&&!cur.canMark) note='Every '+nm+' question you added is covered. Add more to continue (you planned '+fmtN(stg.N)+').';
+      if(cur.k>0&&cur.avail===0&&!cur.canMark&&!cur.blocked) note='No flagged questions are waiting for this review.';
+    }
+    const fl=bal.flag[s]; if(fl==='over') note+=(note?' ':'')+'This subject is using more than its planned share of your time.'; else if(fl==='low') note+=(note?' ':'')+'This subject is getting less than its planned share of your time.';
+    if(note) h+='<p class="pl-note">'+note+'</p>';
+    let btns='';
+    if(cur){
+      const n=Math.min(cur.avail,100,Math.max(cur.need,10));
+      const pr='<button class="'+(cur.canMark?'secondary':'primary')+'" '+(n>0&&cur.status!=='wait'?'':'disabled ')+'onclick="plPractise('+i+')">Practise '+(n>0?n:'')+'</button>';
+      const mkb='<button class="'+(cur.canMark?'primary':'secondary')+'" '+(cur.canMark?'':'disabled ')+'onclick="plMark('+i+')">Mark complete</button>';
+      btns+=cur.canMark?mkb+pr:pr+mkb;
+    }
+    const sh=cur?plShiftDays(plP(),cur):0;
+    if(sh>=1) btns+='<button class="secondary" onclick="plShift('+i+')">Shift the rest by '+sh+' day'+(sh>1?'s':'')+'</button>';
+    if(inf.bl.some(o=>o.b.done)) btns+='<button class="secondary" onclick="plUndo('+i+')">Undo complete</button>';
+    if(btns) h+='<div class="pl-btns" style="flex-wrap:wrap;">'+btns+'</div>';
+    if(cur&&!cur.canMark) h+='<div class="pl-cap" style="margin-top:6px;"><span>Mark complete unlocks at '+stg.pass+'%.</span></div>';
+  }
+  return h+'</div>';
+}
+function plToggle(i){ const s=plList[i]; if(s==null) return; plOpen[s]=!plOpen[s]; plRender(); }
 async function plPractise(i){
   const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
   await plSeenLoad();
-  const cov=plCover()[s]||{t:0,a:0,s:0,r:0,o:0}, st=plStat(pl,cov,P); if(!st) return;
-  const pool=liveBank().filter(q=>(q.subject||'General')===s && (st.ph===2 ? (q.attemptCount||0)===1 : !((q.attemptCount||0)>0) && !plSeen.has(q.id)));
+  const cov=plCover(), inf=plInfo(P,s,pl,cov[s]||plEC()); if(!inf||!inf.cur) return;
+  const cur=inf.cur, k=cur.k;
+  const pool=liveBank().filter(q=>(q.subject||'General')===s && (k>0 ? (q.flagged&&(q.attemptCount||0)>=1&&(q.attemptCount||0)<=k) : !((q.attemptCount||0)>0) && !plSeen.has(q.id)));
   if(!pool.length){ showToast('Nothing left to practise here.','info'); return; }
-  const n=Math.min(pool.length,100,Math.max(st.need,10)), d=leanBusy('Choosing questions\u2026');
+  const n=Math.min(pool.length,100,Math.max(cur.need,10)), d=leanBusy('Choosing questions\u2026');
   try{ startPractice(await pickUniqA(pool,n,true)); } finally{ d(); }
 }
 function plMark(i){
   const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
-  const st=plStat(pl,plCover()[s]||{t:0,a:0,s:0,r:0,o:0},P);
-  if(!st||!st.canMark){ showToast('Needs '+(P.pass||90)+'% covered first.','warn'); return; }
-  const td=localDayStr(); if(st.ph===1) pl.d1=td; else if(st.ph===2) pl.d2=td; else return;
+  const inf=plInfo(P,s,pl,plCover()[s]||plEC()); if(!inf||!inf.cur) return;
+  if(!inf.cur.canMark){ showToast('Needs '+(P.pass||90)+'% first.','warn'); return; }
+  const nm=plStageName(inf.cur); inf.cur.b.done=localDayStr(); P.today=null;
   persistSettings(); plRender(); try{ renderHome(); }catch(e){}
-  showToast(st.ph===1?s+': first pass marked complete.':s+': review marked complete.','info');
+  showToast(s+': '+nm.toLowerCase()+' marked complete.','info');
 }
 function plUndo(i){
   const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
-  if(pl.d2) pl.d2=null; else pl.d1=null;
-  persistSettings(); plRender(); try{ renderHome(); }catch(e){}
+  for(let j=pl.blocks.length-1;j>=0;j--){ if(pl.blocks[j].done){ pl.blocks[j].done=null; break; } }
+  P.today=null; persistSettings(); plRender(); try{ renderHome(); }catch(e){}
 }
-/* ---- Setup sheet ---- */
+/* Behind schedule: how many days the finish moves out at the student's pace */
+function plShiftDays(P,cur){
+  if(!P||!cur||!cur.b.e||!cur.b.s) return 0;
+  if(cur.status!=='behind'&&cur.status!=='overdue') return 0;
+  const tn=dayStrN(localDayStr()), days=Math.max(1,Math.ceil(cur.rem/cur.rate)), ne=tn+days-1;
+  return Math.max(0,ne-dayStrN(cur.b.e));
+}
+function plShift(i){
+  const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
+  const inf=plInfo(P,s,pl,plCover()[s]||plEC()); if(!inf||!inf.cur) return;
+  const cur=inf.cur, sh=plShiftDays(P,cur); if(sh<1){ showToast('Nothing to shift.','info'); return; }
+  const oldEnd=dayStrN(cur.b.e), later=[];
+  Object.keys(P.subs).forEach(x=>(P.subs[x].blocks||[]).forEach(b=>{ if(b!==cur.b&&!b.done&&b.s&&b.e&&dayStrN(b.s)>oldEnd) later.push(b); }));
+  if(!confirm(s+' '+plStageName(cur).toLowerCase()+' will end '+plFmt(plAdd(cur.b.e,sh))+' ('+sh+' day'+(sh>1?'s':'')+' later), and '+later.length+' later block'+(later.length===1?'':'s')+' move by the same amount. Continue?')) return;
+  later.forEach(b=>{ b.s=plAdd(b.s,sh); b.e=plAdd(b.e,sh); });
+  cur.b.e=plAdd(cur.b.e,sh); P.today=null;
+  persistSettings(); plRender(); try{ renderHome(); }catch(e){}
+  showToast('Plan shifted by '+sh+' day'+(sh>1?'s':'')+'.','info');
+}
+/* ---- Block editor: dates, study window, one block at a time ---- */
+function plBkRem(P,pl,cv,t){
+  const stg=plStages(pl,cv,P); if(!stg) return 1;
+  if(t==='r') return Math.max(1,stg.T1-stg.c1);
+  const v=stg.v[(+t.slice(1)||1)-1]; return Math.max(1,v.T-v.done);
+}
+function plBkOpen(i,bi,t){
+  const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
+  const cov=plCover(), cv=cov[s]||plEC();
+  let b=null; if(bi>=0){ b=pl.blocks[bi]; t=b.t; }
+  const rem=plBkRem(P,pl,cv,t), k=t==='r'?0:(+t.slice(1)||1);
+  plEd={i,s,bi,t,rem,endTouched:true,cov};
+  let st='',en='',f='',to='';
+  if(b){ st=b.s||''; en=b.e||''; f=b.from||''; to=b.to||''; }
+  else { const pr=plPropose(P,cov,'v',rem,plReviewFrom(pl,k),null); st=pr.s; en=pr.e; plEd.endTouched=false; }
+  $h('plBkTitle').textContent=s+' \u00b7 '+(k===0?'Reading':'Review '+k);
+  $h('plBkS').value=st; $h('plBkE').value=en; $h('plBkF').value=f; $h('plBkT').value=to;
+  $h('plBkDel').style.display=b?'':'none';
+  plBkInfo(); $h('plBkOverlay').classList.add('open');
+}
+function plBkClose(){ $h('plBkOverlay').classList.remove('open'); plEd=null; }
+function plBkChange(w){
+  if(!plEd) return; const P=plP(), rate=plRate(P,plEd.t==='r'?'r':'v');
+  if(w==='s'&&!plEd.endTouched){ const s=$h('plBkS').value; if(s) $h('plBkE').value=plDS(dayStrN(s)+Math.max(1,Math.ceil(plEd.rem/rate))-1); }
+  if(w==='e') plEd.endTouched=true;
+  plBkInfo();
+}
+function plBkSuggest(){
+  if(!plEd) return; const P=plP(), pl=P.subs[plEd.s], b=plEd.bi>=0?pl.blocks[plEd.bi]:null;
+  const from=$h('plBkS').value||localDayStr(), pr=plPropose(P,plEd.cov,plEd.t==='r'?'r':'v',plEd.rem,from,b);
+  $h('plBkS').value=pr.s; $h('plBkE').value=pr.e; plEd.endTouched=false; plBkInfo();
+}
+function plBkUse(e){ $h('plBkE').value=e; plEd.endTouched=false; plBkInfo(); }
+function plBkInfo(){
+  if(!plEd) return; const P=plP(), pl=P.subs[plEd.s], b=plEd.bi>=0?pl.blocks[plEd.bi]:null, t=plEd.t==='r'?'r':'v';
+  const rate=plRate(P,t), rem=plEd.rem, need=Math.max(1,Math.ceil(rem/rate)), B=plBud();
+  const s=$h('plBkS').value, e=$h('plBkE').value;
+  $h('plBkSize').textContent=fmtN(rem)+' questions to do \u00b7 your pace is '+fmtN(rate)+' a day, so about '+need+' day'+(need>1?'s':'');
+  let h='';
+  if(s&&e&&dayStrN(e)>=dayStrN(s)){
+    const dur=dayStrN(e)-dayStrN(s)+1, per=Math.ceil(rem/dur);
+    if(per>rate*1.05){ const sug=plDS(dayStrN(s)+need-1); h+='<div class="pl-warn" style="margin-top:10px;">'+fmtN(per)+' a day is above your pace of '+fmtN(rate)+'. At your pace it ends '+plFmt(sug)+'.<div class="row pair" style="margin-top:8px;"><button class="primary sm" onclick="plBkUse(\''+sug+'\')">Use '+plFmt(sug)+'</button><button class="secondary sm" onclick="this.parentNode.parentNode.style.display=\'none\'">Keep my dates</button></div></div>'; }
+    else h+='<div class="pl-ok" style="margin-top:10px;">'+fmtN(per)+' a day fits your pace.</div>';
+    const m=plLoad(P,plEd.cov,b), caps=plCaps(P), bad=[]; let capHit=0;
+    for(let d=dayStrN(s);d<=dayStrN(e);d++){ const c=m[d]||{tot:0,n:0,v:0}; if(c.tot+rem/dur>B*1.05) bad.push(plFmt(plDS(d))+' ('+fmtN(Math.round(c.tot+rem/dur))+')'); if(c.n+c.v+1>caps.tot||(t==='r'?c.n+1>caps.n:c.v+1>caps.v)) capHit++; }
+    if(capHit) h+='<div class="pl-warn" style="margin-top:8px;">Your style ('+plStyleName(P.style).toLowerCase()+') allows fewer blocks at once, and '+capHit+' of these days already have another one.</div>';
+    if(bad.length) h+='<div class="pl-warn" style="margin-top:8px;">Above your daily goal of '+fmtN(B)+' on '+bad.slice(0,3).join(', ')+(bad.length>3?' and '+(bad.length-3)+' more':'')+'.</div>';
+  }
+  $h('plBkInfo').innerHTML=h;
+}
+function plBkSave(){
+  if(!plEd) return; const P=plP(), pl=P.subs[plEd.s]; if(!pl) return;
+  const s=$h('plBkS').value, e=$h('plBkE').value, f=$h('plBkF').value, to=$h('plBkT').value;
+  if(!!s!==!!e){ showToast('Set both dates, or clear both.','warn'); return; }
+  if(s&&dayStrN(e)<dayStrN(s)){ showToast('The end date is before the start.','warn'); return; }
+  if(!!f!==!!to){ showToast('Set both times, or clear both.','warn'); return; }
+  if(f&&to<=f){ showToast('The end time must be after the start time.','warn'); return; }
+  if(plEd.bi>=0){ const b=pl.blocks[plEd.bi]; b.s=s||null; b.e=e||null; b.from=f; b.to=to; }
+  else {
+    const o={t:plEd.t,s:s||null,e:e||null,from:f,to:to,done:null};
+    pl.blocks.push(o); pl.blocks.sort((a,c)=>(a.t==='r'?0:+a.t.slice(1))-(c.t==='r'?0:+c.t.slice(1)));
+    plOpen[plEd.s]=true;
+  }
+  P.today=null; persistSettings(); plBkClose(); plRender(); try{ renderHome(); }catch(x){}
+  showToast('Saved','info');
+}
+function plBkDelete(){
+  if(!plEd||plEd.bi<0) return; const P=plP(), pl=P.subs[plEd.s]; if(!pl) return;
+  if(plEd.t==='r'&&pl.blocks.some(b=>b.t!=='r')){ showToast('Delete the reviews first.','warn'); return; }
+  if(!confirm('Remove this block from the plan? Your progress stays.')) return;
+  pl.blocks.splice(plEd.bi,1); P.today=null;
+  persistSettings(); plBkClose(); plRender(); try{ renderHome(); }catch(x){}
+}
+/* ---- Setup sheet: pace, style, subjects ---- */
 function plSubjectNames(){
   const seen=new Set(), out=[]; liveBank().forEach(q=>{ const s=q.subject||'General'; if(!seen.has(s)){ seen.add(s); out.push(s); } });
   const P=plP(); if(P) Object.keys(P.subs).forEach(s=>{ if(!seen.has(s)){ seen.add(s); out.push(s); } });
   return out;
 }
 function plOpenSetup(){
-  const P=plP()||{rev:3,min:5,pass:90,subs:{}}, cov=plCover(), names=plSubjectNames();
+  const P=plP()||{min:5,pass:90,style:'one',split:60,subs:{}}, cov=plCover(), names=plSubjectNames();
   if(!names.length){ showToast('Add some questions in Library first.','warn'); return; }
-  $h('plRevDays').value=P.rev||3; $h('plMinSec').value=P.min||5; $h('plPass').value=P.pass||90; $h('plAllDate').value='';
-  $h('plSetupRows').innerHTML=names.map((s,i)=>{ const pl=P.subs[s]||{}, c=cov[s]||{t:0};
-    return '<div class="pl-srow" data-i="'+i+'"><div class="pl-sname"><b>'+escH(s)+'</b><small>'+fmtN(c.t)+' added</small></div><div class="pl-in2"><label>Questions to practise<input class="num-input pl-n" type="number" min="0" inputmode="numeric" value="'+(pl.n||'')+'"></label><label>First pass by<input class="pf-field pl-d" type="date" value="'+(pl.end||'')+'"></label></div></div>'; }).join('');
+  $h('plBud').textContent=fmtN(plBud());
+  $h('plStyle').innerHTML=PL_STYLES.map(x=>'<option value="'+x[0]+'"'+((P.style||'one')===x[0]?' selected':'')+'>'+x[1]+'</option>').join('');
+  $h('plSplit').value=P.split||60; $h('plMinSec').value=P.min||5; $h('plPass').value=P.pass||90; $h('plFrom').value=localDayStr();
+  plStyleChange();
+  $h('plSetupRows').innerHTML=names.map((s,i)=>{ const pl=P.subs[s]||{}, c=cov[s]||{t:0}, rb=(pl.blocks||[]).find(b=>b.t==='r');
+    return '<div class="pl-srow" data-i="'+i+'"><div class="pl-sname"><b>'+escH(s)+'</b><small>'+fmtN(c.t)+' added'+(rb&&rb.s&&rb.e?' \u00b7 reading '+plFmt(rb.s)+' to '+plFmt(rb.e):'')+'</small></div><div class="pl-in2" style="grid-template-columns:1fr;"><label>Questions to practise<input class="num-input pl-n" type="number" min="0" inputmode="numeric" value="'+(pl.n||'')+'"></label></div></div>'; }).join('');
   window._plNames=names;
   $h('plOverlay').classList.add('open');
 }
 function plCloseSetup(){ $h('plOverlay').classList.remove('open'); }
-function plApplyAll(){ const v=$h('plAllDate').value; if(!v){ showToast('Pick a date first.','warn'); return; } document.querySelectorAll('#plSetupRows .pl-d').forEach(e=>{ e.value=v; }); }
+function plStyleChange(){
+  const v=$h('plStyle').value, sp=+$h('plSplit').value;
+  $h('plSplitRow').style.display=(v==='n1r1'||v==='n1r2')?'':'none';
+  $h('plSplitTx').textContent='New '+sp+'% \u00b7 reviews '+(100-sp)+'%';
+}
 function plSaveSetup(){
   const P=plEnsure(), cov=plCover(), td=localDayStr(), names=window._plNames||[];
-  const rev=Math.max(1,Math.min(30,parseInt($h('plRevDays').value)||3)), min=Math.max(1,Math.min(60,parseInt($h('plMinSec').value)||5)), pass=Math.max(50,Math.min(100,parseInt($h('plPass').value)||90));
-  P.rev=rev; P.min=min; P.pass=pass;
-  document.querySelectorAll('#plSetupRows .pl-srow').forEach(row=>{
-    const s=names[+row.dataset.i]; if(s==null) return;
-    const n=Math.max(0,parseInt(row.querySelector('.pl-n').value)||0), d=row.querySelector('.pl-d').value||'';
-    if(!n && !d){ delete P.subs[s]; return; }
-    const old=P.subs[s], c=cov[s]||{a:0,s:0};
-    const pl=old||{start:td,b0:c.a+c.s,d1:null,d2:null};
-    pl.n=n; pl.end=d||null; if(!pl.start) pl.start=td; if(pl.end && dayStrN(pl.end)<dayStrN(pl.start)) pl.start=pl.end;
-    P.subs[s]=pl;
+  const min=Math.max(1,Math.min(60,parseInt($h('plMinSec').value)||5)), pass=Math.max(50,Math.min(100,parseInt($h('plPass').value)||90));
+  const rows=[]; document.querySelectorAll('#plSetupRows .pl-srow').forEach(row=>{ const s=names[+row.dataset.i]; if(s!=null) rows.push({s,n:Math.max(0,parseInt(row.querySelector('.pl-n').value)||0)}); });
+  const fresh=rows.filter(r=>r.n>0&&!(P.subs[r.s]&&(P.subs[r.s].blocks||[]).some(b=>b.t==='r')));
+  if(fresh.length&&dayGoal()<100){
+    const tot=fresh.reduce((a,r)=>a+r.n,0);
+    if(!confirm('Your daily goal is '+fmtN(dayGoal())+', so '+fmtN(tot)+' new questions would take about '+fmtN(Math.ceil(tot/dayGoal()))+' days. Press OK to plan anyway, or Cancel to raise your goal first (Home > Edit).')) return;
+  }
+  P.min=min; P.pass=pass; P.style=$h('plStyle').value; P.split=Math.min(80,Math.max(40,+$h('plSplit').value||60)); P.v=2;
+  let from=$h('plFrom').value||td; if(dayStrN(from)<dayStrN(td)) from=td;
+  rows.forEach(r=>{
+    const s=r.s, n=r.n;
+    if(!n){ delete P.subs[s]; return; }
+    const c=cov[s]||plEC(); let pl=P.subs[s]; if(!pl) pl=P.subs[s]={n:n,blocks:[]}; pl.n=n; if(!pl.blocks) pl.blocks=[];
+    if(!pl.blocks.some(b=>b.t==='r')){
+      const stg=plStages(pl,c,P), b0=c.a+c.s, rem=stg?Math.max(1,stg.T1-b0):1, pr=plPropose(P,cov,'r',rem,from,null);
+      pl.blocks.unshift({t:'r',s:pr.s,e:pr.e,from:'',to:'',done:null,b0});
+    }
   });
   P.today=null;
   persistSettings(); plCloseSetup(); plRender();
   try{ renderHome(); }catch(e){}
   showToast(Object.keys(P.subs).length?'Plan saved':'No subjects planned','info');
 }
+(function(){
+  const homeTick=()=>{ if(document.hidden||!plHas()||!plSeen) return; try{ plRenderHome(); }catch(e){} };
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) return; homeTick(); try{ const sc=$h('screen-planner'); if(sc&&sc.classList.contains('active')&&plHas()&&plSeen) plRender(); }catch(e){} });
+  setInterval(homeTick,60000);
+})();
+
 
 function goAdd(){ switchTab('bank'); setTimeout(()=>{ const c=$h('addTabs'); if(c) c.scrollIntoView({behavior:'smooth',block:'center'}); },80); }
 
