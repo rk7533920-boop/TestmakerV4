@@ -631,8 +631,16 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 .pl-stg{border-top:1px solid var(--border);margin-top:12px;padding-top:10px;}
 .pl-stg .pl-r1 em{font-style:normal;color:var(--muted);font-size:11.5px;margin-left:4px;}
 .pl-ed{background:none;border:none;color:var(--brand);font-size:12.5px;font-weight:600;padding:2px 6px;min-height:0;cursor:pointer;}
-.pl-win{background:var(--ink-bg);border-radius:10px;padding:8px 10px;font-size:12.5px;margin:0 0 10px;} .pl-win.now{background:var(--green-bg);color:var(--green);} .pl-win span{color:var(--muted);}
-.pl-wins .pl-win{margin:10px 0 0;}
+.pl-mode{display:flex;gap:4px;background:var(--ink-bg);border-radius:12px;padding:3px;margin:0 0 12px;}
+.pl-mode button{flex:1;border:none;background:none;color:var(--muted);font-size:13.5px;font-weight:600;padding:8px 6px;border-radius:10px;min-height:0;cursor:pointer;}
+.pl-mode button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+.pl-tick{display:flex;align-items:center;gap:9px;background:none;border:none;padding:10px 0 2px;min-height:0;font-size:13px;color:var(--text);cursor:pointer;text-align:left;}
+.pl-tick b{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--muted);display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:13px;line-height:1;color:#fff;}
+.pl-tick.on b{background:var(--green);border-color:var(--green);}
+.pl-tick:disabled{cursor:default;}
+.pl-add{display:flex;align-items:center;gap:10px;margin-top:14px;}
+.pl-plus{width:32px;height:32px;min-height:0;padding:0;border-radius:50%;border:1.5px solid var(--brand);background:none;color:var(--brand);font-size:20px;line-height:1;cursor:pointer;flex:none;}
+.pl-add span{font-size:13px;color:var(--muted);}
 .pl-days{position:relative;display:flex;gap:3px;align-items:flex-end;height:76px;margin-top:10px;border-bottom:1px solid var(--border);}
 .pl-day{flex:1;display:flex;flex-direction:column-reverse;height:100%;} .pl-day i{display:block;width:100%;}
 .pl-bud{position:absolute;left:0;right:0;border-top:1.5px dashed var(--muted);pointer-events:none;}
@@ -678,15 +686,13 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 <div id="plOverlay" onclick="if(event.target===this) plCloseSetup()">
   <div class="info-sheet" style="max-height:92vh;overflow-y:auto;">
     <div class="gs-head"><h4>Plan my subjects</h4><button class="back" onclick="plCloseSetup()" aria-label="Close" style="font-size:16px;">✕</button></div>
-    <div class="gs-note" style="margin:6px 0 10px;">The planner paces everything by your daily goal, which is <b id="plBud">25</b> questions a day. To change it, use Edit on Home. Enter how many questions you plan to practise in each subject. Dates are suggested for you, and you can change them from each subject.</div>
+    <div class="gs-note" style="margin:6px 0 10px;">Enter how many questions you plan to practise in each subject. Dates are suggested from your daily goal (<b id="plBud">25</b> a day, set on Home), and you can change them from each subject.</div>
     <div class="pl-set" style="grid-template-columns:1fr;">
-      <label>Study style<select id="plStyle" class="pf-field" onchange="plStyleChange()" style="width:100%;box-sizing:border-box;margin:0;"></select></label>
-      <label id="plSplitRow">How the daily goal is shared: <span id="plSplitTx"></span><input type="range" id="plSplit" min="40" max="80" step="5" oninput="plStyleChange()" style="width:100%;"></label>
+      <div id="plAdvSet" style="display:grid;gap:10px;">
+        <label>Study style<select id="plStyle" class="pf-field" onchange="plStyleChange()" style="width:100%;box-sizing:border-box;margin:0;"></select></label>
+        <label id="plSplitRow">How the daily goal is shared: <span id="plSplitTx"></span><input type="range" id="plSplit" min="40" max="80" step="5" oninput="plStyleChange()" style="width:100%;"></label>
+      </div>
       <label>Start planning from<input type="date" id="plFrom" class="pf-field" style="width:100%;box-sizing:border-box;margin:0;"></label>
-    </div>
-    <div class="pl-set" style="grid-template-columns:1fr 1fr;margin-top:10px;">
-      <label>Count a skipped question after (s)<input id="plMinSec" type="number" min="1" max="60" inputmode="numeric" class="num-input"></label>
-      <label>Mark complete from (%)<input id="plPass" type="number" min="50" max="100" inputmode="numeric" class="num-input"></label>
     </div>
     <div id="plSetupRows"></div>
     <div class="row pair" style="margin-top:14px;"><button class="primary" onclick="plSaveSetup()">Save plan</button><button class="secondary" onclick="plCloseSetup()">Cancel</button></div>
@@ -697,7 +703,6 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
     <div class="gs-head"><h4 id="plBkTitle">Block</h4><button class="back" onclick="plBkClose()" aria-label="Close" style="font-size:16px;">✕</button></div>
     <div class="gs-note" id="plBkSize" style="margin:6px 0 10px;"></div>
     <div class="pl-in2"><label>Starts<input type="date" id="plBkS" class="pf-field" oninput="plBkChange('s')"></label><label>Ends<input type="date" id="plBkE" class="pf-field" oninput="plBkChange('e')"></label></div>
-    <div class="pl-in2"><label>From time (optional)<input type="time" id="plBkF" class="pf-field"></label><label>To time (optional)<input type="time" id="plBkT" class="pf-field"></label></div>
     <div id="plBkInfo"></div>
     <div class="row pair" style="margin-top:14px;"><button class="primary" onclick="plBkSave()">Save</button><button class="secondary" onclick="plBkSuggest()">Suggest dates</button></div>
     <div class="row pair" style="margin-top:8px;"><button class="secondary" id="plBkDel" onclick="plBkDelete()">Remove block</button><button class="secondary" onclick="plBkClose()">Cancel</button></div>
@@ -810,7 +815,6 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
           <div class="pl-tx"><h3>Today's plan</h3><p id="plSum"></p></div>
           <button class="linkbtn" onclick="switchTab('planner')">Planner &rsaquo;</button>
         </div>
-        <div class="pl-wins" id="plWin" style="display:none"></div>
         <div id="plRows"></div>
         <div class="pl-warn" id="plNote" style="display:none"></div>
         <button class="primary" id="plStart" onclick="plStartToday()">Start today's test</button>
@@ -839,6 +843,7 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 
   <section id="screen-planner" class="screen">
     <div class="pl-head"><h2>Planner</h2><button class="secondary sm" onclick="plOpenSetup()">Plan subjects</button></div>
+    <div class="pl-mode" id="plMode"></div>
     <div id="plBody"></div>
   </section>
 
@@ -1118,7 +1123,7 @@ Ans. (b)
         <span class="chips" id="dcRange"><button data-v="7" onclick="setDayRange(7)">7 d</button><button data-v="14" onclick="setDayRange(14)">14 d</button><button data-v="30" onclick="setDayRange(30)">30 d</button></span></div>
       <p class="muted" id="dcSum" style="margin:6px 0;"></p>
       <div id="dcChart"></div>
-      <div class="row" style="gap:14px;font-size:12px;margin-top:4px;"><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-right:5px;"></i>New</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green);margin-right:5px;"></i>Revised</span></div>
+      <div class="row" style="gap:14px;font-size:12px;margin-top:4px;"><span><i style="display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--accent);margin-right:5px;vertical-align:middle;"></i>Total</span><span><i style="display:inline-block;width:14px;height:0;border-top:2px dashed var(--brand);margin-right:5px;vertical-align:middle;"></i>New</span><span><i style="display:inline-block;width:14px;height:0;border-top:2px dashed var(--green);margin-right:5px;vertical-align:middle;"></i>Revised</span></div>
     </div>
 
     <div class="card">
@@ -1164,7 +1169,8 @@ function saveFailed(e){
   } else go();
 }
 function saveLS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){ if(CRIT_KEYS.test(k)) saveFailed(e); }}
-function uid(){return 'q'+Date.now()+Math.random().toString(36).slice(2,7);}
+var _uidLast=0;   // ids always grow, even inside one save: every question in a batch used to get the same millisecond, so topics saved together lost their book order (they fell back to A-Z)
+function uid(){ let t=Date.now(); if(t<=_uidLast) t=_uidLast+1; _uidLast=t; return 'q'+t+Math.random().toString(36).slice(2,7);}
 function accColor(a){ return a>=80?'var(--green)':(a>=60?'var(--orange)':'var(--red)'); }
 function esc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -4463,7 +4469,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-27';
+const APP_BUILD = 'index-30';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -4824,7 +4830,7 @@ async function parseSelectedChapters(){
     const c=sel[i], from=Math.max(1,c.from||1), to=Math.min(autoPdf.numPages,Math.max(from,c.to||from));
     const text=await pdfPagesToText(autoPdf,from,to,m=>{ st.textContent='Topic '+(i+1)+'/'+sel.length+': '+m; });
     let found=[]; try{ found=parseSmart(text,''); checkAdd(c.topic, found, lastParseDiag, text); }catch(e){ console.warn('Parse failed for',c.topic,e); }
-    found.forEach(q=>all.push({...q, tempId:uid(), subject:c.subject.trim(), sj:true, topic:c.topic.trim()}));
+    found.forEach(q=>all.push({...q, tempId:uid(), subject:c.subject.trim(), sj:true, topic:c.topic.trim(), bk:bookKey(pickedPdfName), bp:from}));
     await new Promise(r=>setTimeout(r,0));
   }
   st.textContent='';
@@ -4934,7 +4940,7 @@ async function doParsePdf(){
         const sg=r.segs[i]; let found=[];
         st.textContent='Finding questions '+(i+1)+'/'+r.segs.length+'\u2026';
         try{ found=parseSmart(sg.text,''); checkAdd(sg.title||('Part '+(i+1)), found, lastParseDiag, sg.text); }catch(e){ console.warn('Parse failed for',sg.title,e); }
-        if(found.length) multiSegs.push({title:sg.title||'', subject:sg.subject||'', found, on:true});   // pieces with no questions (pure notes) are left out
+        if(found.length) multiSegs.push({title:sg.title||'', subject:sg.subject||'', found, on:true, pg:startP+(sg.pgi||0)});   // pieces with no questions (pure notes) are left out
         await new Promise(res=>setTimeout(res,0));
       }
     }
@@ -4954,7 +4960,7 @@ async function doParsePdf(){
       catch(e){ console.warn('Parse crashed',e); logIssue('parse-crash', e && e.message, e && e.message); st.textContent='Something went wrong while parsing \u2014 the admin has been notified.'; return; }
       if(!found.length){ st.textContent=/[\u0900-\u097F]/.test(whole) ? 'No English questions detected \u2014 Hindi text is ignored for now.' : 'No questions found in pages '+startP+'-'+endShown+'. Check the page range.'; return; }
       st.textContent=found.length+' question(s) found in pages '+startP+'-'+endShown+'. Check them below, then Save.'+cutNote;
-      parsedBatch=found.map(q=>({...q, tempId:uid(), subject:subject||'General', sj:!!subject, topic:topic||'General'}));   // sj: the subject was really named (by the book's heading), not the 'General' placeholder
+      parsedBatch=found.map(q=>({...q, tempId:uid(), subject:subject||'General', sj:!!subject, topic:topic||'General', bk:(addMode==='series'?'':bookKey(pickedPdfName)), bp:(multiSegs.length===1&&multiSegs[0].pg)||startP}));   // sj: the subject was really named (by the book's heading), not the 'General' placeholder
       $id('previewCard').style.display='block'; renderPreview();
       $id('previewCard').scrollIntoView({behavior:'smooth',block:'start'});
     }
@@ -5001,7 +5007,7 @@ function msAdd(){
   const subjAll=document.getElementById('msSubject').value.trim();
   if(sel.some(c=>!(subjAll||c.subject))){ showToast('Type the subject name first.','error'); flagFieldError(document.getElementById('msSubject')); return; }   // a subject is required: typed here, or named by the book's own subject heading
   if(sel.some(c=>!c.title.trim())){ showToast('Give every ticked topic a name.','error'); return; }
-  const all=[]; sel.forEach(c=>c.found.forEach(q=>all.push({...q, tempId:uid(), subject:subjAll||c.subject, sj:true, topic:c.title.trim()})));
+  const all=[]; sel.forEach(c=>c.found.forEach(q=>all.push({...q, tempId:uid(), subject:subjAll||c.subject, sj:true, topic:c.title.trim(), bk:bookKey(pickedPdfName), bp:c.pg||0})));
   parsedBatch=all; document.getElementById('msCard').style.display='none'; multiSegs=[];
   document.getElementById('pdfStatus').textContent=all.length+' question(s) in '+sel.length+' topic(s). Check them below, then Save.';
   document.getElementById('parseMsg').textContent='';
@@ -5083,6 +5089,7 @@ function saveBatch(){
   const allNew = ready.map(q=>({id:uid(), num:q.num, subject:q.subject, topic:q.topic, text:q.text, options:q.options, correctKey:q.correctKey, sourceTag:q.sourceTag||null, explanation:q.explanation||null, flagged:false, issue:false, attemptCount:0}));
   const dd = dedupeIncoming(allNew), newQs = dd.fresh;   // questions already in the bank (same text, options and answer) are not added again
   newQs.forEach(newQ=>bank.push(newQ));
+  { let _tp=false; ready.forEach(q=>{ if(q.bk && q.bp && tposNote(q.subject,q.topic,q.bk,q.bp)) _tp=true; }); if(_tp) persistSettings(); }   // book position of each topic, so later sessions slot in at the right place
   if(newQs.length) persistNewQuestions(newQs);
   parsedBatch = parsedBatch.filter(q=>!q.correctKey);
   if(newQs.length || dd.dupes){   // saved ones (and skipped repeats) leave the paste box; questions still missing an answer stay in it (nothing left -> empty box)
@@ -6763,10 +6770,25 @@ function creationOrder(){
     if(!s.has(sj) || c < s.get(sj)) s.set(sj, c);
     if(!t.has(k) || c < t.get(k)) t.set(k, c);
   });
-  return {s, t};
+  /* Topics that came from a PDF remember the book and the page they start on (settings.tpos). Topics of one book in one subject
+     sit together, where the first of them was added, and inside that group they follow the book's page order, whatever session
+     each one was added in. Topics without that note keep the order they were added. */
+  const tp = (typeof settings!=='undefined' && settings && settings.tpos) || {}, bg = {}, tg = new Map();
+  t.forEach((c,k)=>{ const p=tp[k]; if(p && p.b){ const gk=k.split('\u0001')[0]+'\u0001'+p.b; if(!(gk in bg) || c<bg[gk]) bg[gk]=c; } });
+  t.forEach((c,k)=>{ const p=tp[k]; tg.set(k, (p && p.b) ? {g:bg[k.split('\u0001')[0]+'\u0001'+p.b], p:p.p} : {g:c, p:0}); });
+  return {s, t, tg};
+}
+function bookKey(n){ return String(n||'').toLowerCase().replace(/\.pdf$/,'').replace(/\s*\(\d+\)$/,'').replace(/[^a-z0-9]/g,'').slice(0,60); }
+function tposNote(sj, tp, bk, bp){   // remembers where in its book a topic starts (the earliest page wins); true when something changed
+  bk=String(bk||''); bp=+bp; if(!bk || !(bp>0)) return false;
+  const k=(sj||'General')+'\u0001'+(tp||'General'), m=settings.tpos || (settings.tpos={}), c=m[k];
+  if(c && (c.b!==bk || c.p<=bp)) return false;
+  m[k]={b:bk, p:bp}; return true;
 }
 function subjectCmp(ord){ return (a,b)=>{ const x = ord.s.has(a)?ord.s.get(a):9e15, y = ord.s.has(b)?ord.s.get(b):9e15; return x!==y ? x-y : String(a).localeCompare(String(b)); }; }
-function topicCmp(ord, subj){ return (a,b)=>{ const ka = subj+'\u0001'+a, kb = subj+'\u0001'+b, x = ord.t.has(ka)?ord.t.get(ka):9e15, y = ord.t.has(kb)?ord.t.get(kb):9e15; return x!==y ? x-y : String(a).localeCompare(String(b)); }; }
+function topicCmp(ord, subj){ return (a,b)=>{ const ka = subj+'\u0001'+a, kb = subj+'\u0001'+b;
+  if(ord.tg){ const A=ord.tg.get(ka), B=ord.tg.get(kb); if(A && B){ if(A.g!==B.g) return A.g-B.g; if(A.p!==B.p) return A.p-B.p; } }
+  const x = ord.t.has(ka)?ord.t.get(ka):9e15, y = ord.t.has(kb)?ord.t.get(kb):9e15; return x!==y ? x-y : String(a).localeCompare(String(b)); }; }
 /* ---------- Multi-select subject/topic filter for test creation ---------- */
 function getSubjectTopicsMap(){
   const map = {};
@@ -7761,6 +7783,7 @@ document.addEventListener('click',function(e){
    Stage bars come straight from attempt counts: Reading = attempted at least once; Review k = attempted at least k+1 times,
    out of (those) + (flagged questions that have not yet reached that attempt). Nothing new is stored per question. */
 var plSeen=null, plSeenP=null, plSeenQ=[], plLast=null, plList=[], plOpen={}, plEd=null;
+var PL_MIN=5, PL_PASS=90;   // fixed rules: a skipped question counts after 5 s on screen; 90% covered counts as complete (not user settings)
 var PL_COL=['#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922'];
 var PL_STYLES=[['one','One subject at a time'],['n1r1','1 new + 1 review'],['n1r2','1 new + 2 reviews'],['free','Free (no limit)']];
 function plEC(){ return {t:0,a:0,s:0,c2:0,c3:0,c4:0,fl:0,f1:0,f2:0,f3:0}; }
@@ -7776,7 +7799,14 @@ function plMigrate(P){
 }
 function plP(){ const P=settings.planner; if(P && P.subs){ if(P.v!==2) plMigrate(P); return P; } return null; }
 function plHas(){ const P=plP(); return !!(P && Object.keys(P.subs).length); }
-function plEnsure(){ if(!plP()) settings.planner={v:2,min:5,pass:90,style:'one',split:60,subs:{}}; return settings.planner; }
+function plEnsure(){ if(!plP()) settings.planner={v:2,min:PL_MIN,pass:PL_PASS,style:'one',split:60,mode:'simple',subs:{}}; return settings.planner; }
+/* Simple = reading only (questions + dates) with a days-given tracker. Advanced = reviews, study style, days ahead, time balance.
+   Plans made before modes existed open in Advanced if they already have reviews. */
+function plMode(P){ if(P&&(P.mode==='adv'||P.mode==='simple')) return P.mode; return (P&&P.subs&&Object.keys(P.subs).some(s=>(P.subs[s].blocks||[]).some(b=>b.t!=='r')))?'adv':'simple'; }
+function plSimple(P){ return plMode(P)==='simple'; }
+function plRenderMode(){ const el=$h('plMode'); if(!el) return; const m=plMode(plP());
+  el.innerHTML='<button class="'+(m==='simple'?'on':'')+'" onclick="plSetMode(\'simple\')">Simple</button><button class="'+(m==='adv'?'on':'')+'" onclick="plSetMode(\'adv\')">Advanced</button>'; }
+function plSetMode(m){ const P=plEnsure(); P.mode=m; P.today=null; persistSettings(); plRender(); try{ renderHome(); }catch(e){} }
 function plSeenLoad(){
   if(plSeen) return Promise.resolve(plSeen);
   if(plSeenP) return plSeenP;
@@ -7793,7 +7823,6 @@ function plSeenSave(){ if(!plSeen) return; const a=Array.from(plSeen); try{ idbS
 function plAdd(s,n){ return plDS(dayStrN(s)+n); }
 function plDS(n){ const d=new Date(n*864e5); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
 function plFmt(s){ if(!s) return ''; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
-function plTm(t){ if(!t) return ''; const p=t.split(':').map(Number), h=p[0]%12||12; return h+':'+String(p[1]||0).padStart(2,'0')+' '+(p[0]<12?'am':'pm'); }
 function plStyleName(v){ const r=PL_STYLES.find(x=>x[0]===v); return r?r[1]:PL_STYLES[0][1]; }
 function plCover(){
   const m={}, S=plSeen||new Set();
@@ -7807,14 +7836,15 @@ function plCover(){
 /* ---- pace, limits and stage maths ---- */
 function plBud(){ return Math.max(1,dayGoal()); }
 function plRate(P,t){
-  const B=plBud(), st=P.style||'one', sp=Math.min(80,Math.max(40,P.split||60));
+  const B=plBud(); if(plSimple(P)) return B;
+  const st=P.style||'one', sp=Math.min(80,Math.max(40,P.split||60));
   if(st==='n1r1'||st==='n1r2'){ const nv=st==='n1r2'?2:1; return Math.max(1,t==='r'?Math.round(B*sp/100):Math.round(B*(100-sp)/100/nv)); }
   return B;
 }
-function plCaps(P){ const st=P.style||'one'; return st==='one'?{tot:1,n:9,v:9}:(st==='n1r1'?{tot:9,n:1,v:1}:(st==='n1r2'?{tot:9,n:1,v:2}:{tot:99,n:99,v:99})); }
+function plCaps(P){ if(plSimple(P)) return {tot:99,n:99,v:99}; const st=P.style||'one'; return st==='one'?{tot:1,n:9,v:9}:(st==='n1r1'?{tot:9,n:1,v:1}:(st==='n1r2'?{tot:9,n:1,v:2}:{tot:99,n:99,v:99})); }
 function plStages(pl,cv,P){
   const N=Math.max(pl.n||0,cv.t||0); if(!N) return null;
-  const pass=P.pass>0?P.pass:90, c1=cv.a+cv.s, T1=Math.ceil(N*pass/100), rb=(pl.blocks||[]).find(b=>b.t==='r');
+  const pass=PL_PASS, c1=cv.a+cv.s, T1=Math.ceil(N*pass/100), rb=(pl.blocks||[]).find(b=>b.t==='r');
   const readDone=c1>=N||!!(rb&&rb.done);
   const D=[cv.c2,cv.c3,cv.c4], W=[cv.f1,cv.f2,cv.f3], rate=cv.a>=30?cv.fl/cv.a:0.25, estPool=Math.round(rate*N), v=[];
   for(let k=0;k<3;k++){
@@ -7830,7 +7860,8 @@ function plInfo(P,s,pl,cv){
   const stg=plStages(pl,cv,P); if(!stg) return null;
   const tn=dayStrN(localDayStr()), out=[];
   (pl.blocks||[]).forEach((b,i)=>{
-    const rd=b.t==='r', k=rd?0:(+b.t.slice(1)||1), o={i,b,t:b.t,k,s:b.s||null,e:b.e||null,from:b.from||'',to:b.to||''};
+    if(plSimple(P)&&b.t!=='r') return;
+    const rd=b.t==='r', k=rd?0:(+b.t.slice(1)||1), o={i,b,t:b.t,k,s:b.s||null,e:b.e||null};
     if(rd){ o.dn=stg.c1; o.pool=stg.N; o.T=stg.T1; o.avail=Math.max(0,cv.t-cv.a-cv.s); o.pct=stg.pct1; o.est=false; o.auto=stg.c1>=stg.N; }
     else { const v=stg.v[k-1]; o.dn=v.done; o.pool=v.pool; o.T=v.T; o.avail=v.wait; o.pct=v.pct; o.est=v.est; o.auto=stg.readDone&&v.pool>0&&v.wait===0; }
     o.complete=!!b.done||o.auto;
@@ -7891,7 +7922,7 @@ function plReviewFrom(pl,k){
 /* ---- time balance: your plan's share against real seconds from your own question timers ---- */
 function plBalance(P,cov){
   const subs=Object.keys(P.subs), out={t:{},tot:0,share:{},plan:{},flag:{},over:{},waiting:0,ok:false,bySize:false};
-  if(subs.length<2) return out;
+  if(subs.length<2||plSimple(P)) return out;
   const tn=dayStrN(localDayStr()), a=tn-13, cut=Date.now()-14*864e5, infos={};
   (history||[]).forEach(h=>{
     if(!h||!h.date||new Date(h.date).getTime()<cut) return;
@@ -7940,7 +7971,7 @@ function plToday(cov,bal){
 function plAfterTest(sess,quiet){
   const P=plP(); if(!P||!Object.keys(P.subs).length) return;
   if(!plSeen) plSeenLoad();
-  const min=P.min>0?P.min:5, qt=sess.qt||{}, out={tot:sess.questions.length,cnt:0,np:0,short:0,nw:{},by:{},min};
+  const min=PL_MIN, qt=sess.qt||{}, out={tot:sess.questions.length,cnt:0,np:0,short:0,nw:{},by:{},min};
   const cov=plCover(), T=plToday(cov,plBalance(P,cov)), add=[];
   sess.questions.forEach((q,i)=>{
     const s=q.subject||'General'; if(!P.subs[s]){ out.np++; return; }
@@ -7962,31 +7993,10 @@ function plResultHtml(){
   const pct=r.tot?Math.round(r.cnt/r.tot*100):0, bits=[];
   const by=Object.keys(r.by).sort((a,b)=>r.by[b]-r.by[a]).map(s=>escH(s)+' +'+r.by[s]).join(', ');
   if(by) bits.push('Counted: '+by);
-  if(r.short) bits.push(r.short+' skipped in under '+r.min+' seconds');
+  if(r.short) bits.push(r.short+' skipped too quickly to count');
   if(r.np) bits.push(r.np+' from subjects not in your plan');
   if(r.cnt) bits.push('Today: '+fmtN(todayCount())+' of '+fmtN(plBud())+' (daily goal)');
   return '<div class="pl-res"><b>'+(r.cnt?'Planner: '+r.cnt+' of '+r.tot+' questions counted ('+pct+'%)':'Planner: none of these questions counted')+'</b>'+(bits.length?'<small>'+bits.join(' \u00b7 ')+'</small>':'')+'</div>';
-}
-/* ---- study window: "time to study" banner ---- */
-function plWindows(P,cov){
-  const now=new Date(), mins=now.getHours()*60+now.getMinutes(), tn=dayStrN(localDayStr()), out={now:[],later:[]};
-  Object.keys(P.subs).forEach(s=>{
-    const inf=plInfo(P,s,P.subs[s],cov[s]||plEC()); if(!inf) return;
-    inf.bl.forEach(o=>{
-      if(o.complete||!o.s||!o.e||!o.from||!o.to) return;
-      if(tn<dayStrN(o.s)||tn>dayStrN(o.e)) return;
-      const f=o.from.split(':').map(Number), t=o.to.split(':').map(Number), a=f[0]*60+f[1], z=t[0]*60+t[1];
-      const it={s,label:escH(s)+' \u00b7 '+(o.k===0?'Reading':'Review '+o.k),win:plTm(o.from)+' to '+plTm(o.to)};
-      if(mins>=a&&mins<z) out.now.push(it); else if(mins<a) out.later.push(it);
-    });
-  });
-  return out;
-}
-function plWinHtml(w){
-  let h='';
-  if(w.now.length) h+='<div class="pl-win now"><b>Time to study</b> '+w.now.map(x=>x.label+' \u00b7 '+x.win).join(' &nbsp;|&nbsp; ')+'</div>';
-  if(w.later.length) h+='<div class="pl-win"><span>Later today</span> '+w.later.map(x=>x.label+' \u00b7 '+x.win).join(' &nbsp;|&nbsp; ')+'</div>';
-  return h;
 }
 /* ---- Home tile ---- */
 function plRenderHome(){
@@ -8011,7 +8021,6 @@ function plRenderHome(){
   const sk=rows.filter(r=>r.skip).map(r=>escH(r.s)), nt=$h('plNote');
   nt.style.display=sk.length?'':'none';
   nt.textContent=sk.length?(sk.slice(0,2).join(' and ')+(sk.length>2?' and more':'')+(sk.length===1?' is':' are')+' taking more than their share of your time, so '+(sk.length===1?'it gets':'they get')+' nothing new today.'):'';
-  const wn=$h('plWin'); if(wn){ const h=plWinHtml(plWindows(P,cov)); wn.innerHTML=h; wn.style.display=h?'':'none'; }
   $h('plStart').textContent = R>0 ? 'Start today\u2019s test \u00b7 '+R+' left' : 'Plan done \u00b7 practise more';
   show(true);
 }
@@ -8036,21 +8045,45 @@ async function plStartToday(){
 var PL_RANK={overdue:0,behind:1,on:2,open:3,ahead:4,ready:5,wait:6,complete:9};
 function plStageName(o){ return o.k===0?'Reading':'Review '+o.k; }
 function plRender(){
-  const box=$h('plBody'); if(!box) return;
-  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects to choose how many questions you will practise in each subject. The planner then suggests dates that fit your daily goal.</p></div>'; plList=[]; return; }
+  const box=$h('plBody'); if(!box) return; plRenderMode();
+  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects, enter how many questions you will practise in each subject, then set the dates by which you want to finish.</p></div>'; plList=[]; return; }
   if(!plSeen){ plSeenLoad().then(()=>{ try{ plRender(); }catch(e){} }); box.innerHTML='<p class="muted">Loading\u2026</p>'; return; }
-  const P=plP(), cov=plCover(), bal=plBalance(P,cov), names=Object.keys(P.subs);
+  const P=plP(), simple=plSimple(P), cov=plCover(), bal=plBalance(P,cov), names=Object.keys(P.subs);
   const items=names.map(s=>({s,inf:plInfo(P,s,P.subs[s],cov[s]||plEC())})).filter(x=>x.inf);
   items.sort((x,y)=>(PL_RANK[x.inf.cur?x.inf.cur.status:'complete']-PL_RANK[y.inf.cur?y.inf.cur.status:'complete']));
   plList=items.map(x=>x.s);
-  let sumN=0,sumC=0,nDone=0; items.forEach(x=>{ sumN+=x.inf.stg.N; sumC+=Math.min(x.inf.stg.c1,x.inf.stg.N); if(x.inf.allDone) nDone++; });
+  let sumN=0,sumC=0,nDone=0; items.forEach(x=>{ sumN+=x.inf.stg.N; sumC+=x.inf.stg.readDone?x.inf.stg.N:Math.min(x.inf.stg.c1,x.inf.stg.N); if(x.inf.allDone) nDone++; });
   const op=sumN?Math.round(sumC/sumN*100):0;
-  let h=plWinHtml(plWindows(P,cov));
-  h+='<div class="card pl-card"><div class="pl-row1"><b>Overall reading</b><span class="pl-chip n">'+nDone+' of '+items.length+' fully done</span></div><div class="pl-bar" style="margin-top:10px;"><i style="width:'+op+'%"></i></div><div class="pl-cap"><span>'+op+'% covered</span><span>'+fmtN(sumC)+' of '+fmtN(sumN)+' questions</span></div></div>';
-  h+=plStripHtml(P,cov,names);
-  h+=plBalHtml(P,bal,names);
+  let h='<div class="card pl-card"><div class="pl-row1"><b>Overall reading</b><span class="pl-chip n">'+nDone+' of '+items.length+' fully done</span></div><div class="pl-bar" style="margin-top:10px;"><i style="width:'+op+'%"></i></div><div class="pl-cap"><span>'+op+'% covered</span><span>'+fmtN(sumC)+' of '+fmtN(sumN)+' questions</span></div></div>';
+  if(simple) h+=plDaysHtml(P,items);
+  else { h+=plStripHtml(P,cov,names); h+=plBalHtml(P,bal,names); }
   items.forEach((x,i)=>{ h+=plCardHtml(i,x.s,P.subs[x.s],x.inf,bal); });
   box.innerHTML=h;
+}
+/* Simple mode tracker: on how many different days you practised each subject, against the days you planned for its reading */
+function plDaysHtml(P,items){
+  const tn=dayStrN(localDayStr()), used={};
+  items.forEach(x=>{ used[x.s]=new Set(); });
+  (history||[]).forEach(h=>{
+    if(!h||!h.date) return; const dt=new Date(h.date); if(isNaN(dt.getTime())) return;
+    const ds=localDayStr(dt), n=dayStrN(ds);
+    const subs=h.subSec?Object.keys(h.subSec).filter(s=>h.subSec[s]>0):(h.topicBreakdown?Object.keys(h.topicBreakdown).map(k=>k.split('|||')[0]):[]);
+    subs.forEach(s=>{ if(!used[s]) return; const rb=(P.subs[s].blocks||[]).find(b=>b.t==='r'), from=rb&&rb.s?dayStrN(rb.s):tn-29; if(n>=from) used[s].add(ds); });
+  });
+  const over=[]; let anyPlan=false;
+  const rows=items.map(x=>{
+    const s=x.s, rb=(P.subs[s].blocks||[]).find(b=>b.t==='r'), given=used[s].size, plan=(rb&&rb.s&&rb.e)?dayStrN(rb.e)-dayStrN(rb.s)+1:0, fin=x.inf.stg.readDone;
+    const dw=given+' day'+(given===1?'':'s');
+    if(!plan) return '<div class="pl-stg" style="border-top:none;margin-top:10px;padding-top:0;"><div class="pl-r1"><span>'+escH(s)+'</span><span>'+dw+' so far</span></div></div>';
+    anyPlan=true;
+    let cls=fin?'g':(given>plan?'r':(given===plan?'y':'')), w=Math.min(100,Math.round(given/plan*100));
+    if(!fin&&given>plan) over.push({s,by:given-plan,plan});
+    return '<div class="pl-stg" style="border-top:none;margin-top:10px;padding-top:0;"><div class="pl-r1"><span>'+escH(s)+(fin?' <em>done</em>':'')+'</span><span>'+given+' of '+plan+' days</span></div><div class="pl-bar"><i class="'+cls+'" style="width:'+w+'%"></i></div></div>';
+  }).join('');
+  let msg='';
+  if(over.length) msg='<div class="pl-warn" style="margin-top:10px;">'+escH(over[0].s)+' has already used '+(over[0].plan+over[0].by)+' days, '+over[0].by+' more than the '+over[0].plan+' you planned.'+(over.length>1?' '+(over.length-1)+' more subject'+(over.length>2?'s are':' is')+' over too.':'')+' Consider moving on to the next subject.</div>';
+  else if(anyPlan) msg='<div class="pl-ok" style="margin-top:10px;">No subject is using more days than you planned.</div>';
+  return '<div class="card pl-card"><div class="pl-row1"><b>Days given</b><span class="pl-sub" style="margin:0;">days you practised each subject</span></div>'+msg+rows+'</div>';
 }
 /* Next 14 days: planned questions per day against the daily goal (red = above it) */
 function plStripHtml(P,cov,names){
@@ -8065,7 +8098,7 @@ function plStripHtml(P,cov,names){
     lab+='<span class="'+(d===tn?'t':'')+(over?' o':'')+'">'+dt.getUTCDate()+'</span>';
   }
   const leg=Object.keys(used).map(s=>'<span><b style="background:'+PL_COL[names.indexOf(s)%PL_COL.length]+'"></b>'+escH(s)+'</span>').join('');
-  return '<div class="card pl-card"><div class="pl-row1"><b>Days ahead</b><button class="pl-ed" onclick="plOpenSetup()">Settings</button></div>'
+  return '<div class="card pl-card"><div class="pl-row1"><b>Days ahead</b></div>'
     +'<div class="pl-sub" style="margin:2px 0 0;">Daily goal '+fmtN(B)+' \u00b7 '+plStyleName(P.style)+'</div>'
     +(any?'<div class="pl-days">'+cols+'<div class="pl-bud" style="bottom:'+Math.round(B/mx*H)+'px"></div></div><div class="pl-dl">'+lab+'</div><div class="pl-leg">'+leg+'</div><div class="pl-cap" style="margin-top:6px;"><span>Dashed line is your daily goal. A red date is planned above it.</span></div>'
         :'<p class="pl-note">Nothing is scheduled in the next 14 days. Open a subject below to set dates.</p>')+'</div>';
@@ -8089,37 +8122,40 @@ function plBalHtml(P,bal,names){
 function plPlanned(inf,pl){ return !!(pl.blocks&&pl.blocks.length); }
 function plCardHtml(i,s,pl,inf,bal){
   const chip=(t,c)=>'<span class="pl-chip '+c+'">'+t+'</span>';
-  const nm=escH(s), cur=inf.cur, stg=inf.stg, open=!!plOpen[s];
+  const nm=escH(s), cur=inf.cur, stg=inf.stg, open=!!plOpen[s], simple=plSimple(plP());
   let head, line, pct, mk=null, bad=false;
-  if(!cur){ head=chip('Complete','g'); line='Reading and every planned review are done'; pct=100; }
+  if(!cur){ head=chip('Complete','g'); line=simple?'Reading is done':'Reading and every planned review are done'; pct=100; }
   else {
     pct=cur.pct; bad=cur.status==='behind'||cur.status==='overdue';
     const lab={wait:cur.blocked?'After reading':'Starts '+plFmt(cur.s),ready:'Ready \u00b7 '+pct+'%',ahead:'Ahead',on:'On track',behind:'Behind',overdue:'Overdue',open:'In progress'}[cur.status];
     head=chip(lab,bad?'r':(cur.status==='open'?'n':(cur.status==='wait'?'y':'g')));
-    line=plStageName(cur)+' \u00b7 '+pct+'%'+(cur.s&&cur.e?' \u00b7 '+plFmt(cur.s)+' to '+plFmt(cur.e):'')+(cur.from&&cur.to?' \u00b7 '+plTm(cur.from)+' to '+plTm(cur.to):'');
+    line=plStageName(cur)+' \u00b7 '+pct+'%'+(cur.s&&cur.e?' \u00b7 '+plFmt(cur.s)+' to '+plFmt(cur.e):'');
     if(cur.exp!=null&&cur.pool) mk=Math.min(100,cur.exp/cur.pool*100);
   }
-  const dots=[0,1,2,3].map(k=>{ const o=inf.bl.find(x=>x.k===k); const c=o?(o.complete?'g':(cur&&cur.k===k?'c':'p')):''; return '<i class="'+c+'"></i>'; }).join('')+'<span>Reading + 3 reviews</span>';
-  let h='<div class="card pl-card"><div class="pl-hd" onclick="plToggle('+i+')"><div class="pl-row1"><b>'+nm+'</b>'+head+'</div><p class="pl-sub">'+line+'</p><div class="pl-bar"><i class="'+(bad?'r':(!cur?'g':''))+'" style="width:'+pct+'%"></i>'+(mk!=null?'<u style="left:'+mk.toFixed(1)+'%"></u>':'')+'</div><div class="pl-dots">'+dots+'<em>'+(open?'tap to close':'tap to open')+'</em></div></div>';
+  const nRev=inf.bl.filter(o=>o.k>0).length, sum='Reading'+(nRev?' + '+nRev+' review'+(nRev>1?'s':''):'');
+  let h='<div class="card pl-card"><div class="pl-hd" onclick="plToggle('+i+')"><div class="pl-row1"><b>'+nm+'</b>'+head+'</div><p class="pl-sub">'+line+'</p><div class="pl-bar"><i class="'+(bad?'r':(!cur?'g':''))+'" style="width:'+pct+'%"></i>'+(mk!=null?'<u style="left:'+mk.toFixed(1)+'%"></u>':'')+'</div><div class="pl-dots"><span>'+sum+'</span><em>'+(open?'tap to close':'tap to open')+'</em></div></div>';
   if(open){
-    const nextK=[1,2,3].find(k=>!inf.bl.find(x=>x.k===k)), canAdd=!!inf.bl.find(x=>x.k===0)&&nextK;
+    const rdo=inf.bl.find(x=>x.k===0);
     let rows='';
     for(let k=0;k<4;k++){
-      const o=inf.bl.find(x=>x.k===k), v=k?stg.v[k-1]:null;
-      const pc=k?v.pct:stg.pct1, done=o?o.complete:false;
+      const o=inf.bl.find(x=>x.k===k); if(k>0&&!o) continue;
+      const v=k?stg.v[k-1]:null, done=o?o.complete:false, pc=(k===0&&done)?100:(k?v.pct:stg.pct1);
       const txt=k===0?fmtN(stg.c1)+' of '+fmtN(stg.N)+' practised at least once':(v.pool===0?'No flagged questions yet':(v.est?'About '+fmtN(v.pool)+' flagged expected':fmtN(v.done)+' reviewed \u00b7 '+fmtN(v.wait)+' flagged still waiting'));
       let right='Not planned';
-      if(o) right=done?'Done':(o.s&&o.e?plFmt(o.s)+' to '+plFmt(o.e):'No dates')+(o.from&&o.to?' \u00b7 '+plTm(o.from):'');
-      let act='';
-      if(o) act='<button class="pl-ed" onclick="plBkOpen('+i+','+o.i+')">Edit</button>';
-      else if(canAdd&&k===nextK) act='<button class="pl-ed" onclick="plBkOpen('+i+',-1,\'v'+k+'\')">+ Add</button>';
-      rows+='<div class="pl-stg"><div class="pl-r1"><span>'+(k===0?'Reading':'Review '+k)+' <em>'+right+'</em></span><span>'+pc+'% '+act+'</span></div><div class="pl-bar"><i class="'+(done?'g':'')+'" style="width:'+pc+'%"></i></div><div class="pl-cap"><span>'+txt+'</span></div></div>';
+      if(o) right=done?'Done':(o.s&&o.e?plFmt(o.s)+' to '+plFmt(o.e):'No dates');
+      const act=o?'<button class="pl-ed" onclick="plBkOpen('+i+','+o.i+')">Edit</button>':'';
+      let tick='';
+      if(k===0&&rdo){ const auto=rdo.auto&&!rdo.b.done, on=rdo.complete;
+        tick='<button class="pl-tick'+(on?' on':'')+'" '+(auto?'disabled ':'')+'onclick="plTickRead('+i+')"><b>'+(on?'\u2713':'')+'</b>'+(auto?'Reading complete (every question covered)':(on?'Reading done \u00b7 tap to undo':'Mark reading as done'))+'</button>'; }
+      rows+='<div class="pl-stg"><div class="pl-r1"><span>'+(k===0?'Reading':'Review '+k)+' <em>'+right+'</em></span><span>'+pc+'% '+act+'</span></div><div class="pl-bar"><i class="'+(done?'g':'')+'" style="width:'+pc+'%"></i></div><div class="pl-cap"><span>'+txt+'</span></div>'+tick+'</div>';
     }
     h+=rows;
-    if(stg.c4>0) h+='<p class="pl-note">'+fmtN(stg.c4)+' question'+(stg.c4>1?'s have':' has')+' been practised 4 or more times.</p>';
+    const nextK=[1,2,3].find(k=>!inf.bl.find(x=>x.k===k));
+    if(!simple&&rdo&&nextK) h+='<div class="pl-add"><button class="pl-plus" aria-label="Add review '+nextK+'" onclick="plBkOpen('+i+',-1,\'v'+nextK+'\')">+</button><span>Add review '+nextK+(nextK===1?' (optional)':'')+'</span></div>';
+    if(stg.c4>0&&!simple) h+='<p class="pl-note">'+fmtN(stg.c4)+' question'+(stg.c4>1?'s have':' has')+' been practised 4 or more times.</p>';
     let note='';
     if(cur){
-      if(cur.status==='ready') note=cur.pool===0&&cur.k>0?'Nothing is flagged here yet. Mark this review complete, or keep practising.':'You have covered '+stg.pass+'% or more. Mark it complete, or keep going to cover the rest.';
+      if(cur.status==='ready') note=cur.k===0?'You have covered '+PL_PASS+'% or more. Tick reading as done when you are ready, or keep going to cover the rest.':(cur.pool===0?'Nothing is flagged here yet. Mark this review complete, or keep practising.':'You have covered '+PL_PASS+'% or more. Mark it complete, or keep going to cover the rest.');
       else if(cur.blocked) note='This review waits until the reading is complete.';
       else if(cur.need>0&&cur.e) note='Needs about '+fmtN(cur.need)+' a day to finish by '+plFmt(cur.e)+'.';
       if(cur.k===0&&cur.avail===0&&!cur.canMark) note='Every '+nm+' question you added is covered. Add more to continue (you planned '+fmtN(stg.N)+').';
@@ -8130,15 +8166,15 @@ function plCardHtml(i,s,pl,inf,bal){
     let btns='';
     if(cur){
       const n=Math.min(cur.avail,100,Math.max(cur.need,10));
-      const pr='<button class="'+(cur.canMark?'secondary':'primary')+'" '+(n>0&&cur.status!=='wait'?'':'disabled ')+'onclick="plPractise('+i+')">Practise '+(n>0?n:'')+'</button>';
-      const mkb='<button class="'+(cur.canMark?'primary':'secondary')+'" '+(cur.canMark?'':'disabled ')+'onclick="plMark('+i+')">Mark complete</button>';
-      btns+=cur.canMark?mkb+pr:pr+mkb;
+      const pr='<button class="'+(cur.k>0&&cur.canMark?'secondary':'primary')+'" '+(n>0&&cur.status!=='wait'?'':'disabled ')+'onclick="plPractise('+i+')">Practise '+(n>0?n:'')+'</button>';
+      if(cur.k>0){ const mkb='<button class="'+(cur.canMark?'primary':'secondary')+'" '+(cur.canMark?'':'disabled ')+'onclick="plMark('+i+')">Mark complete</button>'; btns+=cur.canMark?mkb+pr:pr+mkb; }
+      else btns+=pr;
     }
     const sh=cur?plShiftDays(plP(),cur):0;
     if(sh>=1) btns+='<button class="secondary" onclick="plShift('+i+')">Shift the rest by '+sh+' day'+(sh>1?'s':'')+'</button>';
-    if(inf.bl.some(o=>o.b.done)) btns+='<button class="secondary" onclick="plUndo('+i+')">Undo complete</button>';
+    if(inf.bl.some(o=>o.b.done&&o.k>0)) btns+='<button class="secondary" onclick="plUndo('+i+')">Undo complete</button>';
     if(btns) h+='<div class="pl-btns" style="flex-wrap:wrap;">'+btns+'</div>';
-    if(cur&&!cur.canMark) h+='<div class="pl-cap" style="margin-top:6px;"><span>Mark complete unlocks at '+stg.pass+'%.</span></div>';
+    if(cur&&cur.k>0&&!cur.canMark) h+='<div class="pl-cap" style="margin-top:6px;"><span>Mark complete unlocks at '+PL_PASS+'%.</span></div>';
   }
   return h+'</div>';
 }
@@ -8153,10 +8189,18 @@ async function plPractise(i){
   const n=Math.min(pool.length,100,Math.max(cur.need,10)), d=leanBusy('Choosing questions\u2026');
   try{ startPractice(await pickUniqA(pool,n,true)); } finally{ d(); }
 }
+/* Manual tick for the reading stage (for when progress data was lost). Works at any coverage; tap again to undo. */
+function plTickRead(i){
+  const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
+  const b=(pl.blocks||[]).find(x=>x.t==='r'); if(!b) return;
+  b.done=b.done?null:localDayStr(); P.today=null;
+  persistSettings(); plRender(); try{ renderHome(); }catch(e){}
+  showToast(b.done?s+': reading marked done.':s+': reading reopened.','info');
+}
 function plMark(i){
   const s=plList[i], P=plP(), pl=P&&P.subs[s]; if(!pl) return;
   const inf=plInfo(P,s,pl,plCover()[s]||plEC()); if(!inf||!inf.cur) return;
-  if(!inf.cur.canMark){ showToast('Needs '+(P.pass||90)+'% first.','warn'); return; }
+  if(!inf.cur.canMark){ showToast('Needs '+PL_PASS+'% first.','warn'); return; }
   const nm=plStageName(inf.cur); inf.cur.b.done=localDayStr(); P.today=null;
   persistSettings(); plRender(); try{ renderHome(); }catch(e){}
   showToast(s+': '+nm.toLowerCase()+' marked complete.','info');
@@ -8185,7 +8229,7 @@ function plShift(i){
   persistSettings(); plRender(); try{ renderHome(); }catch(e){}
   showToast('Plan shifted by '+sh+' day'+(sh>1?'s':'')+'.','info');
 }
-/* ---- Block editor: dates, study window, one block at a time ---- */
+/* ---- Block editor: dates, one block at a time ---- */
 function plBkRem(P,pl,cv,t){
   const stg=plStages(pl,cv,P); if(!stg) return 1;
   if(t==='r') return Math.max(1,stg.T1-stg.c1);
@@ -8197,11 +8241,11 @@ function plBkOpen(i,bi,t){
   let b=null; if(bi>=0){ b=pl.blocks[bi]; t=b.t; }
   const rem=plBkRem(P,pl,cv,t), k=t==='r'?0:(+t.slice(1)||1);
   plEd={i,s,bi,t,rem,endTouched:true,cov};
-  let st='',en='',f='',to='';
-  if(b){ st=b.s||''; en=b.e||''; f=b.from||''; to=b.to||''; }
+  let st='',en='';
+  if(b){ st=b.s||''; en=b.e||''; }
   else { const pr=plPropose(P,cov,'v',rem,plReviewFrom(pl,k),null); st=pr.s; en=pr.e; plEd.endTouched=false; }
   $h('plBkTitle').textContent=s+' \u00b7 '+(k===0?'Reading':'Review '+k);
-  $h('plBkS').value=st; $h('plBkE').value=en; $h('plBkF').value=f; $h('plBkT').value=to;
+  $h('plBkS').value=st; $h('plBkE').value=en;
   $h('plBkDel').style.display=b?'':'none';
   plBkInfo(); $h('plBkOverlay').classList.add('open');
 }
@@ -8237,14 +8281,12 @@ function plBkInfo(){
 }
 function plBkSave(){
   if(!plEd) return; const P=plP(), pl=P.subs[plEd.s]; if(!pl) return;
-  const s=$h('plBkS').value, e=$h('plBkE').value, f=$h('plBkF').value, to=$h('plBkT').value;
+  const s=$h('plBkS').value, e=$h('plBkE').value;
   if(!!s!==!!e){ showToast('Set both dates, or clear both.','warn'); return; }
   if(s&&dayStrN(e)<dayStrN(s)){ showToast('The end date is before the start.','warn'); return; }
-  if(!!f!==!!to){ showToast('Set both times, or clear both.','warn'); return; }
-  if(f&&to<=f){ showToast('The end time must be after the start time.','warn'); return; }
-  if(plEd.bi>=0){ const b=pl.blocks[plEd.bi]; b.s=s||null; b.e=e||null; b.from=f; b.to=to; }
+  if(plEd.bi>=0){ const b=pl.blocks[plEd.bi]; b.s=s||null; b.e=e||null; }
   else {
-    const o={t:plEd.t,s:s||null,e:e||null,from:f,to:to,done:null};
+    const o={t:plEd.t,s:s||null,e:e||null,from:'',to:'',done:null};
     pl.blocks.push(o); pl.blocks.sort((a,c)=>(a.t==='r'?0:+a.t.slice(1))-(c.t==='r'?0:+c.t.slice(1)));
     plOpen[plEd.s]=true;
   }
@@ -8265,11 +8307,11 @@ function plSubjectNames(){
   return out;
 }
 function plOpenSetup(){
-  const P=plP()||{min:5,pass:90,style:'one',split:60,subs:{}}, cov=plCover(), names=plSubjectNames();
+  const P=plP()||{min:PL_MIN,pass:PL_PASS,style:'one',split:60,subs:{}}, cov=plCover(), names=plSubjectNames();
   if(!names.length){ showToast('Add some questions in Library first.','warn'); return; }
   $h('plBud').textContent=fmtN(plBud());
   $h('plStyle').innerHTML=PL_STYLES.map(x=>'<option value="'+x[0]+'"'+((P.style||'one')===x[0]?' selected':'')+'>'+x[1]+'</option>').join('');
-  $h('plSplit').value=P.split||60; $h('plMinSec').value=P.min||5; $h('plPass').value=P.pass||90; $h('plFrom').value=localDayStr();
+  $h('plSplit').value=P.split||60; $h('plFrom').value=localDayStr(); $h('plAdvSet').style.display=plSimple(P)?'none':'grid';
   plStyleChange();
   $h('plSetupRows').innerHTML=names.map((s,i)=>{ const pl=P.subs[s]||{}, c=cov[s]||{t:0}, rb=(pl.blocks||[]).find(b=>b.t==='r');
     return '<div class="pl-srow" data-i="'+i+'"><div class="pl-sname"><b>'+escH(s)+'</b><small>'+fmtN(c.t)+' added'+(rb&&rb.s&&rb.e?' \u00b7 reading '+plFmt(rb.s)+' to '+plFmt(rb.e):'')+'</small></div><div class="pl-in2" style="grid-template-columns:1fr;"><label>Questions to practise<input class="num-input pl-n" type="number" min="0" inputmode="numeric" value="'+(pl.n||'')+'"></label></div></div>'; }).join('');
@@ -8284,14 +8326,13 @@ function plStyleChange(){
 }
 function plSaveSetup(){
   const P=plEnsure(), cov=plCover(), td=localDayStr(), names=window._plNames||[];
-  const min=Math.max(1,Math.min(60,parseInt($h('plMinSec').value)||5)), pass=Math.max(50,Math.min(100,parseInt($h('plPass').value)||90));
   const rows=[]; document.querySelectorAll('#plSetupRows .pl-srow').forEach(row=>{ const s=names[+row.dataset.i]; if(s!=null) rows.push({s,n:Math.max(0,parseInt(row.querySelector('.pl-n').value)||0)}); });
   const fresh=rows.filter(r=>r.n>0&&!(P.subs[r.s]&&(P.subs[r.s].blocks||[]).some(b=>b.t==='r')));
   if(fresh.length&&dayGoal()<100){
     const tot=fresh.reduce((a,r)=>a+r.n,0);
     if(!confirm('Your daily goal is '+fmtN(dayGoal())+', so '+fmtN(tot)+' new questions would take about '+fmtN(Math.ceil(tot/dayGoal()))+' days. Press OK to plan anyway, or Cancel to raise your goal first (Home > Edit).')) return;
   }
-  P.min=min; P.pass=pass; P.style=$h('plStyle').value; P.split=Math.min(80,Math.max(40,+$h('plSplit').value||60)); P.v=2;
+  P.min=PL_MIN; P.pass=PL_PASS; P.style=$h('plStyle').value; P.split=Math.min(80,Math.max(40,+$h('plSplit').value||60)); P.v=2;
   let from=$h('plFrom').value||td; if(dayStrN(from)<dayStrN(td)) from=td;
   rows.forEach(r=>{
     const s=r.s, n=r.n;
@@ -9210,18 +9251,24 @@ function renderDayChart(){
   for(let i=dayRange-1;i>=0;i--){ const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()-i), k=localDayStr(d), e=L[k]||{n:0,r:0}; days.push({k,d,n:e.n||0,r:e.r||0}); }
   const tn=days.reduce((a,x)=>a+x.n,0), tr=days.reduce((a,x)=>a+x.r,0);
   $h('dcSum').textContent = (tn||tr) ? ('Last '+dayRange+' days: '+fmtN(tn)+' new · '+fmtN(tr)+' revised') : 'Your daily counts will appear here from today. Earlier days cannot be split into new and revised.';
-  const max=Math.max(10,...days.map(x=>x.n+x.r)), W=340, Ht=140, pad=22, bw=(W-pad)/days.length;
-  let s='<svg viewBox="0 0 '+W+' '+(Ht+22)+'" width="100%" role="img" aria-label="New and revised questions per day">';
-  s+='<line x1="'+pad+'" y1="'+Ht+'" x2="'+W+'" y2="'+Ht+'" stroke="currentColor" opacity=".25"/>';
-  s+='<text x="0" y="10" font-size="9" fill="currentColor" opacity=".6">'+max+'</text>';
+  const tot=days.map(x=>x.n+x.r), max=Math.max(10,...tot), pad=14, top=24, Ht=150, slot=days.length<=14?Math.floor(312/days.length):26;
+  const W=Math.max(340, pad*2+slot*days.length), base=Ht-6, hh=base-top;
+  const X=i=>pad+slot*(i+0.5), Y=v=>base-(v/max)*hh;
+  const line=(vals,col,w,dash)=>'<polyline fill="none" stroke="'+col+'" stroke-width="'+w+'" stroke-linejoin="round" stroke-linecap="round"'+(dash?' stroke-dasharray="'+dash+'"':'')+' points="'+vals.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')+'"/>';
+  let s='<svg viewBox="0 0 '+W+' '+(Ht+20)+'" '+(W>340?'width="'+W+'"':'width="100%"')+' role="img" aria-label="Questions per day: total, new and revised">';
+  s+='<line x1="'+pad+'" y1="'+base+'" x2="'+(W-pad)+'" y2="'+base+'" stroke="currentColor" opacity=".25"/>';
+  s+='<polygon fill="var(--accent)" opacity=".12" points="'+X(0).toFixed(1)+','+base+' '+tot.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')+' '+X(days.length-1).toFixed(1)+','+base+'"/>';
+  s+=line(days.map(x=>x.r),'var(--green)',1.5,'4 3');
+  s+=line(days.map(x=>x.n),'var(--brand)',1.5,'4 3');
+  s+=line(tot,'var(--accent)',2.6);
   days.forEach((x,i)=>{
-    const bx=pad+i*bw+bw*0.15, w=bw*0.7, hn=(x.n/max)*(Ht-14), hr=(x.r/max)*(Ht-14);
-    s+='<rect x="'+bx.toFixed(1)+'" y="'+(Ht-hr).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hr.toFixed(1)+'" fill="var(--green)"><title>'+x.k+': '+x.r+' revised</title></rect>';
-    s+='<rect x="'+bx.toFixed(1)+'" y="'+(Ht-hr-hn).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hn.toFixed(1)+'" fill="var(--accent)"><title>'+x.k+': '+x.n+' new</title></rect>';
-    if(days.length<=14 || i%Math.ceil(days.length/10)===0) s+='<text x="'+(bx+w/2).toFixed(1)+'" y="'+(Ht+13)+'" font-size="8.5" text-anchor="middle" fill="currentColor" opacity=".65">'+x.d.getDate()+'</text>';
+    const cx=X(i), cy=Y(tot[i]);
+    s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="3.6" fill="var(--accent)" stroke="var(--card)" stroke-width="1.5"><title>'+x.k+': '+tot[i]+' total ('+x.n+' new, '+x.r+' revised)</title></circle>';
+    s+='<text x="'+cx.toFixed(1)+'" y="'+(cy-8).toFixed(1)+'" font-size="9.5" font-weight="700" text-anchor="middle" fill="currentColor">'+tot[i]+'</text>';
+    if(days.length<=14 || slot>=24 || i%Math.ceil(days.length/10)===0) s+='<text x="'+cx.toFixed(1)+'" y="'+(Ht+12)+'" font-size="8.5" text-anchor="middle" fill="currentColor" opacity=".65">'+x.d.getDate()+'</text>';
   });
   s+='</svg>';
-  el.innerHTML=s;
+  el.style.overflowX='auto'; el.innerHTML=s; el.scrollLeft=el.scrollWidth;   // 30 days is wider than the screen: it opens on the latest days
 }
 
 /* ===== Hide options first: recall before recognition (Practice mode only) ===== */
