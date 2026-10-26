@@ -704,7 +704,6 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 .oplist{max-height:220px;overflow-y:auto;margin-top:4px;}
 .oprow2{display:flex;gap:8px;margin:6px 0;}
 .oprow3{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.oprow3 .primary{grid-column:1/-1;}
 #opOverlay{position:fixed;inset:0;z-index:250;background:var(--bg);display:none;}
 #opOverlay.open{display:block;}
 #opView{display:flex;flex-direction:column;height:100%;}
@@ -924,6 +923,7 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
       <div style="margin-top:14px;"></div>
       <button class="lrow" onclick="pfOpen('appearance')"><span>Appearance<small id="pfThemeSub"></small></span><span class="chev">›</span></button>
       <button class="lrow" onclick="pfOpen('revision')"><span>Revision &amp; flags<small id="pfRevSub"></small></span><span class="chev">›</span></button>
+      <div class="card" style="margin:10px 0 0;"><label class="st-sw" style="margin:0;"><input type="checkbox" id="shufToggle" class="sw" onchange="setShuffle(this.checked)">Shuffle the options of questions I have attempted before</label><p class="muted" style="margin:6px 0 0;font-size:12.5px;">Stops you learning the answer by its position. The option letters stay the same, so explanations still match. Off by default.</p></div>
       <button class="lrow" onclick="dupOpen()"><span>Remove duplicate questions<small>Finds repeats and keeps all your progress</small></span><span class="chev">&#8250;</span></button>
       <button class="lrow" onclick="showInfo('starttest')"><span>How Test Maker works</span><span class="chev">›</span></button>
       <button class="lrow danger" style="margin-top:30px;" onclick="deleteAllFromSettings()">Delete all my questions</button>
@@ -2067,6 +2067,25 @@ let _prefApply=false, _mkT=null;
 /* Preferences that used to live only on this device now live in `settings`, so they follow the account to every device.
    Never write settings online before they have been read once (it would overwrite the online copy with defaults). */
 function prefPersist(){ if(dbNS && !_setBase) return; persistSettings(); }
+/* Shuffle the on-screen ORDER of the options of questions attempted before (Profile switch, off by default).
+   Option letters never change, so "option B is correct" in an explanation stays true and scoring is untouched.
+   The order is chosen the first time a question is shown in a test and kept in session.ord (saved with the test). */
+const OPT_POSITIONAL=/\b(?:above|below|these|them|previous|preceding)\b/i;   // "All of the above", "None of these" ... depend on position
+function optShuffleOk(q){ const o=q && q.options; return Array.isArray(o) && o.length>=2 && !o.some(x=>OPT_POSITIONAL.test(String((x&&x.text)||''))); }
+function shufKeys(q){
+  const keys=q.options.map(o=>o.key); let p, n=0;
+  do{ p=keys.slice(); for(let i=p.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=p[i]; p[i]=p[j]; p[j]=t; } n++; }while(p.every((k,i)=>k===keys[i]) && n<30);
+  return p.every((k,i)=>k===keys[i]) ? 0 : p;
+}
+function ordOpts(q){
+  if(!session || !q || !Array.isArray(q.options)) return (q&&q.options)||[];
+  const ord=session.ord||(session.ord={});
+  if(ord[q.id]===undefined) ord[q.id]=(settings.shuffleOpts===true && q.attemptCount>0 && optShuffleOk(q)) ? shufKeys(q) : 0;
+  const k=ord[q.id]; if(!k) return q.options;
+  const m=new Map(q.options.map(x=>[x.key,x])), r=k.map(x=>m.get(x)).filter(Boolean);
+  return r.length===q.options.length ? r : q.options;
+}
+function setShuffle(v){ settings.shuffleOpts=!!v; prefPersist(); }
 function saveMarking(){
   const m=getMarking(), pid=markPreset ? markPreset.id : '';
   saveLS('gc_marking', m); saveLS('gc_marking_preset', pid);
@@ -5746,7 +5765,7 @@ function buildMeta(){
 const SESS_KEY='gc_session'; let _sessAt=0, _sessT=null;
 function sessSnapshot(){
   if(!session || session.done) return null;
-  return {v:1, ids:session.questions.map(q=>q.id), answers:session.answers, cur:session.currentIdx, elapsed:Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000), qt:(qBank(),session.qt), mode:session.mode, testMode:session.testMode, marking:session.marking||null, am:session.arch||{}, bmk:session.bm||{}, mk:session.mask||{}, rm:session.recallMiss||{}, pf:Object.keys(session.pendFlag||{}), lf:Object.keys(session.liveFlag||{}), savedAt:Date.now()};
+  return {v:1, ord:session.ord||{}, ids:session.questions.map(q=>q.id), answers:session.answers, cur:session.currentIdx, elapsed:Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000), qt:(qBank(),session.qt), mode:session.mode, testMode:session.testMode, marking:session.marking||null, am:session.arch||{}, bmk:session.bm||{}, mk:session.mask||{}, rm:session.recallMiss||{}, pf:Object.keys(session.pendFlag||{}), lf:Object.keys(session.liveFlag||{}), savedAt:Date.now()};
 }
 function saveSession(){
   clearTimeout(_sessT); _sessAt=Date.now();
@@ -5807,6 +5826,7 @@ function resumeSession0(s){
   let cur=map[s.cur]; if(cur===undefined) cur=Math.min(qs.length-1,Math.max(0,s.cur|0));
   testMode=s.testMode||'practice';
   session={questions:qs,answers:ans,startTime:Date.now()-(s.elapsed||0)*1000,mode:s.mode,testMode,done:false,currentIdx:cur,marking:s.marking||null,qt:{},qAt:null,arch:s.am||{},bm:s.bmk||{},mask:{}};
+  session.ord=(s.ord && typeof s.ord==='object') ? s.ord : {};
   Object.keys(s.mk||{}).forEach(i=>{ if(map[i]!==undefined) session.mask[map[i]]=s.mk[i]; });
   session.recallMiss={}; Object.keys(s.rm||{}).forEach(i=>{ if(map[i]!==undefined) session.recallMiss[map[i]]=1; });
   session.pendFlag={}; (s.pf||[]).forEach(id=>{ const q=byId.get(id); if(q){ if(!q.flagged){ q.flagged=true; srOnFlag(q,true); } session.pendFlag[id]=1; } });   // flags raised during the test but not yet saved online
@@ -6942,33 +6962,39 @@ function renderBankBreakdown(){
          under 3 MB, in the online account (meta/onepagers = list, meta/op<id>_<n> = the file in 700 KB pieces), so every device has it. */
 const OP_MAX_LOCAL=25*1024*1024, OP_MAX_CLOUD=3*1024*1024, OP_CHUNK=700000;
 const OP_PROMPT=[
-'You are helping me with final-time revision for a competitive exam (UPSC / State PCS style). The JSON in this file is my own data for ONE subject: my notes (with weak-area tags), the questions I flagged or got wrong, and the explanations from my source book.',
-'',
-'TASK',
-'Make a "one-pager" for last-minute revision. "One-pager" is only a name: it is a compact reference sheet, NOT literally one page. It holds the facts I keep forgetting. I have read most of this many times, so leave out what I obviously know and keep only what I am weak at or have got wrong again and again. It must NOT turn into another bulky set of notes.',
-'',
-'WHAT TO USE',
-'1. notes: every note must be covered. Tags like "Weak area", "Mistake pattern" and "To revise" show where to focus.',
-'2. flaggedQuestions, then otherWrongQuestions: use the question, the correct answer and above all the explanation to pull out the important facts and one-liners for the weak areas. timesWrong and attempts show how often I missed it.',
-'3. otherQuestions (if present) are background only; use them just to complete a weak area.',
-'4. You may search the web to check or complete a fact. Do not pad.',
-'',
-'HOW TO WRITE',
-'- Merge facts about the same person, event or term from different questions into ONE line of keywords. Example: if one question says "Grand Old Man of India" and another "Rast Goftar", write: Dadabhai Naoroji - Rast Goftar, Grand Old Man of India.',
-'- If a weak-area note says something like "Newspaper - founder/publisher", make a small table or list of that (Newspaper | Founder/Publisher).',
-'- Arrange in chronological order wherever it helps, especially in History. Dates are optional; the sequence is what makes it easier to learn.',
-'- Interlink facts (who - what - when - where), put similar or easily confused things side by side, and add a short mnemonic only if it really helps.',
-'- Prefer tables, short lists, timelines, and small diagrams or maps (inline SVG) over sentences. No long paragraphs.',
-'- Group by topic under short colour-coded headings. Use colour to separate topics and to mark traps and commonly confused pairs.',
-'',
-'LAYOUT (it must also print well on paper)',
-'- One single self-contained HTML file: all CSS inside, no external fonts, images or scripts; any graphics as inline SVG.',
-'- A4 portrait, small but readable text (about 9-10 pt), narrow margins. Split the page into two halves with a thin vertical line to save space. Do not break tables or boxes across columns or pages.',
-'- Add print CSS (@page, print-color-adjust: exact) so colours are kept when printed; it should also look fine on a phone.',
-'- Keep it as short as possible, usually 1 to 3 pages.',
-'',
-'OUTPUT',
-'Give me the finished HTML file ready to download, titled "<Subject> - Final revision". After it, write at most 3 lines on what you left out.'
+"You are helping me with final-time revision for a competitive exam (UPSC / State PCS style). The attached JSON is my own data for ONE subject: my notes (with weak-area tags), the questions I flagged or got wrong, and the explanations from my source book.",
+"",
+"TASK",
+"Make a \"one-pager\" for last-minute revision. \"One-pager\" is only a name: it is a compact reference sheet, not literally one page. Keep it under 10 A4 pages (3-6 is typical): dense, not long. It holds the facts I keep forgetting. Leave out what I obviously know, but never leave out a topic my notes name.",
+"",
+"WHAT TO USE (in this order)",
+"1. notes: every note, and every topic or list named in a note, must be covered fully. Tags like \"Weak area\", \"Mistake pattern\", \"To revise\" show where to focus. If a note names a category (for example political parties and founders, books and authors, newspapers, conspiracy cases, art and culture, awards), build a complete table for it using all the data in the file.",
+"2. flaggedQuestions, then otherWrongQuestions: use the question, the correct answer and above all the explanation. timesWrong and attempts show how often I missed it.",
+"3. otherQuestions: use them to complete the weak areas named in my notes (founders, dates, lists, matching pairs), not just as background.",
+"4. You may use the web or your own knowledge to check or complete a fact. Mark facts that did not come from my data. If my note contradicts the book, show it as a trap and say why.",
+"Do not judge importance only by how many questions I got wrong. My notes decide. If everything cannot fit under 10 pages, drop the least-missed question facts first, never anything my notes name, and tell me what you dropped.",
+"",
+"HOW TO WRITE",
+"- Merge facts about the same person, event or term into ONE line of keywords. Example: Dadabhai Naoroji - Rast Goftar, Grand Old Man of India.",
+"- Where a note names a category (for example \"Newspaper - founder/publisher\"), make a table of it.",
+"- Arrange in chronological order wherever it helps; the sequence is what makes it easier to learn.",
+"- Interlink facts (who - what - when - where). Put similar or easily confused things side by side. Add a short mnemonic only if it really helps.",
+"- Separate items on a line with a highly visible coloured bold symbol such as ◆, not a plain dot. Put the keywords in bold.",
+"- Group by topic under short colour-coded headings. Mark traps and commonly confused pairs in red. Highlight the most-missed facts in yellow.",
+"",
+"DIAGRAMS (required, do not skip)",
+"- Include inline SVG visuals wherever the subject has the shape for them: a timeline strip of the main events, flow charts for sequences (conferences, negotiations, steps to a final event), family trees for organisations and parties, lanes for groups and their cases, and a schematic map where places matter (say it is approximate, not to scale).",
+"- Keep the diagram text readable when printed: no smaller than 7.5 units in a 360-unit-wide drawing. Use colour consistently with the headings.",
+"- Place each diagram next to the table it explains.",
+"",
+"LAYOUT (it must also print well on paper)",
+"- One single self-contained HTML file: all CSS inside, no external fonts, images or scripts.",
+"- A4 portrait, small but readable text (about 9-10 pt), narrow margins. Two columns with a thin vertical line. Do not break tables, diagrams or boxes across columns or pages.",
+"- Print CSS (@page, print-color-adjust: exact) so colours are kept; it should also look fine on a phone.",
+"- If you can render the page to an image, do it once before giving me the file and check that nothing overlaps or is cut off. If you cannot, say so; do not claim you checked.",
+"",
+"OUTPUT",
+"Give me the finished HTML file as a downloadable file (not pasted as text), titled \"<Subject> - Final revision\". After it, write at most 3 lines on what you left out and which facts I should double-check. Never leave out anything I asked for without telling me."
 ].join('\n');
 let _opTok=0, opIdx=null, opIdxP=null, _opBusy=false, _opAgain=false, _opTimer=null, _opUrl=null, _opCur=null, _opSubj=null, _opRmT=null;
 const opId=s=>'op'+fnv(String(s)).replace(/[^a-z0-9]/g,'');
@@ -7167,10 +7193,8 @@ function opMakeDraw(){
     +'<details class="opdet"><summary>Instructions for the AI</summary><textarea id="opPrompt" rows="9" oninput="opPromptChg()">'+escH(opCustomPrompt())+'</textarea>'
     +'<div class="oprow2"><button type="button" class="secondary sm" onclick="opPromptReset()">Reset</button><button type="button" class="secondary sm" onclick="opCopyPrompt()">Copy</button></div></details>'
     +'<p id="opSize" class="muted" style="margin:8px 0;font-size:12.5px;"></p>'
-    +'<div class="oprow3"><button type="button" class="primary" onclick="opDownload()">Download file</button>'
-    +((typeof navigator.canShare==='function' && !inClaudeViewer()) ? '<button type="button" class="secondary" onclick="opShareFile()">Share\u2026</button>' : '')
-    +'<button type="button" class="secondary" onclick="opCopyMsg()">Copy message</button><button type="button" class="secondary" onclick="window.open(\'https://claude.ai/new\',\'_blank\')">Open Claude</button></div>'
-    +'<p class="muted" style="margin:10px 0 0;font-size:12px;line-height:1.5;">1. Download the file (or Share it to the Claude app). 2. In Claude, attach the file and paste the copied message. 3. Save the HTML sheet Claude makes and add it with <b>Upload one-pager</b> in this subject\u2019s menu.</p>';
+    +'<div class="oprow3"><button type="button" class="secondary" onclick="opDownload()">Download file</button><button type="button" class="primary" onclick="opOpenClaude()">Open Claude</button></div>'
+    +'<p class="muted" style="margin:10px 0 0;font-size:12px;line-height:1.5;">Open Claude puts the instructions in the message box. On a phone it sends the file along through the share sheet (choose Claude). On a computer the file is downloaded: attach it with the + button in Claude, then send. Save the HTML sheet Claude makes and add it with <b>Upload one-pager</b> in this subject\u2019s menu.</p>';
   opMakeCalc();
 }
 function opTopAll(v){ document.querySelectorAll('#opMakeBox input[data-t]').forEach(c=>{ c.checked=v; }); opTopChg(); }
@@ -7190,8 +7214,6 @@ async function opCopyText(t,msg){
   catch(e){ showToast('Could not copy. Select the text and copy it by hand.','error'); }
 }
 function opCopyPrompt(){ const t=$h('opPrompt'); opCopyText(t?t.value:opCustomPrompt(),'Instructions copied.'); }
-function opMessage(){ return 'Attached is my Test Maker export for "'+(opMk?opMk.subject:'my subject')+'". Please read the instructions inside the file and make my final-revision one-pager as a single HTML file.'; }
-function opCopyMsg(){ opCopyText(opMessage(),'Message copied. Paste it in Claude together with the file.'); }
 async function opBuild(){
   const m=opMk; if(!m) throw new Error('closed');
   if(m.cache) return m.cache;
@@ -7218,13 +7240,24 @@ async function opDownload(){
   try{ showToast('Preparing the file\u2026','info'); const f=await opBuild(); await shareFile(f.text,f.fname); showToast('File ready: '+f.fname+' ('+f.kb+' KB)','success'); }
   catch(e){ showToast((e && e.message) || 'Could not make the file.','error'); }
 }
-async function opShareFile(){
+async function opOpenClaude(){
+  const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && typeof navigator.canShare==='function' && !inClaudeViewer();
+  let w=null; if(!mobile){ try{ w=window.open('','_blank'); }catch(e){} }   // opened now so the browser does not block it after the file is built
   try{
-    const f=await opBuild(), file=new File([f.text],f.fname,{type:'application/json'});
-    if(!navigator.canShare || !navigator.canShare({files:[file]})){ showToast('Sharing files is not supported here. Use Download file.','info'); return; }
-    try{ await navigator.share({files:[file], title:'One-pager source', text:opMessage()}); }
-    catch(e){ if(e && e.name==='NotAllowedError') showToast('The file is ready. Tap Share again.','info'); else if(e && e.name!=='AbortError') showToast('Sharing did not work. Use Download file.','error'); }
-  }catch(e){ showToast((e && e.message) || 'Could not make the file.','error'); }
+    const f=await opBuild(), prompt=$h('opPrompt')?$h('opPrompt').value:opCustomPrompt();
+    if(mobile){
+      const file=new File([f.text],f.fname,{type:'application/json'});
+      if(navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file], title:'One-pager source', text:prompt}); return; }
+        catch(e){ if(e && e.name==='AbortError') return; if(e && e.name==='NotAllowedError'){ showToast('The file is ready. Tap Open Claude again.','info'); return; } }
+      }
+    }
+    await shareFile(f.text,f.fname);
+    try{ await navigator.clipboard.writeText(prompt); }catch(e){}
+    const url='https://claude.ai/new?q='+encodeURIComponent(prompt);
+    if(w){ w.location.href=url; } else window.open(url,'_blank');
+    showToast('File downloaded. In Claude, attach it with the + button and send.','success');
+  }catch(e){ if(w) try{ w.close(); }catch(x){} showToast((e && e.message) || 'Could not make the file.','error'); }
 }
 /* ===== Planner "seen only" questions in the online account: meta/seen1, seen2 ... (15,000 ids each), merged by union ===== */
 const SEEN_CHUNK=15000; let _sBusy=false, _sDirty=false, _sTimer=null, _sLast=0;
@@ -7567,7 +7600,7 @@ function beginSession(source, mode, _skipKeys){
   if(document.getElementById('keysIntro')) return;
   if(!_skipKeys && !settings.keysIntroHide && !_keysIntroSeen){ _keysIntroSeen=true; showKeysIntro(()=>beginSession(source,mode,true)); return; }
   explOpen = {};
-  session = {questions:source, answers:{}, startTime:Date.now(), mode, testMode, done:false, currentIdx:0, marking: getMarking(), qt:{}, qAt:Date.now()};
+  session = {questions:source, answers:{}, startTime:Date.now(), mode, testMode, done:false, currentIdx:0, marking: getMarking(), qt:{}, qAt:Date.now(), ord:{}};
   session.mask = (testMode==='practice') ? buildMasks(source, mode) : {};
   document.getElementById('testIdle').style.display='none';
   document.getElementById('testResults').style.display='none';
@@ -7801,7 +7834,7 @@ function renderRunning(){
   const div = document.createElement('div');
   div.className = 'card';
   div.id = 'qc-'+idx;
-  let optsHtml = q.options.map(o=>
+  let optsHtml = ordOpts(q).map(o=>
     `<button class="opt" data-key="${o.key}" onclick="answerQ(${idx},'${o.key}')">${escH(o.key.toUpperCase())}. ${escH(o.text)}</button>`
   ).join('');
   const _mkPending = !!(session.mask && session.mask[idx]==='hide' && !session.answers[idx]);
@@ -7968,7 +8001,7 @@ document.addEventListener('keydown', function(e){
   const map = {'1':'a','2':'b','3':'c','4':'d','5':'e'};
   if(map[e.key]){
     const q = session.questions[session.currentIdx];
-    if(q.options.some(o=>o.key===map[e.key])) answerQ(session.currentIdx, map[e.key]);
+    const so=ordOpts(q)[+e.key-1]; if(so) answerQ(session.currentIdx, so.key);
   } else if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); nextQ(); }
   else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); prevQ(); }
   else if(e.key===' '){ e.preventDefault(); toggleFlag(session.currentIdx); }
@@ -7984,7 +8017,7 @@ document.addEventListener('keydown', function(e){
 function buildReviewHtml(items){
   if(!items.length) return '';
   const cards = items.map(({q,chosen},i)=>{
-    const optsHtml = q.options.map(o=>{
+    const optsHtml = ordOpts(q).map(o=>{
       let cls='opt locked';
       if(o.key===chosen && o.key===q.correctKey) cls+=' correct';
       else if(o.key===chosen) cls+=' wrong';
@@ -8941,6 +8974,7 @@ function accountState(){
 }
 function retryConnect(){ if(session && !session.done && !confirm('Reloading will pause your test. Continue?')) return; location.reload(); }
 function renderProfile(){
+  try{ const sh=document.getElementById('shufToggle'); if(sh) sh.checked=settings.shuffleOpts===true; }catch(e){}
   if(!$h('pfName')) return;
   const nm=settings.name||'';
   $h('pfName').value=nm; $h('pfAvatar').textContent=(nm.trim().charAt(0)||'S').toUpperCase();
