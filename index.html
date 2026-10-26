@@ -661,10 +661,72 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 #hmRev button:disabled{opacity:.5;}
 @media (max-width:520px){.rv-card{flex-wrap:wrap;align-items:flex-start;} .rv-card .sr-tx{flex:1 1 0;} .rv-card #rvStart{flex:1 1 100%;width:100%;}}
 </style>
+<style id="uiFix">
+.bico{width:18px;height:18px;vertical-align:middle;flex:none;}
+.bkrow{gap:8px;}
+.bkrow .bkn{flex:1;min-width:0;}
+.bkrow .bkr{display:inline-flex;align-items:center;gap:4px;flex:none;}
+.bkrow .nicon{display:inline-flex;align-items:center;gap:3px;margin:0;color:var(--accent);font-size:12.5px;font-weight:700;}
+.bkrow .nicon .nsvg{width:18px;height:18px;}
+.bkrow.open{background:var(--accent-bg);border-radius:10px 10px 0 0;border-bottom-color:transparent;}
+.bkact{display:flex;gap:8px;padding:2px 10px 12px;background:var(--accent-bg);border-radius:0 0 10px 10px;border-bottom:1px solid var(--border);}
+.bkb{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;min-height:40px;box-sizing:border-box;padding:0 8px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:13.5px;font-weight:600;line-height:1;cursor:pointer;}
+.bkb.d{color:var(--red,#c0392b);border-color:var(--red,#c0392b);}
+.bkdots{width:36px;height:36px;min-height:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:8px;background:none;color:var(--muted);cursor:pointer;}
+.bkdots.on{background:var(--accent-bg);color:var(--accent);}
+.tbar{margin-bottom:8px;}
+.tbar .tb1{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.tbar .tagline{flex:1;min-width:0;font-size:11.5px;line-height:1.3;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.tbar .qtimer{flex:none;}
+.tbar .tb2{display:flex;gap:8px;}
+.tbar .tb2 .flagbtn{flex:1 1 0;min-width:0;height:36px;min-height:36px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;font-size:12.5px;line-height:1;white-space:nowrap;}
+.tbar .tb2 .flagbtn svg{width:17px;height:17px;flex:none;}
+.tbar .flagbtn.on .flg{--ff:currentColor;}
+.ncnt{font-variant-numeric:tabular-nums;}
+.bkact.g6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));}
+.bkact.g6>.bkb{grid-column:span 2;}
+.bkact.g6>.bkb{flex-wrap:nowrap;white-space:nowrap;}
+.bkact.g6>.bkb.w{grid-column:span 6;}
+.bkact.g6{row-gap:8px;}
+.bkb .bkl{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.bkb .bkc{color:var(--accent);font-weight:800;}
+.opico{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;min-height:0;padding:0;margin:-4px 4px -4px -6px;border:none;border-radius:8px;background:none;color:var(--accent);vertical-align:middle;cursor:pointer;}
+.opico:active{background:var(--accent-bg);}
+#opMakeOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:250;display:none;align-items:flex-end;justify-content:center;}
+#opMakeOverlay.open{display:flex;}
+#opMakeBox{max-height:90vh;overflow-y:auto;}
+@media (min-width:700px){#opMakeOverlay{align-items:center;} #opMakeOverlay .info-sheet{border-radius:20px;max-width:520px;}}
+.opchk{display:flex;gap:10px;align-items:flex-start;padding:7px 2px;font-size:14px;line-height:1.35;cursor:pointer;}
+.opchk input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent);}
+.opdet{margin:6px 0;border:1px solid var(--border);border-radius:10px;padding:6px 10px;}
+.opdet summary{cursor:pointer;font-size:13.5px;font-weight:600;padding:4px 0;}
+.opdet textarea{width:100%;box-sizing:border-box;font-size:12px;line-height:1.45;margin-top:6px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--card);color:var(--text);}
+.oplist{max-height:220px;overflow-y:auto;margin-top:4px;}
+.oprow2{display:flex;gap:8px;margin:6px 0;}
+.oprow3{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.oprow3 .primary{grid-column:1/-1;}
+#opOverlay{position:fixed;inset:0;z-index:250;background:var(--bg);display:none;}
+#opOverlay.open{display:block;}
+#opView{display:flex;flex-direction:column;height:100%;}
+.oph{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;border-bottom:1px solid var(--border);background:var(--card);flex:none;}
+.oph .opt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14.5px;}
+.oph button.sm{flex:none;min-height:36px;padding:6px 10px;font-size:12.5px;}
+.oph button.d{color:var(--red,#c0392b);border-color:var(--red,#c0392b);}
+.opb{flex:1;min-height:0;overflow:auto;background:#fff;-webkit-overflow-scrolling:touch;}
+.opb iframe{display:block;width:100%;height:100%;border:0;background:#fff;}
+.oppdf{padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px;background:#e9e9e9;min-height:100%;box-sizing:border-box;}
+.oppdf canvas{max-width:100%;box-shadow:0 1px 4px rgba(0,0,0,.25);background:#fff;}
+.opimg{padding:8px;text-align:center;}
+.opimg img{max-width:100%;height:auto;}
+</style>
+
 </head>
 <body data-tab="home">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="ico-notes" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5V6.5A2.5 2.5 0 0 1 7 4h6.5a2.5 2.5 0 0 1 2.5 2.5"/><rect x="7.5" y="6.5" width="12" height="15" rx="2.5"/><path d="M10.5 10.6h6M10.5 13.2h4M10.5 15.8h5.2M10.5 18.4h3"/></g></symbol><symbol id="ico-recall" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 15.8A3.9 3.9 0 0 1 6.9 8.3 5 5 0 0 1 16.4 7a3.9 3.9 0 0 1 .9 8.8z"/><circle cx="7" cy="19.2" r="1.15"/><circle cx="4.2" cy="21.6" r=".7"/><path d="M10.2 9.6l3.6 3.6M13.8 9.6l-3.6 3.6"/></g></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="ico-onepager" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/><path d="M12 7v10M7.2 8.5h2.8M7.2 11h2.8M7.2 13.5h2.8M14 8.5h2.8M14 11h2.8M14 13.5h2.8"/></g></symbol><symbol id="ico-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4.5M7.8 8.7 12 4.5l4.2 4.2M5 15v3.2A1.8 1.8 0 0 0 6.8 20h10.4a1.8 1.8 0 0 0 1.8-1.8V15"/></g></symbol><symbol id="ico-notes" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5V6.5A2.5 2.5 0 0 1 7 4h6.5a2.5 2.5 0 0 1 2.5 2.5"/><rect x="7.5" y="6.5" width="12" height="15" rx="2.5"/><path d="M10.5 10.6h6M10.5 13.2h4M10.5 15.8h5.2M10.5 18.4h3"/></g></symbol><symbol id="ico-export" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 9l5-5l5 5"/><path d="M12 4v12"/></g></symbol><symbol id="ico-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></g></symbol><symbol id="ico-dots" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></g></symbol><symbol id="ico-flag" viewBox="0 0 24 24"><g style="fill:var(--ff,none)" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1-7 0a5 5 0 0 0-7 0v-9z"/><path d="M5 21v-7" fill="none"/></g></symbol><symbol id="ico-bulb" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h1m8-9v1m8 8h1m-15.4-6.4l.7.7m12.1-.7l-.7.7"/><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0-1 3a2 2 0 0 1-4 0a3.5 3.5 0 0 0-1-3"/><path d="M9.7 17h4.6"/></g></symbol><symbol id="ico-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></g></symbol><symbol id="ico-recall" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 15.8A3.9 3.9 0 0 1 6.9 8.3 5 5 0 0 1 16.4 7a3.9 3.9 0 0 1 .9 8.8z"/><circle cx="7" cy="19.2" r="1.15"/><circle cx="4.2" cy="21.6" r=".7"/><path d="M10.2 9.6l3.6 3.6M13.8 9.6l-3.6 3.6"/></g></symbol></svg>
 <div id="toastRoot"></div>
+<input type="file" id="opFile" accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp,text/html,application/pdf,image/*" style="display:none" onchange="opPicked(this)">
+<div id="opMakeOverlay" onclick="if(event.target===this) opMakeClose()"><div class="info-sheet" id="opMakeBox"></div></div>
+<div id="opOverlay"><div id="opView"></div></div>
 <div id="weakOverlay" onclick="if(event.target===this) closeWeak()">
   <div class="info-sheet" style="max-height:88vh;overflow-y:auto;">
     <div class="gs-head"><h4>Needs more practice</h4><button class="back" onclick="closeWeak()" aria-label="Close" style="font-size:16px;">✕</button></div>
@@ -1893,6 +1955,7 @@ let historyView = {level:'subjects', subject:null};
 let expandedFlagKey = null;
 let expandedLogKey = null;
 let expandedBankSubject = null;
+let bankOpenTopic = null, bankOpenMenu = null;   // the topic whose buttons are open, and the subject whose 3-dots menu is open
 let pendingDelete = null;
 let settings = {target:500, examDate:null};
 let testMode = 'practice';
@@ -2000,12 +2063,55 @@ function getMarking(){
   if(markPreset && r===parseFloat(fmtIn(markPreset.r)) && w===parseFloat(fmtIn(markPreset.w))) return {r: markPreset.r, w: markPreset.w};   // exact values, not the rounded ones shown in the boxes
   return {r: isFinite(r)?r:1, w: isFinite(w)?w:0};
 }
-function saveMarking(){ saveLS('gc_marking', getMarking()); saveLS('gc_marking_preset', markPreset ? markPreset.id : ''); }
+let _prefApply=false, _mkT=null;
+/* Preferences that used to live only on this device now live in `settings`, so they follow the account to every device.
+   Never write settings online before they have been read once (it would overwrite the online copy with defaults). */
+function prefPersist(){ if(dbNS && !_setBase) return; persistSettings(); }
+function saveMarking(){
+  const m=getMarking(), pid=markPreset ? markPreset.id : '';
+  saveLS('gc_marking', m); saveLS('gc_marking_preset', pid);
+  if(_prefApply) return;
+  settings.marking={r:m.r,w:m.w}; settings.markPreset=pid;
+  clearTimeout(_mkT); _mkT=setTimeout(prefPersist,1500);
+}
+let _notSimSig=null;
+function notSimApply(){
+  const cl=Array.isArray(settings.notSim) ? settings.notSim.filter(k=>typeof k==='string') : null, sig=JSON.stringify(cl);
+  if(_notSimSig===null){   // first look: this device's list and the online one are joined
+    (cl||[]).forEach(k=>NOTSIM.add(k)); _notSimSig=sig; _bankRev++;
+    if(NOTSIM.size && (!cl || NOTSIM.size>cl.length) && _setBase){ settings.notSim=[...NOTSIM]; _notSimSig=JSON.stringify(settings.notSim); prefPersist(); }
+  } else if(sig!==_notSimSig){   // changed on another device (or cleared there)
+    NOTSIM.clear(); (cl||[]).forEach(k=>NOTSIM.add(k)); _notSimSig=sig; _bankRev++;
+    try{ idbSet('gc_notsim',[...NOTSIM]); }catch(e){}
+  }
+}
+/* Copies the synced settings into the places the rest of the app reads them from. Safe to call any time. */
+function syncPrefsFromSettings(){
+  _prefApply=true;
+  try{
+    const m=settings.marking;
+    if(m && typeof m==='object' && isFinite(m.r) && isFinite(m.w)){
+      const pid=settings.markPreset||'', cur=getMarking();
+      if(cur.r!==m.r || cur.w!==m.w || (markPreset?markPreset.id:'')!==pid){
+        if(pid && MARK_PRESETS.some(x=>x.id===pid)) applyMarkPreset(pid);
+        else { if(markPreset) applyMarkPreset(''); document.getElementById('mRight').value=fmtIn(m.r); document.getElementById('mWrong').value=fmtIn(m.w); }
+        saveMarking();
+      }
+    }
+  }catch(e){}
+  try{ if(typeof settings.simOn==='boolean') saveLS('gc_similar',settings.simOn); }catch(e){}
+  try{ if(typeof settings.remOff==='boolean') saveLS('gc_rem_off',settings.remOff); }catch(e){}
+  try{ if(settings.welcomed===true) saveLS('gc_welcomed',true); }catch(e){}
+  try{ notSimApply(); }catch(e){}
+  _prefApply=false;
+}
 (function(){
+  _prefApply=true;
   fillMarkPresetMenu();
   const m = loadLS('gc_marking',{r:1,w:0}); document.getElementById('mRight').value = fmtIn(m.r); document.getElementById('mWrong').value = fmtIn(m.w);
   const pid = loadLS('gc_marking_preset','');
   if(pid && MARK_PRESETS.some(x=>x.id===pid)) applyMarkPreset(pid);
+  _prefApply=false;
 })();
 function marksHtml(m,x){
   if(!(x>0)) return '';
@@ -2428,10 +2534,35 @@ async function persistHistoryBulk(list){
   }
   return saved;
 }
+let _setBase=null;   // each setting as the online copy last held it (JSON text), so only real changes are written
+function setBaseFrom(o){ _setBase={}; Object.keys(o||{}).forEach(k=>{ try{ _setBase[k]=JSON.stringify(o[k]); }catch(e){} }); }
 function persistSettings(){
   try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); }catch(e){}
-  if(dbNS){ dbNS.doc('meta/settings').set(settings).catch(saveFailed); }
-  else saveLocal('gc_settings', settings);
+  if(!dbNS){ saveLocal('gc_settings', settings); return; }
+  if(!_setBase || typeof firebase==='undefined' || !firebase.firestore || !firebase.firestore.FieldValue){ dbNS.doc('meta/settings').set(settings).catch(saveFailed); return; }
+  const FV=firebase.firestore.FieldValue, diff={}, sent={}; let n=0;
+  Object.keys(settings).forEach(k=>{ if(settings[k]===undefined) return; let j; try{ j=JSON.stringify(settings[k]); }catch(e){ return; } if(_setBase[k]!==j){ diff[k]=settings[k]; sent[k]=j; n++; } });
+  Object.keys(_setBase).forEach(k=>{ if(settings[k]===undefined){ diff[k]=FV.delete(); sent[k]=null; n++; } });
+  if(!n) return;
+  dbNS.doc('meta/settings').set(diff,{merge:true}).then(()=>{ Object.keys(sent).forEach(k=>{ if(sent[k]===null) delete _setBase[k]; else _setBase[k]=sent[k]; }); }).catch(saveFailed);
+}
+/* Another device may have changed a setting since this one loaded. Anything changed there and not here is taken over; if both changed the same setting, this device's value stays and is saved. */
+async function settingsPull(){
+  if(!dbNS || !_setBase) return;
+  const s=await dbNS.doc('meta/settings').get(); if(!s.exists) return;
+  const c={target:500,examDate:null,...s.data()}; let took=false, kept=false;
+  Object.keys(c).forEach(k=>{
+    let cj; try{ cj=JSON.stringify(c[k]); }catch(e){ return; }
+    const bj=_setBase[k]; if(bj===cj) return;
+    let lj; try{ lj=JSON.stringify(settings[k]); }catch(e){ lj=undefined; }
+    if(lj===bj || lj===cj){ if(lj!==cj){ settings[k]=c[k]; took=true; } _setBase[k]=cj; }
+    else if(k==='notSim'){ settings.notSim=[...new Set([...(Array.isArray(c.notSim)?c.notSim:[]),...(Array.isArray(settings.notSim)?settings.notSim:[])])]; _setBase.notSim=cj; kept=true; }
+    else if(k==='tpos'){ const m={...(c.tpos||{})}; Object.entries(settings.tpos||{}).forEach(([kk,v])=>{ const o=m[kk]; if(!o || !v || o.b!==v.b || v.p<o.p) m[kk]=v; }); settings.tpos=m; _setBase.tpos=cj; kept=true; }
+    else { _setBase[k]=cj; kept=true; }
+  });
+  if(took){ try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); applyTheme(); }catch(e){} }
+  if(took || kept){ try{ syncPrefsFromSettings(); }catch(e){} }
+  if(kept) persistSettings();
 }
 async function loadFromLocal(){
   try{
@@ -2585,7 +2716,7 @@ async function loadCloudFast(){
     openBatchId = Object.keys(cnt).find(b=>cnt[b]<BATCH_SIZE) || null;
   }
   let psOk = true;
-  try{ const s = await dbNS.doc('meta/settings').get(); if(s.exists) settings = {target:500, examDate:null, ...s.data()}; }catch(e){}
+  try{ const s = await dbNS.doc('meta/settings').get(); if(s.exists){ settings = {target:500, examDate:null, ...s.data()}; setBaseFrom(settings); try{ syncPrefsFromSettings(); }catch(e){} } }catch(e){}
   try{ const pm = await dbNS.doc('meta/psplit').get(); _psReady = pm.exists; _psVer = pm.exists ? ((pm.data()||{}).v||1) : 0; }
   catch(e){ _psVer = m.psv||0; _psReady = _psVer>0; psOk = false; }   // offline: keep the mode the copy was made in, and do not start a migration
   try{ await loadDelta(); }catch(e){}
@@ -2645,7 +2776,7 @@ async function loadFromDb(){
   try{ tombProbe(); }catch(e){}
   try{
     const sSnap = await dbNS.doc('meta/settings').get();
-    if(sSnap.exists) settings = {target:500, examDate:null, ...sSnap.data()};
+    if(sSnap.exists){ settings = {target:500, examDate:null, ...sSnap.data()}; setBaseFrom(settings); try{ syncPrefsFromSettings(); }catch(e){} }
   }catch(e){}
   if(bank.length===0){
     // migrate from the old one-document-per-question layout, if any, then reclaim that capacity
@@ -2743,7 +2874,8 @@ async function initApp(){
   if(dbNS){ try{ const t=loadLS('gc_tombs',null); if(t && typeof t==='object') tombs={...t,...tombs}; }catch(e){} }   // deletions remembered on this device (online-account mode)
   await restoreBackupHandle();
   try{ dirty = new Set((await idbGet('gc_dirty'))||[]); }catch(e){}
-  try{ notes=(useIdb?await idbGet('gc_notes'):loadLS('gc_notes',null))||[]; }catch(e){ notes=loadLS('gc_notes',[]); } refreshNotesBtn();
+  try{ notes=(useIdb?await idbGet('gc_notes'):loadLS('gc_notes',null))||[]; }catch(e){ notes=loadLS('gc_notes',[]); } refreshNotesBtn(); notesCloudSoon(1200);
+  try{ opIdxLoad(); setTimeout(()=>{ opCloudSync(true).catch(()=>{}); seenCloudSync(true).catch(()=>{}); },3500); }catch(e){}
   initSuggest(); backupSince(); ['pdfStatus','parseMsg','exportStatus'].forEach(addStatusClose);
   showWelcome();
   try{ const ss=await loadSavedSession(); if(ss && bank.length && !session) askResumeTest(ss); }catch(e){}
@@ -4469,7 +4601,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-30';
+const APP_BUILD = 'index-32';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -4596,9 +4728,11 @@ async function refreshFromCloud(manual){
   if(!dbNS || !syncAccount) return;
   if(session && !session.done){ if(manual) showToast('Finish or leave the running test first.', 'info'); return; }
   try{
-    if(manual || _lastU===null || Date.now()-_lastFull>fullEvery()) await loadFromDb(); else await loadDelta();   // full reload on tap or once a day (catches removed batches); otherwise only what changed
+    if(manual || _lastU===null || Date.now()-_lastFull>fullEvery()) await loadFromDb(); else { await loadDelta(); try{ await settingsPull(); }catch(e){} }
+    try{ await notesCloudSync(); }catch(e){}
+    try{ await opCloudSync(!!manual); }catch(e){} try{ await seenCloudSync(!!manual); }catch(e){}   // full reload on tap or once a day (catches removed batches); otherwise only what changed
     _lastCloudLoad = Date.now();
-    renderBank(); renderHistory(); renderStorageSheet();
+    renderBank(); renderHistory(); renderStorageSheet(); try{ if(isHomeOn()) renderHome(); }catch(e){}
     if(manual) showToast('Up to date \u2713', 'info');
   }catch(e){ if(manual) showToast('Could not refresh. Check your internet connection.', 'error'); }
 }
@@ -5775,7 +5909,7 @@ function checkBackupReminderCore(){
   document.getElementById('bkGo').onclick=async()=>{ b.style.display='none'; await performBackup('manual'); checkBackupReminder(); };
   const setBtn=document.getElementById('bkSet'); if(setBtn) setBtn.onclick=async()=>{ b.style.display='none'; if(needAllow){ await allowFolder(); checkBackupReminder(); } else openStorage(); };
   document.getElementById('bkLater').onclick=()=>{ saveLS('gc_rem_snooze',Date.now()+864e5); b.style.display='none'; };   // asks again after a day
-  document.getElementById('bkOff').onclick=()=>{ saveLS('gc_rem_off',true); b.style.display='none'; };
+  document.getElementById('bkOff').onclick=()=>{ saveLS('gc_rem_off',true); settings.remOff=true; prefPersist(); b.style.display='none'; };
 }
 setInterval(checkBackupReminder, 30*60*1000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkBackupReminder(); });
@@ -5878,16 +6012,18 @@ function addStatusClose(id){
 }
 /* First-open welcome: shown once, only when the app is brand new (no questions, no history) */
 function showWelcome(){
-  if(loadLS('gc_welcomed',false) || bank.length || history.length) return;
+  if(loadLS('gc_welcomed',false) || settings.welcomed || bank.length || history.length) return;
   const o=document.createElement('div'); o.id='welcomeBox';
   o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
   o.onclick=e=>{ if(e.target===o) closeWelcome(); };
   o.innerHTML='<div class="card" style="max-width:380px;margin:0;"><h3 style="margin:0 0 4px;font-size:18px;">Welcome 👋</h3><p class="muted" style="margin:0 0 10px;font-size:13.5px;">Test Maker turns your questions into practice tests.</p><ul class="wl"><li>Add new questions from a PDF or by pasting text</li><li>Practise with instant answers, or take an exam</li><li>Track your progress and revisit weak spots</li></ul><p class="muted" style="margin:0 0 14px;font-size:13px;">Stuck? Tap the <button class="info-btn" style="pointer-events:none;">i</button> button next to any heading for help.</p><button class="primary" onclick="closeWelcome()">Get started</button></div>';
   document.body.appendChild(o);
 }
-function closeWelcome(){ saveLS('gc_welcomed',true); const o=document.getElementById('welcomeBox'); if(o) o.remove(); }
+function closeWelcome(){ saveLS('gc_welcomed',true); settings.welcomed=true; prefPersist(); const o=document.getElementById('welcomeBox'); if(o) o.remove(); }
 /* ===== Notes: written by the student, tied to a subject or topic, tagged, backed up and merged like everything else ===== */
 const RECALL_ICON='<svg class="nsvg" aria-hidden="true"><use href="#ico-recall"/></svg>';
+const LINE_ICON=n=>'<svg class="bico" aria-hidden="true"><use href="#ico-'+n+'"/></svg>';
+function flagInner(on){ return '<svg class="bico flg" aria-hidden="true"><use href="#ico-flag"/></svg><span>'+(on?'Flagged':'Flag')+'</span>'; }
 const NOTE_ICON='<svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg>';
 const NOTE_TAGS={'Weak area':'#c0392b','To revise':'#d68910','Remember':'#2e86c1','Mistake pattern':'#8e44ad','Tip':'#229954'};
 let notes=[], notesCtx=null, panelOpts=[];
@@ -5919,10 +6055,42 @@ function drawTagUi(){
   const inp=document.getElementById('ntagNew'); if(inp) inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); addDraftTag(inp.value); } };
 }
 function validNote(n){ return !!n && typeof n==='object' && typeof n.id==='string' && n.id.length<=60 && typeof n.subject==='string' && n.subject.length<=300 && (n.topic==null || (typeof n.topic==='string' && n.topic.length<=300)) && (Object.prototype.hasOwnProperty.call(NOTE_TAGS,n.tag) || (Array.isArray(n.tags) && n.tags.length<=5 && n.tags.every(t=>typeof t==='string' && t.length>0 && t.length<=20))) && typeof n.text==='string' && n.text.length<=2000 && typeof n.u==='number'; }
+/* ===== Notes in the online account: kept in meta/notes1, notes2 ... (80 notes per document) and merged by edit time, so every device ends up with the same notes ===== */
+const NOTE_CHUNK=80;
+let _nBusy=false, _nAgain=false, _nTimer=null;
+function notesCloudOn(){ return !!(dbNS && fbUid && typeof firebase!=='undefined' && firebase.firestore); }
+function notesCloudSoon(ms){ if(!notesCloudOn()) return; clearTimeout(_nTimer); _nTimer=setTimeout(()=>{ notesCloudSync().catch(()=>{}); }, ms||2500); }
+async function notesCloudSync(){
+  if(!notesCloudOn()) return false;
+  if(_nBusy){ _nAgain=true; return false; }
+  _nBusy=true; let ok=false;
+  try{
+    do{
+      _nAgain=false;
+      const remote=[]; let rc=0;
+      for(let i=1;i<=60;i++){ const d=await dbNS.doc('meta/notes'+i).get(); if(!d.exists) break; rc=i; const it=(d.data()||{}).items; if(Array.isArray(it)) remote.push(...it); }
+      const cut=Date.now()-90*864e5, rmap=new Map(), bad=[];
+      remote.forEach(r=>{ if(validNote(r)){ if(!(r.del && r.u<cut)) rmap.set(r.id,r); } else bad.push(r); });
+      const nm=new Map(notes.map(n=>[n.id,n])); let pulled=false, push=false;
+      rmap.forEach((r,id)=>{ if(r.u>CLK) CLK=r.u; const l=nm.get(id); if(!l || r.u>l.u){ nm.set(id,r); pulled=true; } });
+      nm.forEach((n,id)=>{ const r=rmap.get(id); if(!r || n.u>r.u) push=true; });
+      if(rc>0 && remote.length!==rmap.size+bad.length) push=true;
+      if(pulled){ notes=[...nm.values()]; await saveLocal('gc_notes',notes); saveLS('gc_clk',CLK); refreshNotesBtn(); try{ refreshNotesFab(); }catch(e){} try{ renderBank(); }catch(e){} }
+      if(push){
+        const all=[...nm.values()].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).concat(bad), k=Math.max(1,Math.ceil(all.length/NOTE_CHUNK));
+        for(let i=0;i<k;i++) await dbNS.doc('meta/notes'+(i+1)).set({items:JSON.parse(JSON.stringify(all.slice(i*NOTE_CHUNK,(i+1)*NOTE_CHUNK))),u:firebase.firestore.FieldValue.serverTimestamp()});
+        for(let i=k+1;i<=rc;i++) await dbNS.doc('meta/notes'+i).delete();
+      }
+    }while(_nAgain);
+    ok=true;
+  }catch(e){ console.warn('Notes sync',e); }
+  _nBusy=false; return ok;
+}
 function saveNotes(sched){
   const cut=Date.now()-90*864e5; notes=notes.filter(n=>!n.del || n.u>cut);
   saveLocal('gc_notes',notes); if(sched!==false) scheduleBackup();
   refreshNotesBtn(); try{ refreshNotesFab(); }catch(e){} renderBank(); if(document.getElementById('notesPanel')) drawNotes();
+  notesCloudSoon();
 }
 function notesForScopes(sc){ return notes.filter(n=>!n.del && sc.some(x=>n.subject===x.subject && (x.topic==null || n.topic==null || n.topic===x.topic))).sort((a,b)=>b.u-a.u); }
 function testScopes(){
@@ -5936,7 +6104,7 @@ function subjScopes(sc){ return [...new Set((sc||[]).map(x=>x.subject))].map(s=>
 function refreshNotesBtn(){ const el=document.getElementById('notesTestCount'); if(el) el.textContent=notesForScopes(subjScopes(testScopes())).length; }
 function nIcon(s,t){
   const c=notes.filter(n=>!n.del && n.subject===s && (t==null || n.topic===t)).length;
-  return c ? '<span class="nicon" onclick="event.stopPropagation();openNotes([{subject:\''+esc(s)+'\',topic:'+(t==null?'null':'\''+esc(t)+'\'')+'}])" title="'+c+' note'+(c===1?'':'s')+'">'+NOTE_ICON+'</span>' : '';
+  return c ? '<span class="nicon" onclick="event.stopPropagation();openNotes([{subject:\''+esc(s)+'\',topic:'+(t==null?'null':'\''+esc(t)+'\'')+'}])" title="'+c+' note'+(c===1?'':'s')+'">'+NOTE_ICON+'<span class="ncnt">'+c+'</span></span>' : '';
 }
 function scopeOptions(scopes){
   const out=[], seen=new Set(), add=(s,t)=>{ const k=s+'|||'+(t||''); if(!seen.has(k)){ seen.add(k); out.push({subject:s,topic:t}); } };
@@ -5977,7 +6145,7 @@ function toggleRecallMiss(idx){
     if(!q.arch){ if(!q.flagged){ q.flagged=true; srOnFlag(q,true); (session.pendFlag=session.pendFlag||{})[q.id]=1; } (session.flagTouched=session.flagTouched||{})[q.id]=1; }   // saved online when the test ends
     showToast('Marked. The question is flagged and will come back sooner.','info');
   }
-  const fb=document.getElementById('flagBtn'); if(fb){ fb.classList.toggle('on',!!q.flagged); fb.textContent=q.flagged?'🚩 Flagged':'⚑ Flag'; }
+  const fb=document.getElementById('flagBtn'); if(fb){ fb.classList.toggle('on',!!q.flagged); fb.innerHTML=flagInner(q.flagged); }
   syncRecallFab(idx); saveSessionSoon();
 }
 function noteCountForQ(q){ return notesForScopes(subjScopes([{subject:q.subject||'General',topic:q.topic||'General'}])).length; }
@@ -6306,7 +6474,7 @@ async function restoreFromSink(sink,tkey){
   const qs=items.map(q=>{ const f=flags[q.id]||[0,0,0,0], o={...q,flagged:!!f[0],issue:!!f[1],attemptCount:f[2]||0,wc:f[4]||0,rs:f[5]||0,ls:f[6]||0,sr:srClean(f[7]),u:q.u||0,s:f[3]||0}; o.cs=csig(o); o.ss=ssig(o); return o; });   // original IDs are kept
   qs.forEach(q=>bank.push(q)); await persistNewQuestions(qs);
   { const haveH = new Set(history.map(HK)), freshH = hist.filter(h=>!haveH.has(HK(h))); freshH.forEach(h=>history.push(h)); await persistHistoryBulk(freshH); }
-  if(prog){ settings={target:500,examDate:null,...prog}; persistSettings(); renderProgress(); }
+  if(prog){ settings={target:500,examDate:null,...prog}; persistSettings(); try{ syncPrefsFromSettings(); }catch(e){} renderProgress(); }
   if(!dbNS){ try{ await idbSet('gc_man_'+tkey, man); }catch(e){} }
   dirty.clear(); saveLocal('gc_dirty',[]); saveLocal('gc_tombs',tombs); saveLocal('gc_conflicts',conflicts); saveLocal('gc_notes',notes); clearTimeout(bkTimer); clearTimeout(dTimer);
   const ok = qs.length===man.questions, m='Restored '+qs.length+' question(s) and '+hist.length+' history record(s)'+(ok?' ✓':' — expected '+man.questions+', some files may be missing');
@@ -6718,9 +6886,28 @@ function renderIssueList(){
     </div>`;
   }).join('') + (shownN<items.length ? listMoreBtn('issue', items.length-shownN) : '');
 }
-function toggleBankSubject(s){ expandedBankSubject = (expandedBankSubject===s)?null:s; renderBankBreakdown(); }
+function toggleBankSubject(s){ expandedBankSubject = (expandedBankSubject===s)?null:s; bankOpenTopic=null; renderBankBreakdown(); }
+function toggleBankTopic(s,tp){ const k=s+'\u0001'+tp; bankOpenTopic = (bankOpenTopic===k)?null:k; renderBankBreakdown(); }
+function toggleBankMenu(s){ bankOpenMenu = (bankOpenMenu===s)?null:s; renderBankBreakdown(); }
+function bankActs(kind,s,tp){
+  const top = kind==='topic';
+  const notesArg = "[{subject:'"+esc(s)+"',topic:"+(top?"'"+esc(tp)+"'":'null')+"}]";
+  const share = top ? "shareTopic('"+esc(s)+"','"+esc(tp)+"')" : "shareSubject('"+esc(s)+"')";
+  const del = top ? "requestDelete('topic','"+esc(s)+"','"+esc(tp)+"')" : "requestDelete('subject','"+esc(s)+"')";
+  const ic = n=>'<svg class="bico" aria-hidden="true"><use href="#ico-'+n+'"/></svg>';
+  const nc = top ? 0 : notes.filter(n=>!n.del && n.subject===s).length;
+  let h = '<div class="bkact'+(top?'':' g6')+'">'
+    +'<button type="button" class="bkb" onclick="event.stopPropagation();openNotes('+notesArg+')" title="Notes for this '+(top?'topic':'subject')+'">'+ic('notes')+'Notes'+(nc?' <span class="bkc">'+nc+'</span>':'')+'</button>'
+    +'<button type="button" class="bkb" onclick="event.stopPropagation();'+share+'" title="Share this '+(top?'topic':'whole subject')+' as a JSON file">'+ic('export')+'Export</button>'
+    +'<button type="button" class="bkb d" onclick="event.stopPropagation();'+del+'" title="Delete this '+(top?'topic':'subject')+'">'+ic('trash')+'Delete</button>';
+  if(!top){ const sq="'"+esc(s)+"'";
+    h += '<button type="button" class="bkb w" onclick="event.stopPropagation();opMakeOpen('+sq+')" title="Make a short revision sheet from your notes and flagged questions">'+ic('onepager')+'<span class="bkl">Make one-pager</span></button>'
+      +'<button type="button" class="bkb w" onclick="event.stopPropagation();opPick('+sq+')" title="Add the finished one-pager (HTML, PDF or image) for this subject">'+ic('upload')+'<span class="bkl">'+(opHas(s)?'Replace one-pager':'Upload one-pager')+'</span></button>'; }
+  return h+'</div>';
+}
 function renderBankBreakdown(){
   const el = document.getElementById('bankBreakdown');
+  if(!opIdx) opIdxLoad();
   const bySubj = {};
   liveBank().forEach(q=>{
     const s = q.subject||'General';
@@ -6733,27 +6920,335 @@ function renderBankBreakdown(){
   const subjects = Object.keys(bySubj).sort(subjectCmp(ord));
   if(!subjects.length){ el.innerHTML = '<p class="empty">No questions yet.</p>'; return; }
   el.innerHTML = subjects.map(s=>{
-    const expanded = expandedBankSubject===s;
+    const expanded = expandedBankSubject===s, menu = bankOpenMenu===s;
     let topicsHtml = '';
     if(expanded){
-      topicsHtml = Object.keys(bySubj[s].topics).sort(topicCmp(ord,s)).map(t=>
-        `<div class="hrow" style="padding-left:12px;"><span>${nIcon(s,t)}${escH(t)} <span class="muted">(${bySubj[s].topics[t]})</span></span>
-        <span class="row" style="gap:0;">
-          <button class="del-x" onclick="event.stopPropagation();openNotes([{subject:'${esc(s)}',topic:'${esc(t)}'}])" title="Notes for this subject"><svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg></button>
-          <button class="del-x" onclick="event.stopPropagation();shareTopic('${esc(s)}','${esc(t)}')" title="Share this topic as a JSON file">📤</button>
-          <button class="del-x" onclick="event.stopPropagation();requestDelete('topic','${esc(s)}','${esc(t)}')" title="Delete this topic">🗑</button>
-        </span></div>`
-      ).join('');
+      topicsHtml = Object.keys(bySubj[s].topics).sort(topicCmp(ord,s)).map(t=>{
+        const open = bankOpenTopic===s+'\u0001'+t;
+        return `<div class="hrow bkrow clickable${open?' open':''}" style="padding-left:12px;" onclick="toggleBankTopic('${esc(s)}','${esc(t)}')"><span class="bkn">${escH(t)} <span class="muted">(${bySubj[s].topics[t]})</span></span><span class="bkr">${nIcon(s,t)}</span></div>${open?bankActs('topic',s,t):''}`;
+      }).join('');
     }
-    return `<div class="hrow clickable" onclick="toggleBankSubject('${esc(s)}')">
-        <span>${nIcon(s,null)}<strong>${escH(s)}</strong> <span class="muted">(${bySubj[s].count})</span></span>
-        <span class="row" style="gap:0;">
-          <button class="del-x" onclick="event.stopPropagation();openNotes([{subject:'${esc(s)}',topic:null}])" title="Notes for this subject"><svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg></button>
-          <button class="del-x" onclick="event.stopPropagation();shareSubject('${esc(s)}')" title="Share this whole subject as a JSON file">📤</button>
-          <button class="del-x" onclick="event.stopPropagation();requestDelete('subject','${esc(s)}')" title="Delete this subject">🗑</button>
-        </span>
-      </div>${topicsHtml}`;
+    return `<div class="hrow bkrow clickable" onclick="toggleBankSubject('${esc(s)}')">
+        <span class="bkn">${opIcon(s)}<strong>${escH(s)}</strong> <span class="muted">(${bySubj[s].count})</span></span>
+        <span class="bkr"><button type="button" class="bkdots${menu?' on':''}" onclick="event.stopPropagation();toggleBankMenu('${esc(s)}')" aria-label="Options for this subject" aria-expanded="${menu}" title="Notes, export, one-pager, delete"><svg class="bico" aria-hidden="true"><use href="#ico-dots"/></svg></button></span>
+      </div>${menu?bankActs('subject',s):''}${topicsHtml}`;
   }).join('');
+}
+
+/* ===== One-pagers: a short final-revision sheet for each subject (build index-32) =====
+   MAKE: a subject's 3-dots menu > "Make one-pager" builds a JSON (your notes, flagged and wrong questions with explanations, and a ready prompt)
+         that you give to Claude or any AI. The AI returns one compact, printable sheet.
+   KEEP: "Upload one-pager" stores that sheet for the subject (HTML is best; PDF or an image also works). It is kept on this device and, when it is
+         under 3 MB, in the online account (meta/onepagers = list, meta/op<id>_<n> = the file in 700 KB pieces), so every device has it. */
+const OP_MAX_LOCAL=25*1024*1024, OP_MAX_CLOUD=3*1024*1024, OP_CHUNK=700000;
+const OP_PROMPT=[
+'You are helping me with final-time revision for a competitive exam (UPSC / State PCS style). The JSON in this file is my own data for ONE subject: my notes (with weak-area tags), the questions I flagged or got wrong, and the explanations from my source book.',
+'',
+'TASK',
+'Make a "one-pager" for last-minute revision. "One-pager" is only a name: it is a compact reference sheet, NOT literally one page. It holds the facts I keep forgetting. I have read most of this many times, so leave out what I obviously know and keep only what I am weak at or have got wrong again and again. It must NOT turn into another bulky set of notes.',
+'',
+'WHAT TO USE',
+'1. notes: every note must be covered. Tags like "Weak area", "Mistake pattern" and "To revise" show where to focus.',
+'2. flaggedQuestions, then otherWrongQuestions: use the question, the correct answer and above all the explanation to pull out the important facts and one-liners for the weak areas. timesWrong and attempts show how often I missed it.',
+'3. otherQuestions (if present) are background only; use them just to complete a weak area.',
+'4. You may search the web to check or complete a fact. Do not pad.',
+'',
+'HOW TO WRITE',
+'- Merge facts about the same person, event or term from different questions into ONE line of keywords. Example: if one question says "Grand Old Man of India" and another "Rast Goftar", write: Dadabhai Naoroji - Rast Goftar, Grand Old Man of India.',
+'- If a weak-area note says something like "Newspaper - founder/publisher", make a small table or list of that (Newspaper | Founder/Publisher).',
+'- Arrange in chronological order wherever it helps, especially in History. Dates are optional; the sequence is what makes it easier to learn.',
+'- Interlink facts (who - what - when - where), put similar or easily confused things side by side, and add a short mnemonic only if it really helps.',
+'- Prefer tables, short lists, timelines, and small diagrams or maps (inline SVG) over sentences. No long paragraphs.',
+'- Group by topic under short colour-coded headings. Use colour to separate topics and to mark traps and commonly confused pairs.',
+'',
+'LAYOUT (it must also print well on paper)',
+'- One single self-contained HTML file: all CSS inside, no external fonts, images or scripts; any graphics as inline SVG.',
+'- A4 portrait, small but readable text (about 9-10 pt), narrow margins. Split the page into two halves with a thin vertical line to save space. Do not break tables or boxes across columns or pages.',
+'- Add print CSS (@page, print-color-adjust: exact) so colours are kept when printed; it should also look fine on a phone.',
+'- Keep it as short as possible, usually 1 to 3 pages.',
+'',
+'OUTPUT',
+'Give me the finished HTML file ready to download, titled "<Subject> - Final revision". After it, write at most 3 lines on what you left out.'
+].join('\n');
+let _opTok=0, opIdx=null, opIdxP=null, _opBusy=false, _opAgain=false, _opTimer=null, _opUrl=null, _opCur=null, _opSubj=null, _opRmT=null;
+const opId=s=>'op'+fnv(String(s)).replace(/[^a-z0-9]/g,'');
+function opIdxLoad(){
+  if(opIdx) return Promise.resolve(opIdx);
+  if(opIdxP) return opIdxP;
+  opIdxP=(async()=>{
+    let a=null; try{ a=await idbGet('gc_op_idx'); }catch(e){ a=loadLS('gc_op_idx',null); }
+    const m=new Map(); (Array.isArray(a)?a:[]).forEach(r=>{ if(r && typeof r.subject==='string' && typeof r.id==='string') m.set(r.subject,r); });
+    opIdx=m; try{ renderBankBreakdown(); }catch(e){}
+    return m;
+  })();
+  return opIdxP;
+}
+function opIdxSave(){ const a=[...opIdx.values()]; try{ idbSet('gc_op_idx',a).catch(()=>saveLS('gc_op_idx',a)); }catch(e){ saveLS('gc_op_idx',a); } }
+function opHas(s){ const r=opIdx && opIdx.get(s); return !!(r && !r.del); }
+function opIcon(s){ return opHas(s) ? '<button type="button" class="opico" onclick="event.stopPropagation();opOpen(\''+esc(s)+'\')" aria-label="Open the one-pager" title="Open the one-pager"><svg class="bico" aria-hidden="true"><use href="#ico-onepager"/></svg></button>' : ''; }
+function opToB64(buf){ const u=new Uint8Array(buf); let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+function opFromB64(b){ const s=atob(b), u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u.buffer; }
+/* ---- upload ---- */
+function opPick(s){ _opSubj=s; const f=$h('opFile'); if(!f) return; f.value=''; f.click(); }
+async function opPicked(inp){
+  const f=inp.files && inp.files[0]; inp.value=''; const s=_opSubj; if(!f || !s) return;
+  try{ await opStore(s,f); }catch(e){ showToast((e && e.message) || 'Could not save that file.','error'); }
+}
+async function opShrinkImage(f){
+  const url=URL.createObjectURL(f);
+  try{
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('Could not read that image.')); i.src=url; });
+    const sc=Math.min(1,2400/Math.max(img.naturalWidth,img.naturalHeight));
+    if(sc===1 && f.size<=OP_MAX_CLOUD) return {buf:await f.arrayBuffer(), mime:f.type||'image/png'};
+    const c=document.createElement('canvas'); c.width=Math.round(img.naturalWidth*sc); c.height=Math.round(img.naturalHeight*sc);
+    const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+    const b=await new Promise(r=>c.toBlob(r,'image/jpeg',0.88)); if(!b) throw new Error('Could not process that image.');
+    return {buf:await b.arrayBuffer(), mime:'image/jpeg'};
+  } finally { URL.revokeObjectURL(url); }
+}
+async function opStore(s,f){
+  await opIdxLoad();
+  const nm=f.name||'one-pager', low=nm.toLowerCase(); let type, mime, buf;
+  if(/\.html?$/.test(low) || /html/.test(f.type)){ type='html'; mime='text/html'; buf=await f.arrayBuffer(); }
+  else if(/\.pdf$/.test(low) || f.type==='application/pdf'){ type='pdf'; mime='application/pdf'; buf=await f.arrayBuffer(); }
+  else if(/^image\//.test(f.type) || /\.(png|jpe?g|webp)$/.test(low)){ const r=await opShrinkImage(f); buf=r.buf; mime=r.mime; type='img'; }
+  else throw new Error('Please choose an HTML, PDF or image file.');
+  if(buf.byteLength>OP_MAX_LOCAL) throw new Error('That file is too large (limit 25 MB).');
+  const id=opId(s), u=Date.now(), big=buf.byteLength>OP_MAX_CLOUD;
+  await idbSet('gc_op_'+id,{u,type,mime,buf});
+  opIdx.set(s,{id,subject:s,name:nm.slice(0,80),type,mime,size:buf.byteLength,u,ch:0,have:1,...(big?{big:1}:{})});
+  opIdxSave(); try{ renderBankBreakdown(); }catch(e){}
+  showToast('One-pager saved for '+s+(big?'. It is over 3 MB, so it stays on this device only.':'.'),big?'info':'success');
+  if(!big) opCloudSoon(1500);
+}
+/* ---- online copy ---- */
+function opCloudSoon(ms){ if(!notesCloudOn()) return; clearTimeout(_opTimer); _opTimer=setTimeout(()=>{ opCloudSync(true).catch(()=>{}); }, ms||3000); }
+async function opFetchCloud(r){
+  if(!notesCloudOn() || !(r.ch>0)) throw new Error('offline');
+  let b64='';
+  for(let i=1;i<=r.ch;i++){ const d=await dbNS.doc('meta/'+r.id+'_'+i).get(); if(!d.exists) throw new Error('missing'); const x=d.data()||{}; if(x.u!==r.u) throw new Error('version'); b64+=x.d; }
+  const rec={u:r.u,type:r.type,mime:r.mime,buf:opFromB64(b64)}; await idbSet('gc_op_'+r.id,rec); return rec;
+}
+let _opLast=0;
+async function opCloudSync(force){
+  if(!notesCloudOn()) return false;
+  if(!force && Date.now()-_opLast<5*60*1000) return false;
+  if(_opBusy){ _opAgain=true; return false; }
+  _opBusy=true; let ok=false;
+  try{
+    await opIdxLoad();
+    do{
+      _opAgain=false;
+      const d=await dbNS.doc('meta/onepagers').get(), it=d.exists ? (d.data()||{}).items : null;
+      const remote=(Array.isArray(it)?it:[]).filter(x=>x && typeof x.subject==='string' && typeof x.id==='string' && typeof x.u==='number');
+      const cut=Date.now()-90*864e5, rmap=new Map(); remote.forEach(r=>{ if(!(r.del && r.u<cut)) rmap.set(r.subject,r); });
+      let pulled=false, push=false;
+      rmap.forEach((r,s)=>{ const l=opIdx.get(s); if(!l || r.u>l.u){ opIdx.set(s,{...r,have:0}); pulled=true; } });
+      for(const [s,l] of [...opIdx.entries()]){
+        const r=rmap.get(s); if(r && l.u<=r.u) continue;
+        if(l.big){ continue; }
+        if(l.del){ push=true; continue; }
+        const c=await idbGet('gc_op_'+l.id); if(!c || !c.buf || c.u!==l.u) continue;
+        const b64=opToB64(c.buf), n=Math.ceil(b64.length/OP_CHUNK);
+        for(let i=0;i<n;i++) await dbNS.doc('meta/'+l.id+'_'+(i+1)).set({d:b64.slice(i*OP_CHUNK,(i+1)*OP_CHUNK),u:l.u,n:i+1});
+        for(let i=n+1;i<=((r&&r.ch)||0);i++) await dbNS.doc('meta/'+l.id+'_'+i).delete();
+        l.ch=n; push=true;
+      }
+      if(push){
+        const items=[];
+        opIdx.forEach((l,s)=>{
+          const r=rmap.get(s);
+          if(r && l.u<=r.u){ items.push(r); return; }                      // the online copy is the same or newer
+          if(l.big || (!l.del && !(l.ch>0))){ if(r) items.push(r); return; } // never uploaded (too big, or file missing here)
+          if(l.del && l.u<cut) return;
+          items.push({id:l.id,subject:l.subject,name:l.name||'',type:l.type,mime:l.mime,size:l.size||0,u:l.u,ch:l.ch||0,...(l.del?{del:1}:{})});
+        });
+        rmap.forEach((r,s)=>{ if(!opIdx.has(s)) items.push(r); });
+        await dbNS.doc('meta/onepagers').set({items:JSON.parse(JSON.stringify(items)),u:firebase.firestore.FieldValue.serverTimestamp()});
+      }
+      if(pulled || push){ opIdxSave(); try{ renderBankBreakdown(); }catch(e){} }
+      for(const [s,l] of [...opIdx.entries()]){   // fetch what other devices added, so it also opens offline
+        if(l.del || !(l.ch>0)) continue;
+        let c=null; try{ c=await idbGet('gc_op_'+l.id); }catch(e){}
+        if(!c || !c.buf || c.u!==l.u){ try{ await opFetchCloud(l); }catch(e){} }
+      }
+    }while(_opAgain);
+    ok=true; _opLast=Date.now();
+  }catch(e){ console.warn('One-pager sync',e); }
+  _opBusy=false; return ok;
+}
+/* ---- viewer ---- */
+async function opOpen(s){
+  await opIdxLoad(); const r=opIdx.get(s);
+  if(!r || r.del){ showToast('No one-pager for this subject yet.','info'); return; }
+  let rec=null; try{ rec=await idbGet('gc_op_'+r.id); }catch(e){}
+  if(!rec || !rec.buf || rec.u!==r.u){ const c=await opFetchCloud(r).catch(()=>null); if(c) rec=c; }
+  if(!rec || !rec.buf){ showToast('Could not load the one-pager. Check your connection and try again.','error'); return; }
+  opShow(s,r,rec);
+}
+function opShow(s,r,rec){
+  opViewClose(true);
+  const blob=new Blob([rec.buf],{type:r.type==='html'?'text/html;charset=utf-8':(rec.mime||'application/octet-stream')}); _opUrl=URL.createObjectURL(blob); _opCur={s,type:r.type,blob,name:sanitizeFilename(s)+'-one-pager.'+(r.type==='html'?'html':r.type==='pdf'?'pdf':(/png/.test(rec.mime||'')?'png':'jpg'))};
+  const body = r.type==='img' ? '<div class="opimg"><img src="'+_opUrl+'" alt="One-pager"></div>'
+    : r.type==='pdf' ? '<div class="oppdf" id="opPdf"><p class="muted" style="padding:14px;">Loading\u2026</p></div>'
+    : '<iframe id="opFrame" title="One-pager" src="'+_opUrl+'" sandbox="allow-same-origin allow-modals allow-popups"></iframe>';
+  $h('opView').innerHTML='<div class="oph"><b class="opt">'+escH(s)+'</b>'
+    +'<button type="button" class="secondary sm" onclick="opPrint()">Print</button>'
+    +'<button type="button" class="secondary sm" onclick="opSaveCopy()">Save</button>'
+    +'<button type="button" class="secondary sm d" id="opRm" onclick="opRemoveAsk()">Remove</button>'
+    +'<button type="button" class="back" onclick="opViewClose()" aria-label="Close" style="font-size:16px;">\u2715</button></div><div class="opb">'+body+'</div>';
+  $h('opOverlay').classList.add('open');
+  if(r.type==='pdf'){ const tok=++_opTok, host=$h('opPdf'); opRenderPdf(rec.buf,host,tok).catch(()=>{ if(_opTok===tok && host) host.innerHTML='<iframe id="opFrame" title="One-pager" src="'+_opUrl+'"></iframe><p class="muted" style="padding:8px 14px;font-size:12px;">If the page above stays blank, tap Save or Print to open the PDF in your PDF viewer.</p>'; }); }
+}
+async function opRenderPdf(buf,host,tok){
+  const lib=await ensurePdfJs(), pdf=await lib.getDocument({data:new Uint8Array(buf.slice(0)),verbosity:0}).promise;
+  const w=Math.max(280,host.clientWidth-16), dpr=Math.min(2,window.devicePixelRatio||1); host.innerHTML='';
+  for(let i=1;i<=pdf.numPages;i++){
+    if(_opTok!==tok) return;
+    const page=await pdf.getPage(i), v0=page.getViewport({scale:1}), sc=w/v0.width, v=page.getViewport({scale:sc*dpr});
+    const c=document.createElement('canvas'); c.width=Math.floor(v.width); c.height=Math.floor(v.height); c.style.width=Math.floor(v.width/dpr)+'px'; c.style.height=Math.floor(v.height/dpr)+'px'; host.appendChild(c);
+    await page.render({canvasContext:c.getContext('2d'),viewport:v}).promise;
+  }
+}
+function opViewClose(quiet){
+  _opTok++; clearTimeout(_opRmT); const o=$h('opOverlay'); if(o) o.classList.remove('open');
+  const v=$h('opView'); if(v) v.innerHTML='';
+  if(_opUrl){ try{ URL.revokeObjectURL(_opUrl); }catch(e){} _opUrl=null; } _opCur=null;
+}
+function opPrint(){
+  if(!_opCur) return;
+  if(_opCur.type==='html'){ try{ const fr=$h('opFrame'); fr.contentWindow.focus(); fr.contentWindow.print(); return; }catch(e){} }
+  if(_opUrl) window.open(_opUrl,'_blank');
+}
+function opSaveCopy(){ if(_opCur) triggerFileDownload(_opCur.blob,_opCur.name); }
+function opRemoveAsk(){
+  const b=$h('opRm'); if(!b || !_opCur) return;
+  if(b.dataset.ask==='1'){ opRemove(_opCur.s); return; }
+  b.dataset.ask='1'; b.textContent='Tap again to remove';
+  _opRmT=setTimeout(()=>{ const x=$h('opRm'); if(x){ x.dataset.ask=''; x.textContent='Remove'; } },4000);
+}
+async function opRemove(s){
+  const r=opIdx && opIdx.get(s); if(!r) return;
+  const id=r.id, ch=r.ch||0;
+  opIdx.set(s,{id,subject:s,name:'',type:r.type,mime:r.mime,size:0,u:Date.now(),del:1,ch:0,have:0});
+  opIdxSave(); try{ await idbSet('gc_op_'+id,null); }catch(e){}
+  opViewClose(); try{ renderBankBreakdown(); }catch(e){}
+  showToast('One-pager removed.','info');
+  if(notesCloudOn()){ for(let i=1;i<=ch;i++) dbNS.doc('meta/'+id+'_'+i).delete().catch(()=>{}); opCloudSoon(800); }
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && $h('opOverlay') && $h('opOverlay').classList.contains('open')) opViewClose(); });
+/* ---- make: the file for the AI ---- */
+let opMk=null;
+function opCustomPrompt(){ return (typeof settings.opPrompt==='string' && settings.opPrompt.trim()) ? settings.opPrompt : OP_PROMPT; }
+function opMakeOpen(s){
+  const topics={}, row=t=>topics[t]||(topics[t]={f:0,w:0,a:0,n:0});
+  liveBank().forEach(q=>{ if((q.subject||'General')!==s) return; const o=row(q.topic||'General'); if(q.flagged) o.f++; else if((q.wc||0)>0) o.w++; else o.a++; });
+  let sn=0; notes.forEach(n=>{ if(n.del || n.subject!==s) return; if(n.topic==null) sn++; else row(n.topic).n++; });
+  opMk={subject:s, topics, sn, sel:new Set(Object.keys(topics)), cache:null};
+  opMakeDraw(); $h('opMakeOverlay').classList.add('open');
+}
+function opMakeClose(){ $h('opMakeOverlay').classList.remove('open'); opMk=null; }
+function opMkInc(){ const g=id=>{ const e=$h(id); return !!(e && e.checked); }; return {notes:g('opcN'), flag:g('opcF'), wrong:g('opcW'), all:g('opcA')}; }
+function opMakeDraw(){
+  const m=opMk; if(!m) return; const T=Object.keys(m.topics);
+  const tot=k=>T.reduce((a,t)=>a+m.topics[t][k],0), nN=tot('n')+m.sn;
+  const old=opMkInc(), have=!!$h('opcN');
+  const chk=(id,label,n,on,note)=>'<label class="opchk"><input type="checkbox" id="'+id+'"'+(on?' checked':'')+(n?'':' disabled')+' onchange="opMakeCalc()"><span>'+label+' <span class="muted">('+n+')</span>'+(note?'<br><span class="muted" style="font-size:11.5px;">'+note+'</span>':'')+'</span></label>';
+  $h('opMakeBox').innerHTML='<div class="gs-head"><h4>One-pager notes</h4><button class="back" onclick="opMakeClose()" aria-label="Close" style="font-size:16px;">\u2715</button></div>'
+    +'<p class="muted" style="margin:2px 0 10px;font-size:13px;"><b>'+escH(m.subject)+'</b>. Makes a file for Claude (or any AI) that turns your weak areas into a short, printable revision sheet.</p>'
+    +chk('opcN','My notes',nN,have?old.notes:true)
+    +chk('opcF','Flagged questions',tot('f'),have?old.flag:true)
+    +chk('opcW','Other questions I got wrong',tot('w'),have?old.wrong:true,'Wrong at some point, not flagged now')
+    +chk('opcA','All remaining questions',tot('a'),have?old.all:false,'Only as background. Makes the file large.')
+    +'<details class="opdet"><summary>Topics <span id="opTopCnt" class="muted"></span></summary><div class="oplist">'
+    +'<div class="oprow2"><button type="button" class="secondary sm" onclick="opTopAll(true)">All</button><button type="button" class="secondary sm" onclick="opTopAll(false)">None</button></div>'
+    +T.map((t,i)=>'<label class="opchk"><input type="checkbox" data-t="'+i+'"'+(m.sel.has(t)?' checked':'')+' onchange="opTopChg()"><span>'+escH(t)+' <span class="muted">('+(m.topics[t].f+m.topics[t].w+m.topics[t].a)+(m.topics[t].n?' \u00b7 '+m.topics[t].n+' note'+(m.topics[t].n===1?'':'s'):'')+')</span></span></label>').join('')
+    +'</div></details>'
+    +'<details class="opdet"><summary>Instructions for the AI</summary><textarea id="opPrompt" rows="9" oninput="opPromptChg()">'+escH(opCustomPrompt())+'</textarea>'
+    +'<div class="oprow2"><button type="button" class="secondary sm" onclick="opPromptReset()">Reset</button><button type="button" class="secondary sm" onclick="opCopyPrompt()">Copy</button></div></details>'
+    +'<p id="opSize" class="muted" style="margin:8px 0;font-size:12.5px;"></p>'
+    +'<div class="oprow3"><button type="button" class="primary" onclick="opDownload()">Download file</button>'
+    +((typeof navigator.canShare==='function' && !inClaudeViewer()) ? '<button type="button" class="secondary" onclick="opShareFile()">Share\u2026</button>' : '')
+    +'<button type="button" class="secondary" onclick="opCopyMsg()">Copy message</button><button type="button" class="secondary" onclick="window.open(\'https://claude.ai/new\',\'_blank\')">Open Claude</button></div>'
+    +'<p class="muted" style="margin:10px 0 0;font-size:12px;line-height:1.5;">1. Download the file (or Share it to the Claude app). 2. In Claude, attach the file and paste the copied message. 3. Save the HTML sheet Claude makes and add it with <b>Upload one-pager</b> in this subject\u2019s menu.</p>';
+  opMakeCalc();
+}
+function opTopAll(v){ document.querySelectorAll('#opMakeBox input[data-t]').forEach(c=>{ c.checked=v; }); opTopChg(); }
+function opTopChg(){ const m=opMk; if(!m) return; const T=Object.keys(m.topics); m.sel=new Set(); document.querySelectorAll('#opMakeBox input[data-t]').forEach(c=>{ if(c.checked) m.sel.add(T[+c.dataset.t]); }); m.cache=null; opMakeCalc(); }
+function opMakeCalc(){
+  const m=opMk; if(!m) return; m.cache=null; const T=Object.keys(m.topics), inc=opMkInc(); let q=0, n=m.sn;
+  T.forEach(t=>{ if(!m.sel.has(t)) return; const o=m.topics[t]; n+=o.n; if(inc.flag) q+=o.f; if(inc.wrong) q+=o.w; if(inc.all) q+=o.a; });
+  const tc=$h('opTopCnt'); if(tc) tc.textContent='('+m.sel.size+' of '+T.length+' selected)';
+  const kb=Math.round((q*0.9+(inc.notes?n*0.3:0))); const el=$h('opSize'); if(!el) return;
+  el.innerHTML=(inc.notes?n+' note'+(n===1?'':'s')+' \u00b7 ':'')+q+' question'+(q===1?'':'s')+' \u00b7 about '+kb+' KB'+(q>1500?'<br><span style="color:var(--red,#c0392b);">That is a lot. An AI may not accept a file this large; turn off "All remaining questions" or pick fewer topics.</span>':'');
+}
+function opPromptChg(){ const t=$h('opPrompt'); if(!t) return; const v=t.value.trim(); if(!v || v===OP_PROMPT.trim()) delete settings.opPrompt; else settings.opPrompt=t.value; if(opMk) opMk.cache=null; clearTimeout(opPromptChg._t); opPromptChg._t=setTimeout(()=>{ if(!dbNS || _setBase) persistSettings(); },1500); }
+function opPromptReset(){ delete settings.opPrompt; const t=$h('opPrompt'); if(t) t.value=OP_PROMPT; if(opMk) opMk.cache=null; if(!dbNS || _setBase) persistSettings(); }
+async function opCopyText(t,msg){
+  try{ await navigator.clipboard.writeText(t); showToast(msg,'success'); return; }catch(e){}
+  try{ const a=document.createElement('textarea'); a.value=t; a.style.cssText='position:fixed;opacity:0;'; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); showToast(msg,'success'); }
+  catch(e){ showToast('Could not copy. Select the text and copy it by hand.','error'); }
+}
+function opCopyPrompt(){ const t=$h('opPrompt'); opCopyText(t?t.value:opCustomPrompt(),'Instructions copied.'); }
+function opMessage(){ return 'Attached is my Test Maker export for "'+(opMk?opMk.subject:'my subject')+'". Please read the instructions inside the file and make my final-revision one-pager as a single HTML file.'; }
+function opCopyMsg(){ opCopyText(opMessage(),'Message copied. Paste it in Claude together with the file.'); }
+async function opBuild(){
+  const m=opMk; if(!m) throw new Error('closed');
+  if(m.cache) return m.cache;
+  const s=m.subject, inc=opMkInc();
+  if(!inc.notes && !inc.flag && !inc.wrong && !inc.all) throw new Error('Tick at least one thing to include.');
+  const list=liveBank().filter(q=>(q.subject||'General')===s && m.sel.has(q.topic||'General') && ((inc.flag&&q.flagged)||(inc.wrong&&!q.flagged&&(q.wc||0)>0)||(inc.all&&!q.flagged&&!((q.wc||0)>0))));
+  const rows={flag:[],wrong:[],other:[]};
+  await qEach(list,500,part=>{ part.forEach(q=>{
+    if(LEAN.has(q)) throw new Error('could not read question '+q.id+' from this device');
+    const o={topic:q.topic||'General', question:String(q.text||''), options:(q.options||[]).map(x=>x.key+') '+String(x.text||'')), answer:q.correctKey};
+    if(q.explanation) o.explanation=q.explanation; if(q.sourceTag) o.exams=q.sourceTag; if(q.wc) o.timesWrong=q.wc; if(q.attemptCount) o.attempts=q.attemptCount;
+    (q.flagged?rows.flag:((q.wc||0)>0?rows.wrong:rows.other)).push(o);
+  }); });
+  const wk=n=>noteTagsOf(n).includes('Weak area')?0:1;
+  const nl=inc.notes ? notes.filter(n=>!n.del && n.subject===s && (n.topic==null || m.sel.has(n.topic))).sort((a,b)=>wk(a)-wk(b)||b.u-a.u).map(n=>({topic:n.topic==null?null:n.topic, tags:noteTagsOf(n), note:n.text})) : [];
+  const data={format:'testmaker-onepager-source', version:1, subject:s, exportedAt:new Date().toISOString(), instructions:$h('opPrompt')?$h('opPrompt').value:opCustomPrompt(),
+    howToRead:'notes = written by the student; tags such as "Weak area" show what to focus on. flaggedQuestions = flagged by the student (usually answered wrong). otherWrongQuestions = got wrong at some point. otherQuestions = rest of the subject, background only. In each question: options are "A) text", answer is the correct option letter, explanation comes from the source book, exams = exam/year tags, timesWrong and attempts are the student\'s own history.',
+    counts:{notes:nl.length, flaggedQuestions:rows.flag.length, otherWrongQuestions:rows.wrong.length, otherQuestions:rows.other.length}};
+  if(inc.notes) data.notes=nl; if(inc.flag) data.flaggedQuestions=rows.flag; if(inc.wrong) data.otherWrongQuestions=rows.wrong; if(inc.all) data.otherQuestions=rows.other;
+  const text=JSON.stringify(data,null,1), fname='onepager-source-'+sanitizeFilename(s)+'-'+new Date().toISOString().slice(0,10)+'.json';
+  return (m.cache={text,fname,kb:Math.max(1,Math.round(text.length/1024))});
+}
+async function opDownload(){
+  try{ showToast('Preparing the file\u2026','info'); const f=await opBuild(); await shareFile(f.text,f.fname); showToast('File ready: '+f.fname+' ('+f.kb+' KB)','success'); }
+  catch(e){ showToast((e && e.message) || 'Could not make the file.','error'); }
+}
+async function opShareFile(){
+  try{
+    const f=await opBuild(), file=new File([f.text],f.fname,{type:'application/json'});
+    if(!navigator.canShare || !navigator.canShare({files:[file]})){ showToast('Sharing files is not supported here. Use Download file.','info'); return; }
+    try{ await navigator.share({files:[file], title:'One-pager source', text:opMessage()}); }
+    catch(e){ if(e && e.name==='NotAllowedError') showToast('The file is ready. Tap Share again.','info'); else if(e && e.name!=='AbortError') showToast('Sharing did not work. Use Download file.','error'); }
+  }catch(e){ showToast((e && e.message) || 'Could not make the file.','error'); }
+}
+/* ===== Planner "seen only" questions in the online account: meta/seen1, seen2 ... (15,000 ids each), merged by union ===== */
+const SEEN_CHUNK=15000; let _sBusy=false, _sDirty=false, _sTimer=null, _sLast=0;
+function seenCloudSoon(ms){ if(!notesCloudOn()) return; _sDirty=true; clearTimeout(_sTimer); _sTimer=setTimeout(()=>{ seenCloudSync(true).catch(()=>{}); }, ms||6000); }
+async function seenCloudSync(force){
+  if(!notesCloudOn() || _sBusy) return false;
+  if(!force && !_sDirty && Date.now()-_sLast<10*60*1000) return false;
+  _sBusy=true; _sDirty=false; let ok=false;
+  try{
+    await plSeenLoad();
+    const remote=new Set(); let rc=0;
+    for(let i=1;i<=30;i++){ const d=await dbNS.doc('meta/seen'+i).get(); if(!d.exists) break; rc=i; const a=(d.data()||{}).ids; if(Array.isArray(a)) a.forEach(x=>{ if(typeof x==='string') remote.add(x); }); }
+    let pulled=false, push=false;
+    remote.forEach(id=>{ if(!plSeen.has(id)){ plSeen.add(id); pulled=true; } });
+    plSeen.forEach(id=>{ if(!remote.has(id)) push=true; });
+    if(pulled){ const a=Array.from(plSeen); try{ await idbSet('gc_seen',a); }catch(e){ saveLS('gc_seen',a); } try{ renderHome(); }catch(e){} }
+    if(push){
+      const all=Array.from(plSeen).sort(), k=Math.max(1,Math.ceil(all.length/SEEN_CHUNK));
+      for(let i=0;i<k;i++) await dbNS.doc('meta/seen'+(i+1)).set({ids:all.slice(i*SEEN_CHUNK,(i+1)*SEEN_CHUNK),u:firebase.firestore.FieldValue.serverTimestamp()});
+      for(let i=k+1;i<=rc;i++) await dbNS.doc('meta/seen'+i).delete();
+    }
+    _sLast=Date.now(); ok=true;
+  }catch(e){ console.warn('Seen sync',e); }
+  _sBusy=false; return ok;
 }
 
 /* ---------- Test running: one question at a time ---------- */
@@ -7320,10 +7815,10 @@ function renderRunning(){
     : '';
   const stW=q.wc||0, stR=Math.max(0,(q.attemptCount||0)-stW);
   const hintHtml = (session.testMode==='exam' || !(q.attemptCount>0)) ? '' : ((!q.rs && stW>0) ? '<p class="wrongnote">⚠ You got this wrong last time</p>' : '') + '<div class="qchips"><span class="qc g">Right '+stR+(stR===1?' time':' times')+'</span><span class="qc r">Wrong '+stW+(stW===1?' time':' times')+'</span></div>';
-  const flagBar = `<div class="flagbar"><span class="tagline">${escH(q.subject||'General')} › ${escH(q.topic||'General')}</span><span class="rt"><span class="row" style="gap:6px;align-items:center;"><button class="flagbtn ${q.issue?'issue-on':''}" onclick="toggleIssue(${idx})" title="Mark a language/option/incomplete problem">${q.issue?'⚠ Issue':'⚠'}</button>${session.testMode==='exam'?bmBtnHtml(q,idx):archBtnHtml(q,idx)}<button class="flagbtn ${q.flagged?'on':''}" id="flagBtn" onclick="toggleFlag(${idx})">${q.flagged?'🚩 Flagged':'⚑ Flag'}</button></span><span class="qtimer" id="qtimer">⏱ ${fmtQ(qTimeNow())}</span></span></div>`;
+  const flagBar = `<div class="tbar"><div class="tb1"><span class="tagline">${escH(q.subject||'General')} › ${escH(q.topic||'General')}</span><span class="qtimer" id="qtimer">⏱ ${fmtQ(qTimeNow())}</span></div><div class="tb2"><button class="flagbtn ${q.issue?'issue-on':''}" onclick="toggleIssue(${idx})" title="Mark a language/option/incomplete problem" aria-label="Mark a problem with this question">${LINE_ICON('alert')}<span>Issue</span></button>${session.testMode==='exam'?bmBtnHtml(q,idx):archBtnHtml(q,idx)}<button class="flagbtn ${q.flagged?'on':''}" id="flagBtn" onclick="toggleFlag(${idx})">${flagInner(q.flagged)}</button></div></div>`;
   const _hasExpl = (q.correctKey!=='*');   // disputed (*) questions already show their explanation
   const explPart = (session.testMode!=='exam')
-    ? `<div class="explwrap" style="margin-top:10px;text-align:left;display:flex;gap:10px;align-items:center;">${_hasExpl ? `<button type="button" id="explFab" class="secondary explfab" onclick="toggleExpl(${idx})" title="Explanation (E)" aria-label="Show explanation (E)">💡</button>` : ''}<button type="button" id="notesFab" class="secondary explfab" data-n="${noteCountForQ(q)}" onclick="openQuestionNotes(${idx})" title="Notes" aria-label="Notes for this topic">${NOTE_ICON}</button>${recallFabHtml(idx)}</div>${_hasExpl ? `<div id="explbox-${idx}">${explOpen[idx] ? explBlock(q) : ''}</div>` : ''}` : '';
+    ? `<div class="explwrap" style="margin-top:10px;text-align:left;display:flex;gap:10px;align-items:center;">${_hasExpl ? `<button type="button" id="explFab" class="secondary explfab" onclick="toggleExpl(${idx})" title="Explanation (E)" aria-label="Show explanation (E)">${LINE_ICON('bulb').replace('bico','nsvg')}</button>` : ''}<button type="button" id="notesFab" class="secondary explfab" data-n="${noteCountForQ(q)}" onclick="openQuestionNotes(${idx})" title="Notes" aria-label="Notes for this topic">${NOTE_ICON}</button>${recallFabHtml(idx)}</div>${_hasExpl ? `<div id="explbox-${idx}">${explOpen[idx] ? explBlock(q) : ''}</div>` : ''}` : '';
   div.innerHTML = flagBar + `<div class="qhead">${qHtml(q.text,'Q'+(idx+1)+'. ')}</div>${tagHtml}${hintHtml}${disputedHtml}${optsHtml}${_mkPending?'':explPart}`;
   el.appendChild(div);
   applyAnsweredState(idx);
@@ -7383,7 +7878,7 @@ function toggleFlag(idx){
 let qPalOpen=false, _qPalSig='';
 function bmBtnHtml(q,idx){
   const on=!!(session.bm&&session.bm[q.id]);
-  return '<button class="flagbtn '+(on?'bm-on':'')+'" onclick="toggleBm('+idx+')" title="Bookmark to revisit later (B)" aria-pressed="'+on+'" aria-label="Bookmark this question (B)"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4.2-6.5 4.2v-16a1 1 0 0 1 1-1z" fill="'+(on?'currentColor':'none')+'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'+(on?'<span>Bookmarked</span>':'')+'</button>';
+  return '<button class="flagbtn '+(on?'bm-on':'')+'" onclick="toggleBm('+idx+')" title="Bookmark to revisit later (B)" aria-pressed="'+on+'" aria-label="Bookmark this question (B)"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4.2-6.5 4.2v-16a1 1 0 0 1 1-1z" fill="'+(on?'currentColor':'none')+'" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'+'<span>'+(on?'Bookmarked':'Bookmark')+'</span></button>';
 }
 function toggleBm(idx){
   if(!session||session.done||session.testMode!=='exam') return;
@@ -7819,7 +8314,7 @@ function plSeenLoad(){
   })();
   return plSeenP;
 }
-function plSeenSave(){ if(!plSeen) return; const a=Array.from(plSeen); try{ idbSet('gc_seen',a).catch(()=>{ saveLS('gc_seen',a); }); }catch(e){ saveLS('gc_seen',a); } }
+function plSeenSave(){ if(!plSeen) return; const a=Array.from(plSeen); try{ idbSet('gc_seen',a).catch(()=>{ saveLS('gc_seen',a); }); }catch(e){ saveLS('gc_seen',a); } try{ seenCloudSoon(); }catch(e){} }
 function plAdd(s,n){ return plDS(dayStrN(s)+n); }
 function plDS(n){ const d=new Date(n*864e5); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
 function plFmt(s){ if(!s) return ''; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
@@ -8898,7 +9393,7 @@ function uniqQs(list, cl){
   list.forEach(q=>{ const k=map.get(q)||('k'+qKey1(q)), c=m.get(k); if(!c || (q.attemptCount||0)>(c.attemptCount||0)) m.set(k,q); });
   return [...m.values()];
 }
-function setSimilar(v){ saveLS('gc_similar', !!v); updateSimNote(); if(typeof renderBank==='function'){ try{ renderBank(); }catch(e){} } }
+function setSimilar(v){ saveLS('gc_similar', !!v); settings.simOn=!!v; prefPersist(); updateSimNote(); if(typeof renderBank==='function'){ try{ renderBank(); }catch(e){} } }
 function simScope(){   // only the topics selected for the test
   let sel=[]; try{ sel=subjectPool(); if(examActive()) sel=sel.filter(examOk); if(kwActive()) sel=kwFilter(sel); }catch(e){ sel=liveBank(); }
   return sel;
@@ -8916,8 +9411,8 @@ let SIM=null;
 const NOTSIM=new Set();   // pairs of question ids the student marked "not the same question" (kept on this device)
 function simPairKey(a,b){ const x=String(a.id), y=String(b.id); return x<y ? x+'|'+y : y+'|'+x; }
 function simVetoed(a,b){ return NOTSIM.size>0 && NOTSIM.has(simPairKey(a,b)); }
-function simVetoSave(){ _bankRev++; try{ idbSet('gc_notsim',[...NOTSIM]); }catch(e){} }
-try{ idbGet('gc_notsim').then(v=>{ if(Array.isArray(v) && v.length){ v.forEach(k=>NOTSIM.add(k)); _bankRev++; } }).catch(()=>{}); }catch(e){}
+function simVetoSave(){ _bankRev++; try{ idbSet('gc_notsim',[...NOTSIM]); }catch(e){} try{ settings.notSim=[...NOTSIM]; _notSimSig=JSON.stringify(settings.notSim); prefPersist(); }catch(e){} }
+try{ idbGet('gc_notsim').then(v=>{ if(Array.isArray(v) && v.length){ v.forEach(k=>NOTSIM.add(k)); _bankRev++; try{ if(_setBase && _notSimSig!==null && NOTSIM.size>(Array.isArray(settings.notSim)?settings.notSim.length:0)){ settings.notSim=[...NOTSIM]; _notSimSig=JSON.stringify(settings.notSim); prefPersist(); } }catch(e){} } }).catch(()=>{}); }catch(e){}
 /* Why two questions were put together: [strength, text]. 3 = exact, 2 = reworded copy, 1 = same answer + similar key words (a guess), 0 = only linked through other questions */
 function simWhy(a,b){
   if(qKey1(a)===qKey1(b)) return [3,'Exact copy'];
@@ -9030,7 +9525,7 @@ function archClose(){ const o=document.getElementById('archBox'); if(o) o.remove
 const ARCH_ICON='<svg class="archico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="5" rx="0.8" fill="#8fd19e" stroke="#7a7a7a" stroke-width="1.3"/><path d="M4.5 8.5v11.2c0 .4.3.8.8.8h13.4c.5 0 .8-.4.8-.8V8.5" fill="#fff" stroke="#7a7a7a" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 12.5h6" stroke="#3b3b3b" stroke-width="1.6" stroke-linecap="round"/></svg>';
 function archBtnHtml(q, idx){
   const on=!!q.arch;
-  return '<button class="flagbtn archbtn '+(on?'on':'')+'" onclick="archBtnTap('+idx+')" title="'+(on?'Archived. Tap to undo.':'Archive: hide this question from future tests (Shift)')+'" aria-label="Archive this question (Shift)">'+ARCH_ICON+(on?'<span>\u2713</span>':'')+'</button>';
+  return '<button class="flagbtn archbtn '+(on?'on':'')+'" onclick="archBtnTap('+idx+')" title="'+(on?'Archived. Tap to undo.':'Archive: hide this question from future tests (Shift)')+'" aria-label="Archive this question (Shift)">'+ARCH_ICON+'<span>'+(on?'Archived':'Archive')+'</span></button>';
 }
 function archBtnTap(idx){ toggleArchMark(idx); }
 /* One tap archives the question straight away (no review afterwards); one more tap undoes it. The exam / year tags move to a similar copy that stays active. */
