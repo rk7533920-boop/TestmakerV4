@@ -2302,7 +2302,7 @@ async function writeShard(sh,m,dels,byId){
           for(const id in m) out[id]=old[id] ? mergeProg(m[id],old[id]) : m[id];
           t.set(ref,{m:{...out,...delMap()},u:FV.serverTimestamp()},{merge:true});
           for(const id in out){ const q=byId&&byId.get(id); if(q && !_dirtyP.has(id)) applyProg(q,out[id]); } });
-        return true; }catch(e){}
+        return true; }catch(e){ return false; }   // two devices: never fall back to a blind write (offline, or a busy moment). It would replace the other device's higher counts with this device's older ones. The values stay waiting on this device and are saved again shortly (and when the connection returns).
     }
     await ref.set({m:{...m,...delMap()},u:FV.serverTimestamp()},{merge:true}); return true;
   }catch(e){ saveFailed(e); return false; }
@@ -2534,7 +2534,7 @@ async function purgeHistoryDuplicates(){
   return n;
 }
 function persistHistoryEntry(entry){
-  if(dbNS){ const col=dbNS.collection('history'), id=histDocId(entry); (id ? col.doc(id).set(entry) : col.add(entry)).catch(saveFailed); }
+  if(dbNS){ const col=dbNS.collection('history'), id=histDocId(entry); const rec={...entry, u:firebase.firestore.FieldValue.serverTimestamp()}; (id ? col.doc(id).set(rec) : col.add(rec)).catch(saveFailed); }
   else saveLocal('gc_history', history);
 }
 /* Writes many history records at once (in batches of 400) and returns how many were really saved. */
@@ -2547,11 +2547,91 @@ async function persistHistoryBulk(list){
     const part = list.slice(i,i+400);
     try{
       const batch = firebase.firestore().batch();
-      part.forEach(h=>{ const col=dbNS.collection('history'), id=histDocId(h); batch.set(id ? col.doc(id) : col.doc(), JSON.parse(JSON.stringify(h))); });
+      part.forEach(h=>{ const col=dbNS.collection('history'), id=histDocId(h); batch.set(id ? col.doc(id) : col.doc(), {...JSON.parse(JSON.stringify(h)), u:firebase.firestore.FieldValue.serverTimestamp()}); });
       await batch.commit(); saved += part.length;
     }catch(e){ console.warn('History batch not saved', e); saveFailed(e); }
   }
   return saved;
+}
+/* ===== Settings that hold COUNTS or a PLAN are merged, never overwritten (build index-33) =====
+   dayLog (questions per day: new / revised) and planner (the study plan and today's counters) used to be saved as one value, so when two devices
+   changed them the same day, one device's numbers replaced the other's, and a subject removed from the plan came back from the online copy.
+   dayLog: every device only adds to its own counter (d[device]); a day's total is the sum, merged by taking each device's highest value.
+   planner: three-way merge against what this device last saw online (base), with today's counters merged by the highest value. */
+const SP_KEYS = ['dayLog','planner'];
+function canon(x){ if(x===undefined) return 'u'; if(x===null || typeof x!=='object') return JSON.stringify(x); if(Array.isArray(x)) return '['+x.map(canon).join(',')+']'; return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+canon(x[k])).join(',')+'}'; }
+function dlNorm(x){ if(!x) return {b:[0,0],d:{}}; if(x.d || x.b) return {b:[(x.b&&x.b[0])||0,(x.b&&x.b[1])||0], d:x.d||{}}; return {b:[x.n||0,x.r||0], d:{}}; }   // an old day {n,r} becomes the starting amount
+function dlSum(e){ let n=(e.b&&e.b[0])||0, r=(e.b&&e.b[1])||0; const d=e.d||{}; Object.keys(d).forEach(k=>{ n+=(d[k]&&d[k][0])||0; r+=(d[k]&&d[k][1])||0; }); e.n=n; e.r=r; return e; }
+function dlMergeDay(a,b){
+  const A=dlNorm(a), B=dlNorm(b), out={b:[Math.max(A.b[0],B.b[0]),Math.max(A.b[1],B.b[1])], d:{}};
+  new Set([...Object.keys(A.d),...Object.keys(B.d)]).forEach(k=>{ const x=A.d[k]||[0,0], y=B.d[k]||[0,0]; out.d[k]=[Math.max(x[0]||0,y[0]||0), Math.max(x[1]||0,y[1]||0)]; });
+  return dlSum(out);
+}
+function dlMerge(l,r){
+  l=l||{}; r=r||{}; const out={};
+  new Set([...Object.keys(l),...Object.keys(r)]).forEach(k=>{ out[k]=dlMergeDay(l[k],r[k]); });
+  const keys=Object.keys(out).sort(); if(keys.length>400) keys.slice(0,keys.length-400).forEach(k=>{ delete out[k]; });
+  return out;
+}
+function plTodayMerge(a,b){
+  if(!a) return b||null; if(!b) return a;
+  if(a.d!==b.d) return String(a.d)>String(b.d) ? a : b;   // the newer day
+  const out={d:a.d, q:{...(b.q||{}),...(a.q||{})}, c:{}};
+  new Set([...Object.keys(a.c||{}),...Object.keys(b.c||{})]).forEach(sj=>{ const x=(a.c||{})[sj]||{}, y=(b.c||{})[sj]||{}; out.c[sj]={f:Math.max(x.f||0,y.f||0), r:Math.max(x.r||0,y.r||0)}; });
+  return out;
+}
+function plMerge3(L,R,B){
+  if(!R) return L; if(!L) return R;
+  const eq=(x,y)=>canon(x)===canon(y);
+  if(B && eq(L,B)) return R;   // nothing changed here: take the online copy
+  if(B && eq(R,B)) return L;   // nothing changed there: keep this device's
+  const out={...R,...L};   // both changed: a plain setting changed here stays, one changed only there is taken
+  Object.keys(R).forEach(k=>{ if(k==='subs'||k==='today') return; if(B && eq(L[k],B[k]) && !eq(R[k],B[k])) out[k]=R[k]; });
+  const ls=L.subs||{}, rs=R.subs||{}, bs=(B&&B.subs)||{}, subs={};
+  new Set([...Object.keys(ls),...Object.keys(rs)]).forEach(sj=>{
+    const l=ls[sj], r=rs[sj], b=bs[sj];
+    if(l && r) subs[sj] = (b && eq(l,b)) ? r : l;                     // edited here: ours; edited only there: theirs
+    else if(l){ if(!b || !eq(l,b)) subs[sj]=l; }                      // added here, or removed there but edited here: kept; removed there, untouched here: gone
+    else if(r){ if(!b || !eq(r,b)) subs[sj]=r; }                      // added there, or removed here but edited there: kept; removed here, untouched there: gone
+  });
+  out.subs=subs;
+  out.today = (L.today==null && B && B.today!=null) ? null : plTodayMerge(L.today, R.today);   // a plan edit here asked for today's quotas to be rebuilt
+  return out;
+}
+const SP_MERGE = { dayLog:(l,r)=>dlMerge(l,r), planner:(l,r,b)=>plMerge3(l,r,b) };
+const _spBusy={}, _spAgain={};
+async function spSync(k){
+  if(!dbNS || !_setBase || typeof firebase==='undefined' || !firebase.firestore || !SP_MERGE[k]) return false;
+  if(_spBusy[k]){ _spAgain[k]=true; return false; }
+  _spBusy[k]=true; let ok=false;
+  try{
+    const ref=dbNS.doc('meta/settings'); let merged, base;
+    const startJ=canon(settings[k]), startClone=settings[k]===undefined ? undefined : JSON.parse(JSON.stringify(settings[k]));
+    try{ base = _setBase[k]===undefined ? undefined : JSON.parse(_setBase[k]); }catch(e){ base=undefined; }
+    await firebase.firestore().runTransaction(async t=>{
+      const sn=await t.get(ref), rem=sn.exists ? sn.data()[k] : undefined;
+      merged = SP_MERGE[k](startClone, rem, base);
+      if(merged===undefined || merged===null) return;
+      merged = JSON.parse(JSON.stringify(merged));
+      if(canon(merged)!==canon(rem)) t.set(ref,{[k]:merged},{mergeFields:[k]});   // only this setting is replaced, by a value that already holds both sides
+    });
+    if(merged!==undefined && merged!==null){
+      if(canon(settings[k])===startJ) settings[k]=merged;
+      else { settings[k]=SP_MERGE[k](settings[k], merged, startClone); _spAgain[k]=true; }   // changed again while saving: merged once more, saved again
+      _setBase[k]=JSON.stringify(merged);
+      try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); }catch(e){}
+    }
+    ok=true;
+  }catch(e){}
+  _spBusy[k]=false; if(_spAgain[k]){ _spAgain[k]=false; spSync(k).catch(()=>{}); }
+  return ok;
+}
+/* After the online settings were read afresh: counts this device had not saved yet are not thrown away */
+function keepLocalSp(prev){
+  try{
+    if(prev && prev.dayLog) settings.dayLog=dlMerge(prev.dayLog, settings.dayLog||{});
+    if(prev && prev.planner && prev.planner.today && settings.planner) settings.planner.today=plTodayMerge(prev.planner.today, settings.planner.today);
+  }catch(e){}
 }
 let _setBase=null;   // each setting as the online copy last held it (JSON text), so only real changes are written
 function setBaseFrom(o){ _setBase={}; Object.keys(o||{}).forEach(k=>{ try{ _setBase[k]=JSON.stringify(o[k]); }catch(e){} }); }
@@ -2560,8 +2640,10 @@ function persistSettings(){
   if(!dbNS){ saveLocal('gc_settings', settings); return; }
   if(!_setBase || typeof firebase==='undefined' || !firebase.firestore || !firebase.firestore.FieldValue){ dbNS.doc('meta/settings').set(settings).catch(saveFailed); return; }
   const FV=firebase.firestore.FieldValue, diff={}, sent={}; let n=0;
-  Object.keys(settings).forEach(k=>{ if(settings[k]===undefined) return; let j; try{ j=JSON.stringify(settings[k]); }catch(e){ return; } if(_setBase[k]!==j){ diff[k]=settings[k]; sent[k]=j; n++; } });
-  Object.keys(_setBase).forEach(k=>{ if(settings[k]===undefined){ diff[k]=FV.delete(); sent[k]=null; n++; } });
+  const sp=[];
+  Object.keys(settings).forEach(k=>{ if(settings[k]===undefined) return; let j; try{ j=JSON.stringify(settings[k]); }catch(e){ return; } if(SP_KEYS.indexOf(k)>=0){ if(_setBase[k]!==j) sp.push(k); return; } if(_setBase[k]!==j){ diff[k]=settings[k]; sent[k]=j; n++; } });
+  Object.keys(_setBase).forEach(k=>{ if(SP_KEYS.indexOf(k)>=0) return; if(settings[k]===undefined){ diff[k]=FV.delete(); sent[k]=null; n++; } });
+  sp.forEach(k=>{ spSync(k).catch(()=>{}); });   // counts and the plan are merged with the online copy, not overwritten
   if(!n) return;
   dbNS.doc('meta/settings').set(diff,{merge:true}).then(()=>{ Object.keys(sent).forEach(k=>{ if(sent[k]===null) delete _setBase[k]; else _setBase[k]=sent[k]; }); }).catch(saveFailed);
 }
@@ -2571,6 +2653,7 @@ async function settingsPull(){
   const s=await dbNS.doc('meta/settings').get(); if(!s.exists) return;
   const c={target:500,examDate:null,...s.data()}; let took=false, kept=false;
   Object.keys(c).forEach(k=>{
+    if(SP_KEYS.indexOf(k)>=0) return;   // merged by spSync below
     let cj; try{ cj=JSON.stringify(c[k]); }catch(e){ return; }
     const bj=_setBase[k]; if(bj===cj) return;
     let lj; try{ lj=JSON.stringify(settings[k]); }catch(e){ lj=undefined; }
@@ -2582,6 +2665,7 @@ async function settingsPull(){
   if(took){ try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); applyTheme(); }catch(e){} }
   if(took || kept){ try{ syncPrefsFromSettings(); }catch(e){} }
   if(kept) persistSettings();
+  for(const k of SP_KEYS){ try{ await spSync(k); }catch(e){} }
 }
 async function loadFromLocal(){
   try{
@@ -2621,7 +2705,7 @@ async function migrateIntoBatches(items){
     if(bank.filter(q=>q._batchId===lastBid).length < BATCH_SIZE) openBatchId = lastBid;
   }
 }
-var _lastU = null, _lastHist = '', _lastFull = 0;   // cursors for "load only what changed since last time"
+var _lastU = null, _lastHist = '', _lastHU = 0, _lastFull = 0;   // cursors for "load only what changed since last time"
 /* ===== Device copy of the cloud bank: opens fast, then asks the cloud only what changed =====
    Safe by design: it is disposable (any doubt = throw it away and load from the cloud), tied to one account, thrown away on sign-out,
    and never written when the device is short on space (the app needs about 3x the copy's size free), so it can never push a phone into "storage full".
@@ -2665,7 +2749,7 @@ async function cacheSaveNow(){
         if(!free || need*3 > free) return;   // not enough room to be comfortable: skip the copy, the app simply loads from the cloud as before
       } else return;
       _ccBatches.clear(); _ccPut.clear(); _ccHist.clear();
-      const snapB = bank.slice(), snapH = history.slice(), meta0 = {v:CACHE_V, uid:fbUid, full:_lastFull, lastU:_lastU, lastP:_lastP, lastHist:_lastHist, psv:_psVer};
+      const snapB = bank.slice(), snapH = history.slice(), meta0 = {v:CACHE_V, uid:fbUid, full:_lastFull, lastU:_lastU, lastP:_lastP, lastHist:_lastHist, lastHU:_lastHU, psv:_psVer};
       await idbRun([IDB_STORE,IDB_CQ,IDB_CH,IDB_LC],st=>{ st[IDB_STORE].put({...meta0, ok:false}, CC_META); st[IDB_STORE].delete('gc_cloudcache'); st[IDB_CQ].clear(); st[IDB_CH].clear(); st[IDB_LC].clear(); });   // "not finished" until the last line below
       for(let i=0;i<snapB.length;i+=600){
         const part = snapB.slice(i,i+600);
@@ -2692,7 +2776,7 @@ async function cacheSaveNow(){
         psOk.forEach(putQ);
         hs.forEach(([k,h])=>st[IDB_CH].put(h,k));
         const cr=lc.count();
-        cr.onsuccess=()=>{ st[IDB_STORE].put({...m, ok:true, n:cr.result, lastU:_lastU, lastP:_lastP, lastHist:_lastHist, psv:_psVer}, CC_META); };
+        cr.onsuccess=()=>{ st[IDB_STORE].put({...m, ok:true, n:cr.result, lastU:_lastU, lastP:_lastP, lastHist:_lastHist, lastHU:_lastHU, psv:_psVer}, CC_META); };
       };
       let left=bs.length;
       if(!left) putAll();
@@ -2729,13 +2813,13 @@ async function loadCloudFast(){
   if(!good){ cacheDrop(); return loadFromDb(); }
   if(LEAN_ACTIVE) cqCleanup();
   bank = qs; { const hb=hs.length; history = dedupeHistoryList(hs); window.__histHadDup = history.length<hb; }
-  _lastU = m.lastU||0; _lastP = m.lastP||0; _lastHist = m.lastHist||''; _lastFull = m.full; openBatchId = null; _openStat = {bid:null, n:0, bytes:0};
+  _lastU = m.lastU||0; _lastP = m.lastP||0; _lastHist = m.lastHist||''; _lastHU = m.lastHU||0; _lastFull = m.full; openBatchId = null; _openStat = {bid:null, n:0, bytes:0};
   if(!syncAccount){   // one device: keep filling a batch that still has room, so no tiny batch is started every session
     const cnt={}; bank.forEach(q=>{ cnt[q._batchId]=(cnt[q._batchId]||0)+1; });
     openBatchId = Object.keys(cnt).find(b=>cnt[b]<BATCH_SIZE) || null;
   }
   let psOk = true;
-  try{ const s = await dbNS.doc('meta/settings').get(); if(s.exists){ settings = {target:500, examDate:null, ...s.data()}; setBaseFrom(settings); try{ syncPrefsFromSettings(); }catch(e){} } }catch(e){}
+  try{ const s = await dbNS.doc('meta/settings').get(); if(s.exists){ const _prev=settings; settings = {target:500, examDate:null, ...s.data()}; setBaseFrom(settings); keepLocalSp(_prev); try{ syncPrefsFromSettings(); }catch(e){} } }catch(e){}
   try{ const pm = await dbNS.doc('meta/psplit').get(); _psReady = pm.exists; _psVer = pm.exists ? ((pm.data()||{}).v||1) : 0; }
   catch(e){ _psVer = m.psv||0; _psReady = _psVer>0; psOk = false; }   // offline: keep the mode the copy was made in, and do not start a migration
   try{ await loadDelta(); }catch(e){}
@@ -2745,8 +2829,10 @@ async function loadCloudFast(){
 async function cqCleanup(){ try{ if(await idbCount(IDB_CQ)===0) return; if(await idbCount(IDB_OB)>0) return; await idbRun([IDB_CQ],st=>{ st[IDB_CQ].clear(); }); }catch(e){} }
 async function loadDelta(){
   const ts = firebase.firestore.Timestamp.fromMillis(Math.max(0,(_lastU||0)-5)*1000), tsP = firebase.firestore.Timestamp.fromMillis(Math.max(0,(_lastP||0)-5)*1000);   // a few seconds of overlap, so nothing slips between two reads
-  const [qs,hs,ps,tb] = await Promise.all([ dbNS.collection('qbatches').where('u','>',ts).get(), dbNS.collection('history').where('date','>',_lastHist).get(), _psReady ? dbNS.collection('qprog').where('u','>',tsP).get() : null,
-    tombOk() ? dbNS.collection('qtomb').where('u','>',ts).get().catch(()=>{ try{ localStorage.removeItem('gc_tomb_ok'); }catch(e){} return null; }) : null ]);
+  const tsH = firebase.firestore.Timestamp.fromMillis(Math.max(0,(_lastHU||0)-5)*1000);   // history is also asked by WRITE time: a test finished offline on another device has an older date than the newest one here and was missed by the date cursor alone
+  const [qs,hs,ps,tb,hu] = await Promise.all([ dbNS.collection('qbatches').where('u','>',ts).get(), dbNS.collection('history').where('date','>',_lastHist).get(), _psReady ? dbNS.collection('qprog').where('u','>',tsP).get() : null,
+    tombOk() ? dbNS.collection('qtomb').where('u','>',ts).get().catch(()=>{ try{ localStorage.removeItem('gc_tomb_ok'); }catch(e){} return null; }) : null,
+    dbNS.collection('history').where('u','>',tsH).get().catch(()=>null) ]);
   const changed = new Map();
   qs.docs.forEach(d=>{
     const bid=d.id, data=d.data()||{}; if(data.u && data.u.seconds>_lastU) _lastU=data.u.seconds;
@@ -2771,8 +2857,9 @@ async function loadDelta(){
     ps.docs.forEach(d=>{ const x=d.data()||{}; if(x.u && x.u.seconds>_lastP) _lastP=x.u.seconds;
       Object.entries(x.m||{}).forEach(([id,p])=>{ if(pendP(id)) return; const q=byId.get(id); if(q){ applyProg(q, mergeProg(p, progOf(q))); _ccPut.set(id,q); } }); }); }
   const have = new Set(history.map(h=>h.date));
-  hs.docs.forEach(d=>{ const h=d.data(); if(String(h.date||'')>_lastHist) _lastHist=String(h.date); if(!have.has(h.date)){ history.push(h); have.add(h.date); _ccHist.set(HK(h),h); } });
-  if(qs.docs.length||hs.docs.length||(ps&&ps.docs.length)) cacheSoon();
+  const hDocs = hs.docs.concat(hu ? hu.docs : []); let hNew = 0;
+  hDocs.forEach(d=>{ const h=d.data(); if(h && h.u && h.u.seconds>_lastHU) _lastHU=h.u.seconds; if(h) delete h.u; if(!h) return; if(String(h.date||'')>_lastHist) _lastHist=String(h.date); if(!have.has(h.date)){ history.push(h); have.add(h.date); _ccHist.set(HK(h),h); hNew++; } });
+  if(qs.docs.length||hNew||(ps&&ps.docs.length)) cacheSoon();
 }
 async function loadFromDb(){
   const nb = []; let mxU = 0;
@@ -2788,14 +2875,14 @@ async function loadFromDb(){
   const withRoom = Object.keys(batchCounts).find(bid=>batchCounts[bid]<BATCH_SIZE);
   openBatchId = syncAccount ? null : (withRoom || null);   // synced accounts: every session starts its own batch, so two devices never overwrite each other's new questions
   _openStat = {bid:null, n:0, bytes:0};
-  { const seenH=new Set(), extra=[]; history=[]; hSnap.docs.forEach(d=>{ const h=d.data(); if(h && h.date){ const k=HK(h); if(seenH.has(k)){ extra.push(d.ref); return; } seenH.add(k); } history.push(h); }); extra.forEach(r=>r.delete().catch(()=>{})); }   // copies saved by older versions are dropped (and deleted) here
+  { const seenH=new Set(), extra=[]; history=[]; hSnap.docs.forEach(d=>{ const h=d.data(); if(h && h.u){ if(h.u.seconds>_lastHU) _lastHU=h.u.seconds; delete h.u; } if(h && h.date){ const k=HK(h); if(seenH.has(k)){ extra.push(d.ref); return; } seenH.add(k); } history.push(h); }); extra.forEach(r=>r.delete().catch(()=>{})); }   // copies saved by older versions are dropped (and deleted) here
   _lastU = mxU;
   _lastHist = history.reduce((m,h)=>String(h.date||'')>m?String(h.date):m,'');
   _lastFull = Date.now();
   try{ tombProbe(); }catch(e){}
   try{
     const sSnap = await dbNS.doc('meta/settings').get();
-    if(sSnap.exists){ settings = {target:500, examDate:null, ...sSnap.data()}; setBaseFrom(settings); try{ syncPrefsFromSettings(); }catch(e){} }
+    if(sSnap.exists){ const _prev=settings; settings = {target:500, examDate:null, ...sSnap.data()}; setBaseFrom(settings); keepLocalSp(_prev); try{ syncPrefsFromSettings(); }catch(e){} }
   }catch(e){}
   if(bank.length===0){
     // migrate from the old one-document-per-question layout, if any, then reclaim that capacity
@@ -4620,7 +4707,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-32';
+const APP_BUILD = 'index-33';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -4892,7 +4979,10 @@ function flushQuestionIssues(){
     });
   }catch(e){}
 }
-window.addEventListener('online', ()=>{ try{ flushQuestionIssues(); }catch(e){} });
+window.addEventListener('online', ()=>{ try{ flushQuestionIssues(); }catch(e){}
+  try{ SP_KEYS.forEach(k=>{ spSync(k).catch(()=>{}); }); }catch(e){}
+  try{ _pRetry=0; if(_dirtyP.size||_delP.size) schedP(); if(_dirtyB.size){ clearTimeout(_bTimer); _bTimer=setTimeout(flushBatches,900); } }catch(e){}   // anything that could not be saved while offline is saved now
+});
 setTimeout(()=>{ try{ flushQuestionIssues(); }catch(e){} }, 6000);
 
 /* ---------- Auto-detect chapters from the book's contents page ---------- */
@@ -9753,7 +9843,8 @@ function attemptLog(q, ok, idx, ms){
 function recordDay(n, r){
   if(!n && !r) return;
   const k=localDayStr(), L=(settings.dayLog=settings.dayLog||{}), e=L[k]||(L[k]={n:0,r:0});
-  e.n+=n; e.r+=r;
+  if(!e.b && !e.d){ e.b=[e.n||0,e.r||0]; e.d={}; }   // a day saved by an older build keeps its numbers as the starting amount
+  const c=(e.d=e.d||{})[DEVICE]||(e.d[DEVICE]=[0,0]); c[0]+=n; c[1]+=r; dlSum(e);   // this device only ever adds to its own counter
   const keys=Object.keys(L).sort(); if(keys.length>400) keys.slice(0,keys.length-400).forEach(x=>delete L[x]);
   persistSettings();
 }
