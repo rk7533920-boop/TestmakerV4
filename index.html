@@ -2219,6 +2219,14 @@ function stripInternal(q){
   Object.keys(rest).forEach(k=>{ if(rest[k]===undefined) delete rest[k]; });
   return rest;
 }
+/* The backup FILE must carry each question's progress (flags, issue, attempts, review schedule, archive, attempt history, smart values). stripInternal() drops them when the
+   online progress split is on, because the batches do not hold them: right for the online database, wrong for a file the student restores from. (Not a parameter of stripInternal:
+   it is used as qs.map(stripInternal), where the second argument would be the array index.) */
+function stripForBackup(q){
+  const o=stripInternal(q);
+  PROG_DROP.forEach(k=>{ if(q[k]!==undefined) o[k] = (k==='h' && Array.isArray(q.h)) ? q.h.map(e=>Array.isArray(e)?e.join(','):e) : q[k]; });
+  return o;
+}
 function hRows(q){ return (q && Array.isArray(q.h) ? q.h : []).map(e=>Array.isArray(e) ? e : String(e).split(',').map(Number)); }
 /* The questions of several batches, found in ONE pass over the bank (asking batch by batch meant 50,000 x (number of batches) comparisons). */
 function batchMembers(ids){
@@ -2492,7 +2500,8 @@ async function obReplay(){
 
 async function persistQuestion(q){
   if(!dbNS){ persistLocalQs([q]); return; }
-  if(_psReady && _psOn() && q._batchId && _cs.get(q.id)===csigC(q)){ markP(q.id); schedP(); return; }   // only progress changed: one small save, the question batch is not rewritten
+  if(_psReady && _psOn() && q._batchId && _cs.get(q.id)===csigC(q)){ markP(q.id); schedP(); scheduleBackup(); return; }   // only progress changed: one small save, the question batch is not rewritten. The backup is told something changed (flags.json carries progress), without re-reading the topic's questions
+  markDirty(q);   // content changed: this topic's backup files are rewritten and the backup is scheduled (online mode used to skip this, so edits waited for the weekly full pass)
   if(!LEAN.has(q)) NOEVICT.add(q);   // changed content: stays in memory for this session (the device copy is refreshed from the online database at the next start)
   if(_psOn()){ _cs.set(q.id,csigC(q)); markP(q.id); schedP(); }
   if(!q._batchId) assignBatch(q);
@@ -2500,6 +2509,7 @@ async function persistQuestion(q){
 }
 async function persistNewQuestions(newQs){
   if(!dbNS){ persistLocalQs(newQs); return; }
+  newQs.forEach(markDirty);   // new questions must reach the folder backup now, not at the next weekly full pass
   const affected = new Set();
   newQs.forEach(q=>{ assignBatch(q); affected.add(q._batchId); if(_psOn()) _cs.set(q.id,csig(q)); });
   const ids=[...affected]; ids.forEach(b=>{ _inflB.add(b); obMark('b',b); });
@@ -2633,11 +2643,12 @@ function keepLocalSp(prev){
     if(prev && prev.planner && prev.planner.today && settings.planner) settings.planner.today=plTodayMerge(prev.planner.today, settings.planner.today);
   }catch(e){}
 }
-let _setBase=null;   // each setting as the online copy last held it (JSON text), so only real changes are written
+let _setBase=null, _setRead=false;   // _setRead: the online settings were read successfully in this session (even if the document did not exist yet)   // each setting as the online copy last held it (JSON text), so only real changes are written
 function setBaseFrom(o){ _setBase={}; Object.keys(o||{}).forEach(k=>{ try{ _setBase[k]=JSON.stringify(o[k]); }catch(e){} }); }
 function persistSettings(){
   try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); }catch(e){}
   if(!dbNS){ saveLocal('gc_settings', settings); return; }
+  if(!_setBase && !_setRead) return;   // the online settings could not be read this session (offline or failed start): a full write now would replace newer settings from another device. They stay in this device's copy; the next successful load reads the online ones.
   if(!_setBase || typeof firebase==='undefined' || !firebase.firestore || !firebase.firestore.FieldValue){ dbNS.doc('meta/settings').set(settings).catch(saveFailed); return; }
   const FV=firebase.firestore.FieldValue, diff={}, sent={}; let n=0;
   const sp=[];
@@ -2819,7 +2830,7 @@ async function loadCloudFast(){
     openBatchId = Object.keys(cnt).find(b=>cnt[b]<BATCH_SIZE) || null;
   }
   let psOk = true;
-  try{ const s = await dbNS.doc('meta/settings').get(); if(s.exists){ const _prev=settings; settings = {target:500, examDate:null, ...s.data()}; setBaseFrom(settings); keepLocalSp(_prev); try{ syncPrefsFromSettings(); }catch(e){} } }catch(e){}
+  try{ const s = await dbNS.doc('meta/settings').get(); _setRead=true; if(s.exists){ const _prev=settings; settings = {target:500, examDate:null, ...s.data()}; setBaseFrom(settings); keepLocalSp(_prev); try{ syncPrefsFromSettings(); }catch(e){} } }catch(e){}
   try{ const pm = await dbNS.doc('meta/psplit').get(); _psReady = pm.exists; _psVer = pm.exists ? ((pm.data()||{}).v||1) : 0; }
   catch(e){ _psVer = m.psv||0; _psReady = _psVer>0; psOk = false; }   // offline: keep the mode the copy was made in, and do not start a migration
   try{ await loadDelta(); }catch(e){}
@@ -2881,7 +2892,7 @@ async function loadFromDb(){
   _lastFull = Date.now();
   try{ tombProbe(); }catch(e){}
   try{
-    const sSnap = await dbNS.doc('meta/settings').get();
+    const sSnap = await dbNS.doc('meta/settings').get(); _setRead=true;
     if(sSnap.exists){ const _prev=settings; settings = {target:500, examDate:null, ...sSnap.data()}; setBaseFrom(settings); keepLocalSp(_prev); try{ syncPrefsFromSettings(); }catch(e){} }
   }catch(e){}
   if(bank.length===0){
@@ -4707,7 +4718,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-33';
+const APP_BUILD = 'index-34';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -5547,7 +5558,7 @@ let lastAutoBackupAt = 0;
 function toggleAutoBackup(v){ autoBackupOn = v; saveLS('gc_autobackup', v); if(v && dirty.size) scheduleBackup(); }
 async function backupPayload(){
   const parts=[];
-  await qEach(bank.slice(), 1000, part=>{ part.forEach(q=>{ if(LEAN.has(q)) throw new Error('could not read question '+q.id+' from this device'); parts.push(JSON.stringify(stripInternal(q))); }); });
+  await qEach(bank.slice(), 1000, part=>{ part.forEach(q=>{ if(LEAN.has(q)) throw new Error('could not read question '+q.id+' from this device'); parts.push(JSON.stringify(stripForBackup(q))); }); });
   const bs='['+parts.join(',')+']';
   return '{"app":"ghatnachakra-test-maker","version":2,"exportedAt":'+JSON.stringify(new Date().toISOString())+',"sum":'+JSON.stringify(fnv(bs))+',"bank":'+bs+',"history":'+JSON.stringify(history)+',"settings":'+JSON.stringify(settings)+',"notes":'+JSON.stringify(notes)+'}';
 }
@@ -5842,7 +5853,7 @@ async function buildFilesA(keys, onFile){
   }
 }
 function buildMeta(){
-  const flags={}; bank.forEach(q=>{ if(q.flagged||q.issue||q.attemptCount||q.s||q.sr) flags[q.id]=[q.flagged?1:0,q.issue?1:0,q.attemptCount||0,q.s||0,q.wc||0,q.rs||0,q.ls||0,srClean(q.sr)]; });
+  const flags={}; bank.forEach(q=>{ const p=progOf(q); if(hasProg(p)) flags[q.id]=p; });   // progOf: the same 8 values as before, then archive, attempt history and smart values (older readers use the first 8 only)
   const {lastBackupAt,lastFullAt,...ps}=settings;
   const cut=Date.now()-90*864e5; Object.keys(tombs).forEach(k=>{ if(tombs[k]<cut) delete tombs[k]; });
   const out={'notes.json':JSON.stringify(notes),'flags.json':JSON.stringify(flags),'deleted.json':JSON.stringify(tombs),'conflicts.json':JSON.stringify(conflicts.slice(-200)),'progress.json':JSON.stringify(ps)}, mo={};
@@ -6390,6 +6401,19 @@ function checkBank(items){
 }
 /* Pull in what another device changed. Per question: newer content stamp wins (the loser is kept in the conflict log),
    flags follow the newer state stamp, attempt counts take the higher value, history is combined, deletions win over older edits. */
+/* Archive, attempt history and smart values from a flags.json record (positions 8, 9, 10 of progOf). Archive follows the newer flag stamp or higher attempt count; history and smart values follow the higher attempt count.
+   A record with only 8 values (older backups) leaves them alone. */
+function flagExtras(l,f,stampWins,attWins){
+  if(!f || f.length<9) return false;
+  let ch=false;
+  if(stampWins || attWins){ if(f[8]){ if(l.arch!==f[8]){ l.arch=f[8]; ch=true; } } else if(l.arch){ delete l.arch; ch=true; } }
+  if(attWins){
+    if(f[9]) l.h=String(f[9]).split(';').map(e=>e.split(',').map(Number)); else delete l.h;
+    if(f.length>10){ const x=f[10]||{}; SMART_KEYS.forEach(k=>{ if(x[k]) l[k]=x[k]; else delete l[k]; }); }
+    ch=true;
+  }
+  return ch;
+}
 let SKIPPED_REMOTE='';
 async function mergeRemote(sink,rman,known,base){
   const paths=Object.keys(rman.files).filter(p=>rman.files[p]!==known[p]);
@@ -6446,7 +6470,7 @@ async function mergeRemote(sink,rman,known,base){
     if(tombs[r.id]>=(r.u||0)) return;
     const l=byId.get(r.id);
     if(!l){
-      const n={...r,flagged:!!f[0],issue:!!f[1],attemptCount:f[2]||0,s:f[3]||0,wc:f[4]||0,rs:f[5]||0,ls:f[6]||0,sr:srClean(f[7])}; n.cs=csig(n); n.ss=ssig(n);
+      const n={...r,flagged:!!f[0],issue:!!f[1],attemptCount:f[2]||0,s:f[3]||0,wc:f[4]||0,rs:f[5]||0,ls:f[6]||0,sr:srClean(f[7])}; n.cs=csig(n); n.ss=ssig(n); flagExtras(n,f,true,true);
       const sg=sigKey(n); let twin=sg ? sigMap.get(sg) : null;
       if(twin && LEAN.has(twin)) twin=null;   // could not be loaded to compare: keep the new one
       if(twin && importSig(twin)!==importSig(n)) twin=null;
@@ -6455,14 +6479,18 @@ async function mergeRemote(sink,rman,known,base){
     let ch=false;
     if(csig(r)!==l.cs && (l.u||0)>base && (r.u||0)>base){ conflicts.push({id:l.id,lost:keep((r.u||0)>(l.u||0)?l:r),at:new Date().toISOString(),dev:DEVICE}); clash++; }
     if((r.u||0)>(l.u||0)){ ['text','options','correctKey','subject','topic','sourceTag','num'].forEach(k=>{ l[k]=r[k]; }); l.u=r.u; l.cs=csig(l); ch=true; }
-    if((f[3]||0)>(l.s||0)){ l.flagged=!!f[0]; l.issue=!!f[1]; l.s=f[3]; l.ss=ssig(l); if((f[2]||0)>=(l.attemptCount||0)) l.sr=srClean(f[7]); ch=true; }
-    if((f[2]||0)>(l.attemptCount||0)){ l.attemptCount=f[2]; l.wc=f[4]||0; l.rs=f[5]||0; l.ls=f[6]||0; l.sr=srClean(f[7]); ch=true; }
+    const sw=(f[3]||0)>(l.s||0), aw=(f[2]||0)>(l.attemptCount||0);
+    if(sw){ l.flagged=!!f[0]; l.issue=!!f[1]; l.s=f[3]; l.ss=ssig(l); if((f[2]||0)>=(l.attemptCount||0)) l.sr=srClean(f[7]); ch=true; }
+    if(aw){ l.attemptCount=f[2]; l.wc=f[4]||0; l.rs=f[5]||0; l.ls=f[6]||0; l.sr=srClean(f[7]); ch=true; }
+    if(flagExtras(l,f,sw,aw)) ch=true;
     if(ch){ put.push(l); updated++; }
   });
   { const inRq=new Set(rq.map(r=>r.id));   // flags & attempt counts live in flags.json: apply them to questions whose content file was unchanged too
     bank.forEach(l=>{ if(inRq.has(l.id)) return; const f=rf[l.id]; if(!f) return; let ch=false; seen(f[3]||0);
-      if((f[3]||0)>(l.s||0)){ l.flagged=!!f[0]; l.issue=!!f[1]; l.s=f[3]; l.ss=ssig(l); if((f[2]||0)>=(l.attemptCount||0)) l.sr=srClean(f[7]); ch=true; }
-      if((f[2]||0)>(l.attemptCount||0)){ l.attemptCount=f[2]; l.wc=f[4]||0; l.rs=f[5]||0; l.ls=f[6]||0; l.sr=srClean(f[7]); ch=true; }
+      const sw=(f[3]||0)>(l.s||0), aw=(f[2]||0)>(l.attemptCount||0);
+      if(sw){ l.flagged=!!f[0]; l.issue=!!f[1]; l.s=f[3]; l.ss=ssig(l); if((f[2]||0)>=(l.attemptCount||0)) l.sr=srClean(f[7]); ch=true; }
+      if(aw){ l.attemptCount=f[2]; l.wc=f[4]||0; l.rs=f[5]||0; l.ls=f[6]||0; l.sr=srClean(f[7]); ch=true; }
+      if(flagExtras(l,f,sw,aw)) ch=true;
       if(ch){ put.push(l); updated++; } }); }
   bank=bank.filter(q=>{ if(tombs[q.id]>=(q.u||0)){ del.push(q.id); delQs.push(q); return false; } return true; });
   const hk=h=>[h.date,h.mode,h.total,h.correct].join('|'), have=new Set(history.map(hk)), newH=[];
@@ -6487,7 +6515,10 @@ async function runSync(sink,tkey){
   let man=null; try{ man=await idbGet('gc_man_'+tkey); }catch(e){}
   let known=(man&&man.files)||{}, rev=(man&&man.rev)||0, rman=null;
   let full = !man || man.layout!==LAYOUT || Date.now()-(settings.lastFullAt||0) > 7*864e5;   // a layout change forces one full pass that also removes old-named files
-  try{ rman=JSON.parse(await sink.read('manifest.json')); }catch(e){}
+  try{ rman=JSON.parse(await sink.read('manifest.json')); }
+  catch(e){   // "not there yet" is normal on a first backup. An index that exists but cannot be read or parsed (still syncing, damaged) must NOT be treated as "nobody else changed anything": that skipped the merge and overwrote the other device's newer files
+    if(!(e && (e.name==='NotFoundError' || e.message==='missing'))){ const er=new Error('manifest-unreadable'); er.detail=errBrief(e); throw er; }
+  }
   if(rman && rman.files && (!man || rman.rev!==man.rev)){   // another device synced since this one last did: merge first, upload second
     await mergeRemote(sink,rman,known,(man&&man.clk)||0); known=rman.files; rev=rman.rev||0; full=true;
   }
@@ -6581,7 +6612,7 @@ async function restoreFromSink(sink,tkey){
   { const byId=new Map(); items.forEach(q=>{ const o=byId.get(q.id); if(!o || (q.u||0)>(o.u||0)) byId.set(q.id,q); }); items.length=0; byId.forEach(v=>items.push(v)); }
   items.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0); hist.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   const errs=checkBank(items); if(errs.length){ const m='Restore blocked — the backup has '+errs.length+' problem(s): '+errs.slice(0,3).join('; '); notify(m,'error'); return; }
-  const qs=items.map(q=>{ const f=flags[q.id]||[0,0,0,0], o={...q,flagged:!!f[0],issue:!!f[1],attemptCount:f[2]||0,wc:f[4]||0,rs:f[5]||0,ls:f[6]||0,sr:srClean(f[7]),u:q.u||0,s:f[3]||0}; o.cs=csig(o); o.ss=ssig(o); return o; });   // original IDs are kept
+  const qs=items.map(q=>{ const f=flags[q.id]||[0,0,0,0], o={...q,flagged:!!f[0],issue:!!f[1],attemptCount:f[2]||0,wc:f[4]||0,rs:f[5]||0,ls:f[6]||0,sr:srClean(f[7]),u:q.u||0,s:f[3]||0}; flagExtras(o,f,true,true); o.cs=csig(o); o.ss=ssig(o); return o; });   // original IDs are kept
   qs.forEach(q=>bank.push(q)); await persistNewQuestions(qs);
   { const haveH = new Set(history.map(HK)), freshH = hist.filter(h=>!haveH.has(HK(h))); freshH.forEach(h=>history.push(h)); await persistHistoryBulk(freshH); }
   if(prog){ settings={target:500,examDate:null,...prog}; persistSettings(); try{ syncPrefsFromSettings(); }catch(e){} renderProgress(); }
@@ -6691,6 +6722,7 @@ async function performBackup(trigger){
     }catch(e){
       if(e && e.message==='conflict'){ scheduleBackup(); }
       else if(e && e.message==='remote-invalid' && (logIssue('backup-remote-invalid', errBrief(e)+(e&&e.detail?' | '+e.detail:''), 'ri')||true)) notify('Sync paused — the backup on '+(useDrive?'Drive':'the folder')+' has problems, so nothing was changed.'+(e&&e.detail?' ('+e.detail+')':''),'error');
+      else if(e && e.message==='manifest-unreadable'){ try{ logIssue('backup-manifest-unreadable', errBrief(e)+(e.detail?' | '+e.detail:''), 'mu'); }catch(x){} notify('Backup paused — the backup index in the folder could not be read (it may still be syncing). Nothing was changed. It will try again after your next save.','error'); }
       else if(useDrive && e && e.message==='auth'){ driveAuthLost=true; bkLastError='Google Drive backup paused: tap Reconnect to carry on.'; try{ checkBackupReminder(); }catch(e2){} }
       else if(useDrive && (logIssue('backup-drive-failed', errBrief(e), String(e&&e.message))||true)) notify('Google Drive backup didn\'t go through. It will try again after your next save.','error');
       else if(e && e.name==='NotFoundError'){ backupDirHandle=null; try{ await idbSet('gc_backup_dir', null); }catch(e2){} notify('The backup folder was moved or deleted. Open Backup & storage and choose it again.','error'); }
@@ -6762,7 +6794,11 @@ async function importFromText(text){
     const newQs = [];
     items.forEach(q=>{
       if(!q || !q.text || !Array.isArray(q.options) || !q.correctKey) return;
-      newQs.push({id:uid(), num:q.num||'', subject:q.subject||'General', topic:q.topic||'General', text:q.text, options:q.options, correctKey:q.correctKey, sourceTag:q.sourceTag||null, explanation:q.explanation||null, flagged:!!q.flagged, issue:!!q.issue, attemptCount:q.attemptCount||0, wc:q.wc||0, rs:q.rs||0, ls:q.ls||0, sr:srClean(q.sr)});
+      newQs.push({id:uid(), num:q.num||'', subject:q.subject||'General', topic:q.topic||'General', text:q.text, options:q.options, correctKey:q.correctKey, sourceTag:q.sourceTag||null, explanation:q.explanation||null, flagged:!!q.flagged, issue:!!q.issue, attemptCount:q.attemptCount||0, wc:q.wc||0, rs:q.rs||0, ls:q.ls||0, sr:srClean(q.sr), s:q.s||0});
+      const nq=newQs[newQs.length-1];   // archive, attempt history and smart values that the file carries
+      if(q.arch) nq.arch=q.arch;
+      if(Array.isArray(q.h) && q.h.length) nq.h=hRows(q);
+      SMART_KEYS.forEach(k=>{ if(q[k]) nq[k]=q[k]; });
     });
     const dd=dedupeIncoming(newQs); newQs.length=0; dd.fresh.forEach(q=>newQs.push(q));
     newQs.forEach(newQ=>bank.push(newQ));
