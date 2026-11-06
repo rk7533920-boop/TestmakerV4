@@ -647,6 +647,27 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
 .pl-dl{display:flex;gap:3px;font-size:10.5px;color:var(--muted);margin-top:3px;} .pl-dl span{flex:1;text-align:center;} .pl-dl .o{color:var(--red);font-weight:700;} .pl-dl .t{color:var(--text);font-weight:700;}
 .pl-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin-top:8px;} .pl-leg b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:baseline;}
 #plBkInfo .row.pair button{flex:1;}
+#plBrkOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:61;display:none;align-items:flex-end;justify-content:center;}
+#plBrkOverlay.open{display:flex;}
+@media (min-width:700px){#plBrkOverlay{align-items:center;} #plBrkOverlay .info-sheet{border-radius:20px;max-width:520px;}}
+#plBrkOverlay .chips{justify-content:flex-start;margin:4px 0 8px;}
+.pl-calh{display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;}
+.pl-vw{display:flex;gap:4px;background:var(--ink-bg);border-radius:12px;padding:3px;flex:1;}
+.pl-vw button{flex:1;border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;padding:7px 4px;border-radius:10px;min-height:0;cursor:pointer;}
+.pl-vw button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+.pl-calh>button{flex:none;min-height:0;}
+.pl-mn{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px;} .pl-mn b{font-size:14px;}
+.pl-mn button{background:none;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:2px 14px;min-height:0;font-size:18px;line-height:1.3;cursor:pointer;}
+.pl-wd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));font-size:11px;color:var(--muted);text-align:center;margin-bottom:2px;}
+.pl-wk{position:relative;} .pl-wg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));}
+.pl-cl{border-top:1px solid var(--border);padding:3px;font-size:12px;color:var(--muted);cursor:pointer;min-width:0;overflow:hidden;}
+.pl-dn{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;border-radius:50%;font-size:12px;}
+.pl-cl.t .pl-dn{background:var(--brand);color:var(--card);font-weight:700;}
+.pl-exm{color:var(--red);font-size:11px;font-weight:700;margin-left:2px;}
+.pl-br{position:absolute;pointer-events:none;box-sizing:border-box;height:15px;border-radius:4px;font-size:11px;line-height:12px;padding:1px 4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.pl-det{background:var(--ink-bg);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;} .pl-det>div{margin-top:4px;}
+.pl-tlw{overflow-x:auto;}
+.pl-tll{width:78px;flex:none;font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--card);z-index:2;padding-right:4px;box-sizing:border-box;}
 
 #hmChallenge{position:relative;}
 #hmChallenge #dlDot{position:absolute;top:10px;right:12px;}
@@ -767,6 +788,23 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
     <div id="plBkInfo"></div>
     <div class="row pair" style="margin-top:14px;"><button class="primary" onclick="plBkSave()">Save</button><button class="secondary" onclick="plBkSuggest()">Suggest dates</button></div>
     <div class="row pair" style="margin-top:8px;"><button class="secondary" id="plBkDel" onclick="plBkDelete()">Remove block</button><button class="secondary" onclick="plBkClose()">Cancel</button></div>
+  </div>
+</div>
+<div id="plBrkOverlay" onclick="if(event.target===this) plBrkClose()">
+  <div class="info-sheet" style="max-height:92vh;overflow-y:auto;">
+    <div class="gs-head"><h4>Breaks and off days</h4><button class="back" onclick="plBrkClose()" aria-label="Close" style="font-size:16px;">✕</button></div>
+    <div class="gs-lbl" style="margin-top:10px;">Weekly off days</div>
+    <div class="chips" id="plOffChips"></div>
+    <div class="gs-lbl">Your breaks</div>
+    <div id="plBrkListBox"></div>
+    <div class="gs-lbl">Add a break</div>
+    <input id="plBrkN" class="pf-field" placeholder="Name, for example Diwali holiday" maxlength="40" style="width:100%;box-sizing:border-box;margin:0 0 8px;">
+    <div class="pl-in2"><label>From<input type="date" id="plBrkF" class="pf-field" oninput="plBrkErr('')"></label><label>To<input type="date" id="plBrkT" class="pf-field" oninput="plBrkErr('')"></label></div>
+    <div class="chips" id="plBrkTypes" style="margin-top:10px;"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin-top:6px;"><input type="checkbox" id="plBrkMove" checked>Move my plan later so no subject loses study days</label>
+    <div id="plBrkErrBox" style="color:var(--red);font-size:13px;min-height:18px;margin-top:6px;"></div>
+    <div class="row pair" style="margin-top:6px;"><button class="primary" onclick="plBrkAdd()">Save break</button><button class="secondary" onclick="plBrkClose()">Done</button></div>
+    <div class="gs-note">Break days and off days get no questions in the plan. Practising on them still counts.</div>
   </div>
 </div>
 <div id="examOverlay" onclick="if(event.target===this) closeExamDate()">
@@ -2470,7 +2508,7 @@ async function obReplay(){
   try{ recs = (await idbGetAllValues(IDB_OB)).filter(r=>r && r.u===fbUid); }catch(e){ return 0; }
   if(!recs.length) return 0;
   let nb=0, np=0, nd=0;
-  const bRecs=recs.filter(r=>r.k==='b'), pRecs=recs.filter(r=>r.k==='p'), dRecs=recs.filter(r=>r.k==='d');
+  const bRecs=recs.filter(r=>r.k==='b'), pRecs=recs.filter(r=>r.k==='p'), dRecs=recs.filter(r=>r.k==='d'), hRecs=recs.filter(r=>r.k==='h');
   if(bRecs.length){
     const want=new Set(bRecs.map(r=>r.bid)), olds=batchMembers(want);
     bank = bank.filter(q=>!want.has(q._batchId));
@@ -2489,13 +2527,22 @@ async function obReplay(){
     pRecs.forEach(r=>{ const q=byId.get(r.id); if(!q) return; applyProg(q, mergeProg(r.p, progOf(q))); markP(r.id); np++; });
     dRecs.forEach(r=>{ if(!byId.has(r.id)){ _delP.add(r.id); nd++; } });
   }
-  recs.forEach(r=>obMark(r.k, r.k==='b' ? r.bid : r.id));   // each record is kept again if still waiting, or removed
+  let nh=0;
+  hRecs.forEach(r=>{   // finished tests whose save never got confirmed: saved again (same document name, so no copies) and shown now. Not awaited: offline, the save simply waits.
+    try{
+      if(!r.id || !r.rec) return;
+      dbNS.collection('history').doc(r.id).set({...r.rec, u:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>hbDel(r.id)).catch(()=>{});
+      const k=HK(r.rec); if(!history.some(h=>HK(h)===k)){ history.push(r.rec); _ccHist.set(k,r.rec); nh++; }
+    }catch(e){}
+  });
+  if(nh){ history.sort((a,b)=>String(a.date).localeCompare(String(b.date))); try{ cacheSoon(); }catch(e){} try{ renderHistory(); }catch(e){} }
+  recs.filter(r=>r.k!=='h').forEach(r=>obMark(r.k, r.k==='b' ? r.bid : r.id));   // each record is kept again if still waiting, or removed
   if(nb||np||nd){
     try{ showToast('Recovered '+(nb+np+nd)+' change'+((nb+np+nd)===1?'':'s')+' that had not been saved last time. Saving now.','info'); }catch(e){}
     try{ renderBank(); }catch(e){}
     flushBatches(); schedP();
   }
-  return nb+np+nd;
+  return nb+np+nd+nh;
 }
 
 async function persistQuestion(q){
@@ -2543,8 +2590,11 @@ async function purgeHistoryDuplicates(){
   for(const d of snap.docs){ const h=d.data(); if(!h||!h.date) continue; const k=HK(h); if(seen.has(k)){ try{ await d.ref.delete(); n++; }catch(e){} } else seen.add(k); }
   return n;
 }
+/* A finished test is kept on this device (outbox record h:<id>) until the online database confirms the save. If the app is closed first (offline, used-up limit), it is saved again at the next start. */
+function hbPut(id,entry){ if(!_obOn()) return; try{ idbRun([IDB_OB],st=>{ st[IDB_OB].put({k:'h',u:fbUid,id,rec:JSON.parse(JSON.stringify(entry))},'h:'+id); }).catch(()=>{}); }catch(e){} }
+function hbDel(id){ try{ idbRun([IDB_OB],st=>{ st[IDB_OB].delete('h:'+id); }).catch(()=>{}); }catch(e){} }
 function persistHistoryEntry(entry){
-  if(dbNS){ const col=dbNS.collection('history'), id=histDocId(entry); const rec={...entry, u:firebase.firestore.FieldValue.serverTimestamp()}; (id ? col.doc(id).set(rec) : col.add(rec)).catch(saveFailed); }
+  if(dbNS){ const col=dbNS.collection('history'), id=histDocId(entry); const rec={...entry, u:firebase.firestore.FieldValue.serverTimestamp()}; if(id){ hbPut(id,entry); col.doc(id).set(rec).then(()=>hbDel(id)).catch(saveFailed); } else col.add(rec).catch(saveFailed); }
   else saveLocal('gc_history', history);
 }
 /* Writes many history records at once (in batches of 400) and returns how many were really saved. */
@@ -2605,6 +2655,12 @@ function plMerge3(L,R,B){
     else if(r){ if(!b || !eq(r,b)) subs[sj]=r; }                      // added there, or removed here but edited there: kept; removed here, untouched there: gone
   });
   out.subs=subs;
+  if(L.brk||R.brk||(B&&B.brk)){   // breaks: union by id; one removed on one device and untouched on the other is gone
+    const lb=L.brk||[], rb=R.brk||[], bb=(B&&B.brk)||[], m=new Map();
+    lb.forEach(x=>m.set(x.id,x)); rb.forEach(x=>{ if(!m.has(x.id)) m.set(x.id,x); });
+    bb.forEach(x=>{ const a=lb.find(y=>y.id===x.id), c=rb.find(y=>y.id===x.id); if(!a&&c&&eq(c,x)) m.delete(x.id); if(!c&&a&&eq(a,x)) m.delete(x.id); });
+    out.brk=Array.from(m.values());
+  }
   out.today = (L.today==null && B && B.today!=null) ? null : plTodayMerge(L.today, R.today);   // a plan edit here asked for today's quotas to be rebuilt
   return out;
 }
@@ -2644,8 +2700,63 @@ function keepLocalSp(prev){
   }catch(e){}
 }
 let _setBase=null, _setRead=false;   // _setRead: the online settings were read successfully in this session (even if the document did not exist yet)   // each setting as the online copy last held it (JSON text), so only real changes are written
-function setBaseFrom(o){ _setBase={}; Object.keys(o||{}).forEach(k=>{ try{ _setBase[k]=JSON.stringify(o[k]); }catch(e){} }); }
+function setBaseFrom(o){ _setBase={}; Object.keys(o||{}).forEach(k=>{ try{ _setBase[k]=JSON.stringify(o[k]); }catch(e){} }); try{ localStorage.setItem('gc_settings_sig', setSig(o)); }catch(e){} }   // what was just read is not a change made here
+/* ===== Progress merge for restore and for combining devices (build index-36) =====
+   Same rules as everywhere else (mergeProg): flags follow the newer flag stamp, attempts, attempt history and smart values follow the higher attempt count.
+   Added: a flag that was never stamped on either side is not dropped, and a newer flag change brings its review schedule when the attempts are not fewer. */
+function mergeProgKeep(a,p){
+  const m=mergeProg(a,p);
+  if(!(a[3]>0) && !(p[3]>0)){ if(p[0] && !m[0]) m[0]=1; if(p[1] && !m[1]) m[1]=1; }
+  if((p[3]||0)>(a[3]||0) && (p[2]||0)>=(a[2]||0)) m[7]=srClean(p[7]);
+  return m;
+}
+/* pairs = [[question in the app (or waiting to be added), record from the backup]]. Returns how many questions changed. */
+function restoreProgressInto(pairs){
+  const inBank=new Set(bank); let n=0;
+  (pairs||[]).forEach(([l,r])=>{
+    try{
+      const a=progOf(l), before=canon(a);
+      applyProg(l, mergeProgKeep(a, progOf(r)));
+      if(canon(progOf(l))!==before){ n++; if(inBank.has(l)) persistQuestion(l); }
+    }catch(e){}
+  });
+  return n;
+}
+/* ===== Settings date (build index-36) =====
+   settings.sAt = when a person last changed a setting here or on another device. Not counted as a change: the backup time stamps, and dayLog / planner
+   (they merge by themselves). A restore compares it with the date of the backup and keeps the more recent value of each setting. */
+const SET_VOL = ['sAt','lastBackupAt','lastFullAt'];
+function setSig(o){ const c={}; Object.keys(o||{}).forEach(k=>{ if(SET_VOL.indexOf(k)<0 && SP_KEYS.indexOf(k)<0 && o[k]!==undefined) c[k]=o[k]; }); return canon(c); }
+function setSigSave(){ try{ localStorage.setItem('gc_settings_sig', setSig(settings)); }catch(e){} }
+/* bs = settings from a backup (or from this device before it signed in); exportedAt = the date of that backup (used when the settings carry no date of their own).
+   Key by key: only on one side -> kept; same -> kept; one side empty -> the other; different -> the more recent side. The day counts are added together, not replaced. */
+function mergeRestoredSettings(bs, exportedAt){
+  const L=settings||{}, B=bs||{};
+  const bAt=(typeof B.sAt==='number' && B.sAt>0) ? B.sAt : (Date.parse(exportedAt||'')||0);
+  const lAt=(typeof L.sAt==='number' && L.sAt>0) ? L.sAt : 0, bNew=bAt>lAt;
+  const blank=v=>v===undefined||v===null||v===''||(Array.isArray(v)&&!v.length)||(typeof v==='object'&&!Array.isArray(v)&&!Object.keys(v).length);
+  const out={};
+  new Set([...Object.keys(L),...Object.keys(B)]).forEach(k=>{
+    const lv=L[k], bv=B[k];
+    if(k==='sAt'){ const m=Math.max(lAt,(typeof B.sAt==='number'&&B.sAt>0)?B.sAt:0); if(m>0) out.sAt=m; return; }
+    if(k==='lastFullAt'){ if(lv!==undefined) out[k]=lv; return; }
+    if(k==='lastBackupAt'){ const a=Date.parse(lv||'')||0, b=Date.parse(bv||'')||0; if(a||b) out[k]=(a>=b)?lv:bv; return; }
+    if(k==='dayLog'){ try{ out[k]=dlMerge(lv,bv); }catch(e){ out[k]=(lv!==undefined)?lv:bv; } return; }
+    if(k==='notSim'){ out[k]=[...new Set([...(Array.isArray(lv)?lv:[]),...(Array.isArray(bv)?bv:[])])]; return; }
+    if(k==='tpos'){ const m={...(bv||{})}; Object.entries(lv||{}).forEach(([kk,v])=>{ const o=m[kk]; if(!o || !v || o.b!==v.b || v.p<o.p) m[kk]=v; }); out[k]=m; return; }
+    if(bv===undefined){ out[k]=lv; return; }
+    if(lv===undefined){ out[k]=bv; return; }
+    if(canon(lv)===canon(bv)){ out[k]=lv; return; }
+    if(blank(lv)){ out[k]=bv; return; }
+    if(blank(bv)){ out[k]=lv; return; }
+    out[k]=bNew ? bv : lv;
+  });
+  if(out.target===undefined) out.target=500;
+  if(out.examDate===undefined) out.examDate=null;
+  return out;
+}
 function persistSettings(){
+  try{ const ps=localStorage.getItem('gc_settings_sig'), cs=setSig(settings); if(ps!==null && ps!==cs && !_prefApply) settings.sAt=Date.now(); localStorage.setItem('gc_settings_sig', cs); }catch(e){}   // a real change of a setting: date it
   try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); }catch(e){}
   if(!dbNS){ saveLocal('gc_settings', settings); return; }
   if(!_setBase && !_setRead) return;   // the online settings could not be read this session (offline or failed start): a full write now would replace newer settings from another device. They stay in this device's copy; the next successful load reads the online ones.
@@ -2673,7 +2784,7 @@ async function settingsPull(){
     else if(k==='tpos'){ const m={...(c.tpos||{})}; Object.entries(settings.tpos||{}).forEach(([kk,v])=>{ const o=m[kk]; if(!o || !v || o.b!==v.b || v.p<o.p) m[kk]=v; }); settings.tpos=m; _setBase.tpos=cj; kept=true; }
     else { _setBase[k]=cj; kept=true; }
   });
-  if(took){ try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); applyTheme(); }catch(e){} }
+  if(took){ try{ localStorage.setItem('gc_settings_cache', JSON.stringify(settings)); applyTheme(); }catch(e){} if(!kept) setSigSave(); }
   if(took || kept){ try{ syncPrefsFromSettings(); }catch(e){} }
   if(kept) persistSettings();
   for(const k of SP_KEYS){ try{ await spSync(k); }catch(e){} }
@@ -2985,6 +3096,7 @@ async function initApp(){
     } else { await loadFromLocal(); storageMode = localStatusMsg(); }
   }
   if(storageMode==='cloud') HYD_CAP=Math.min(HYD_CAP,(navigator.deviceMemory && navigator.deviceMemory<=2)?200:400);
+  try{ if(localStorage.getItem('gc_settings_sig')===null) setSigSave(); }catch(e){}   // from here on a changed setting is dated (settings.sAt)
   const sb = document.getElementById('storageBtn'); if(sb) sb.classList.toggle('storage-connected', storageMode==='cloud');
   applyTheme();
   if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ if(!settings.theme || settings.theme==='auto') applyTheme(); });
@@ -4718,7 +4830,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-34';
+const APP_BUILD = 'index-36';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -4771,15 +4883,14 @@ async function mergeLocalIntoAccount(pend){
   for(const r of (pend.bank||[])){
     const l = byId.get(r.id);
     if(!l){
-      const n = {...stripInternal(r)};
+      const {_batchId:_o0,_g0:_o1,_g1:_o2,_g2:_o3,_cm:_o4,_lcd:_o5,_he:_o6,_cc:_o7,_qb:_o8,_sg:_o9,_kw:_o10,...n} = r;   // keeps the question's progress too (stripInternal would drop flags and attempts when progress is stored separately)
       if(!openBatchId || (cnt[openBatchId]||0)>=BATCH_SIZE) openBatchId = newBatch();
       n._batchId = openBatchId; cnt[openBatchId] = (cnt[openBatchId]||0)+1;
       bank.push(n); byId.set(n.id,n); changed.add(n._batchId); added++; continue;
     }
     let ch = false;   // same question on both sides: the newer edit wins, flags follow the newer flag stamp, attempts keep the higher count
     if((r.u||0)>(l.u||0)){ ['text','options','correctKey','subject','topic','sourceTag','num','explanation'].forEach(k=>{ l[k]=r[k]; }); l.u=r.u; l.cs=csig(l); ch=true; }
-    if((r.s||0)>(l.s||0)){ l.flagged=!!r.flagged; l.issue=!!r.issue; l.s=r.s; l.ss=ssig(l); if((r.attemptCount||0)>=(l.attemptCount||0)) l.sr=srClean(r.sr); ch=true; }   // a newer flag change brings its review schedule with it
-    if((r.attemptCount||0)>(l.attemptCount||0)){ l.attemptCount=r.attemptCount; l.wc=r.wc||0; l.rs=r.rs||0; l.ls=r.ls||0; l.sr=srClean(r.sr); ch=true; }
+    { const a=progOf(l), before=canon(a); applyProg(l, mergeProgKeep(a, progOf(r))); if(canon(progOf(l))!==before) ch=true; }   // flags follow the newer flag stamp; attempts, attempt history, archive and smart values follow the higher attempt count
     if(ch){ changed.add(l._batchId); updated++; }
   }
   { const mm = batchMembers(changed); for(const bid of changed) await rewriteBatch(bid, mm.get(bid)); }
@@ -4795,6 +4906,8 @@ async function finishPendingMerge(){
     if(!pend || !syncAccount || pend.from===fbUid) return;
     const r = await mergeLocalIntoAccount(pend);
     await idbSet('tm_pending_merge', null);
+    try{ if(pend.settings && typeof pend.settings==='object'){ settings=mergeRestoredSettings(pend.settings); persistSettings(); try{ syncPrefsFromSettings(); }catch(e){} } }catch(e){}   // settings of this device that the account does not have yet are added; the more recent value wins
+    try{ opCloudSync(true).catch(()=>{}); seenCloudSync(true).catch(()=>{}); notesCloudSoon(800); }catch(e){}   // one-pagers, planner 'seen' set and notes of this device join the account
     showToast('Devices combined: +'+r.added+' new question(s), '+r.updated+' updated'+(r.hist?', +'+r.hist+' test result(s)':'')+'.', 'info');
     renderBank(); renderHistory();
   }catch(e){ console.warn('Merge after sign-in not finished, will retry next start', e); }
@@ -4813,7 +4926,7 @@ async function googleSyncSignIn(){
       if((bank.length || history.length) && !confirm('This Google account already has saved data (from another device).\n\nCombine the data on this device with it? Nothing on either side is deleted.')) return;
       try{
         showToast('Combining\u2026 please keep the app open.', 'info');
-        const pend = {from: fbUid, at: new Date().toISOString(), bank: await bankFullItems(), history: history.slice()};
+        const pend = {from: fbUid, at: new Date().toISOString(), bank: await bankFullItems(), history: history.slice(), settings: JSON.parse(JSON.stringify(settings))};
         await idbSet('tm_pending_merge', pend);   // safety copy: if anything is interrupted, the merge is finished on the next start
         const cred = await firebase.auth().signInWithCredential(e.credential);
         fbUid = cred.user.uid; syncAccount = true; dbNS = makeNs(fbUid); setTimeout(()=>{ try{ flushIssues(); }catch(e){} }, 0);
@@ -4834,7 +4947,18 @@ async function googleSyncSignIn(){
   }
 }
 async function googleSyncSignOut(){
-  if(!confirm('Sign out on this device?\n\nThis device will start empty. Your data stays safe in your Google account: sign in again to get it back.')) return;
+  showToast('Saving your latest changes\u2026','info');
+  try{ await flushBatches(); }catch(e){}
+  try{ await flushProgress(); }catch(e){}
+  try{ await notesCloudSync(); }catch(e){}
+  try{ await opCloudSync(true); }catch(e){}
+  await new Promise(r=>setTimeout(r,900));
+  try{ await obRun(); }catch(e){}
+  let waiting=0; try{ waiting=await idbCount(IDB_OB); }catch(e){}   // whatever is still in the safety copy has not reached the account
+  const msg = waiting
+    ? 'Some of your latest changes ('+waiting+') have not reached your account yet, probably because there is no connection.\n\nIf you sign out now they will be lost. Sign out anyway?'
+    : 'Sign out on this device?\n\nThis device will start empty. Your data stays safe in your Google account: sign in again to get it back.';
+  if(!confirm(msg)) return;
   try{ await cacheDrop(); }catch(e){}
   try{ await idbRun([IDB_OB],st=>{ st[IDB_OB].clear(); }); }catch(e){}   // nothing of this account stays on the device
   try{ await firebase.auth().signOut(); }catch(e){}
@@ -5556,11 +5680,12 @@ let autoBackupOn = loadLS('gc_autobackup', true);
 let bkLastError = '', driveAuthLost = false;
 let lastAutoBackupAt = 0;
 function toggleAutoBackup(v){ autoBackupOn = v; saveLS('gc_autobackup', v); if(v && dirty.size) scheduleBackup(); }
-async function backupPayload(){
+async function backupPayload(noOp){
   const parts=[];
   await qEach(bank.slice(), 1000, part=>{ part.forEach(q=>{ if(LEAN.has(q)) throw new Error('could not read question '+q.id+' from this device'); parts.push(JSON.stringify(stripForBackup(q))); }); });
   const bs='['+parts.join(',')+']';
-  return '{"app":"ghatnachakra-test-maker","version":2,"exportedAt":'+JSON.stringify(new Date().toISOString())+',"sum":'+JSON.stringify(fnv(bs))+',"bank":'+bs+',"history":'+JSON.stringify(history)+',"settings":'+JSON.stringify(settings)+',"notes":'+JSON.stringify(notes)+'}';
+  let ops=''; if(!noOp){ try{ const o=await opBackupFiles(), v=Object.values(o.files); if(v.length) ops=',"onepagers":['+v.join(',')+']'; }catch(e){ try{ logIssue('backup-onepager-failed', errBrief(e), 'obf'); }catch(x){} } }   // one-pagers travel in the backup file too
+  return '{"app":"ghatnachakra-test-maker","version":2,"exportedAt":'+JSON.stringify(new Date().toISOString())+',"sum":'+JSON.stringify(fnv(bs))+',"bank":'+bs+',"history":'+JSON.stringify(history)+',"settings":'+JSON.stringify(settings)+',"notes":'+JSON.stringify(notes)+ops+'}';
 }
 function stampNow(){ return new Date().toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'}) + ', ' + new Date().toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}); }
 function pad2(n){ return String(n).padStart(2,'0'); }
@@ -5832,7 +5957,7 @@ const fnb = s => { let x=fn(s), out='', n=0; for(const c of x){ const b=unescape
 const gidOf = (s,t) => (fnb(s)+' - '+fnb(t)).toLowerCase();
 const gidOfPath = p => p.replace(/^questions - /,'').replace(/ - \d+\.json$/,'').toLowerCase();
 /* Works for the new flat names AND the old sub-folder names, so an older backup can still be merged or restored. */
-const pathKind = p => /^questions( - |\/)/.test(p) ? 'q' : /^history( - |\/)/.test(p) ? 'h' : ({'flags.json':'flags','state/flags.json':'flags','deleted.json':'deleted','state/deleted.json':'deleted','notes.json':'notes','notes/notes.json':'notes','conflicts.json':'conflicts','state/conflicts.json':'conflicts','progress.json':'progress','progress/progress.json':'progress'})[p] || null;
+const pathKind = p => /^questions( - |\/)/.test(p) ? 'q' : /^history( - |\/)/.test(p) ? 'h' : /^onepager - /.test(p) ? 'op' : ({'flags.json':'flags','state/flags.json':'flags','deleted.json':'deleted','state/deleted.json':'deleted','notes.json':'notes','notes/notes.json':'notes','conflicts.json':'conflicts','state/conflicts.json':'conflicts','progress.json':'progress','progress/progress.json':'progress'})[p] || null;
 const oldPath = p => /^(questions|state|notes|progress|history|_snapshots)\//.test(p);
 const OLD_DIRS = ['questions','state','notes','progress','history','_snapshots'];
 const keyGids = keys => keys ? new Set([...keys].map(k=>{ const i=k.indexOf('|||'); return gidOf(k.slice(0,i),k.slice(i+3)); })) : null;
@@ -6418,7 +6543,7 @@ let SKIPPED_REMOTE='';
 async function mergeRemote(sink,rman,known,base){
   const paths=Object.keys(rman.files).filter(p=>rman.files[p]!==known[p]);
   if(!paths.length) return;
-  const rq=[], rh=[]; let rf={}, rt={}, rn=[];
+  const rq=[], rh=[], rop=[]; let rf={}, rt={}, rn=[];
   await pool(paths, sink.par||3, async p=>{
     const d=JSON.parse(await sink.read(p));
     const k=pathKind(p);
@@ -6426,6 +6551,7 @@ async function mergeRemote(sink,rman,known,base){
     else if(k==='flags') rf=d;
     else if(k==='deleted') rt=d;
     else if(k==='notes') rn=d;
+    else if(k==='op') rop.push(d);
     else if(k==='h') rh.push(...d);
   });
   /* The files on Drive/the folder are checked record by record. A few bad or repeated records are skipped (they stay untouched here and
@@ -6437,7 +6563,7 @@ async function mergeRemote(sink,rman,known,base){
     if(bad && (bad>25 && bad>rq.length*0.3)){ const er=new Error('remote-invalid'); er.detail=bad+' of '+rq.length+' records: '+why.join('; '); throw er; }
     if(bad){ SKIPPED_REMOTE = bad+' question(s) on the backup were skipped because they look damaged ('+why[0]+')'; try{ logIssue('backup-remote-skipped', bad+' of '+rq.length+': '+why.join('; '), 'rs'+bad); }catch(e){} }
     rq.length=0; rq.push(...good); }
-  if(bank.length){ try{ await idbSet('gc_premerge', await backupPayload()); }catch(e){} }   // safety copy of this device's data, kept on this device only (no longer uploaded: it was the whole bank on every merge)
+  if(bank.length){ try{ await idbSet('gc_premerge', await backupPayload(true)); }catch(e){} }   // safety copy of this device's data, kept on this device only (no longer uploaded: it was the whole bank on every merge)
   const byId=new Map(bank.map(q=>[q.id,q])), put=[], del=[], delQs=[]; let added=0, updated=0, clash=0;
   const seen=t=>{ if(t>CLK) CLK=t; };
   Object.keys(rt).forEach(id=>{ seen(rt[id]); if(!(tombs[id]>=rt[id])) tombs[id]=rt[id]; });
@@ -6495,6 +6621,7 @@ async function mergeRemote(sink,rman,known,base){
   bank=bank.filter(q=>{ if(tombs[q.id]>=(q.u||0)){ del.push(q.id); delQs.push(q); return false; } return true; });
   const hk=h=>[h.date,h.mode,h.total,h.correct].join('|'), have=new Set(history.map(hk)), newH=[];
   rh.forEach(h=>{ if(!have.has(hk(h))){ history.push(h); newH.push(h); have.add(hk(h)); } });
+  if(rop.length){ try{ await opRestoreItems(rop); }catch(e){ try{ logIssue('backup-onepager-merge-failed', errBrief(e), 'omf'); }catch(x){} } }   // one-pagers from the other device: the newer one is kept
   if(Array.isArray(rn)){ const nm=new Map(notes.map(n=>[n.id,n])); rn.filter(validNote).forEach(r=>{ seen(r.u); const l=nm.get(r.id); if(!l||r.u>l.u) nm.set(r.id,r); }); notes=[...nm.values()]; await saveLocal('gc_notes',notes); }
   history.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   /* With an online account the merged questions belong in the online database. Writing the whole bank into the browser's localStorage (about 5 MB)
@@ -6528,8 +6655,11 @@ async function runSync(sink,tkey){
     const files={}, hs={}, allP=new Set(), put=(p,t)=>{ allP.add(p); const h=fnv(t); hs[p]=h; if(known[p]!==h) files[p]=t; };   // only the files that changed are kept in memory
     await buildFilesA(keys, put);
     { const mt=buildMeta(); Object.keys(mt).forEach(p=>put(p,mt[p])); }
+    let opBad=false;   // one-pagers: one file each. If they cannot be read right now, their existing backup files are left alone (never removed because of a failed read)
+    try{ const ob=await opBackupFiles(); Object.keys(ob.files).forEach(p=>put(p,ob.files[p])); ob.keep.forEach(p=>allP.add(p)); }
+    catch(e){ opBad=true; try{ logIssue('backup-onepager-failed', errBrief(e), 'obf'); }catch(x){} }
     const dg = keyGids(keys);
-    const inScope = p => oldPath(p) || p.startsWith('history - ') || (dg ? (p.startsWith('questions - ') && dg.has(gidOfPath(p))) : p.startsWith('questions - '));   // old sub-folder files are always cleared out
+    const inScope = p => oldPath(p) || p.startsWith('history - ') || (p.startsWith('onepager - ') && !opBad) || (dg ? (p.startsWith('questions - ') && dg.has(gidOfPath(p))) : p.startsWith('questions - '));   // old sub-folder files are always cleared out
     const stale = Object.keys(known).filter(p=>!allP.has(p) && inScope(p));
     const todo = Object.keys(files);
     if(!todo.length && !stale.length && rman){ try{ await idbSet('gc_man_'+tkey,{...rman,clk:CLK,layout:LAYOUT}); }catch(e){} saveLocal('gc_dirty',[...dirty]); return 0; }
@@ -6597,7 +6727,7 @@ function driveSink(){
   };
 }
 async function restoreFromSink(sink,tkey){
-  const man=JSON.parse(await sink.read('manifest.json')), items=[], hist=[]; let flags={}, prog=null;
+  const man=JSON.parse(await sink.read('manifest.json')), items=[], hist=[], ops=[]; let flags={}, prog=null;
   await pool(Object.keys(man.files), sink.par||3, async p=>{
     const d=JSON.parse(await sink.read(p));
     const k=pathKind(p);
@@ -6607,6 +6737,7 @@ async function restoreFromSink(sink,tkey){
     else if(k==='notes') notes=Array.isArray(d)?d.filter(validNote):[];
     else if(k==='conflicts') conflicts=d;
     else if(k==='progress') prog=d;
+    else if(k==='op') ops.push(d);
     else if(k==='h') hist.push(...d);
   });
   { const byId=new Map(); items.forEach(q=>{ const o=byId.get(q.id); if(!o || (q.u||0)>(o.u||0)) byId.set(q.id,q); }); items.length=0; byId.forEach(v=>items.push(v)); }
@@ -6615,7 +6746,8 @@ async function restoreFromSink(sink,tkey){
   const qs=items.map(q=>{ const f=flags[q.id]||[0,0,0,0], o={...q,flagged:!!f[0],issue:!!f[1],attemptCount:f[2]||0,wc:f[4]||0,rs:f[5]||0,ls:f[6]||0,sr:srClean(f[7]),u:q.u||0,s:f[3]||0}; flagExtras(o,f,true,true); o.cs=csig(o); o.ss=ssig(o); return o; });   // original IDs are kept
   qs.forEach(q=>bank.push(q)); await persistNewQuestions(qs);
   { const haveH = new Set(history.map(HK)), freshH = hist.filter(h=>!haveH.has(HK(h))); freshH.forEach(h=>history.push(h)); await persistHistoryBulk(freshH); }
-  if(prog){ settings={target:500,examDate:null,...prog}; persistSettings(); try{ syncPrefsFromSettings(); }catch(e){} renderProgress(); }
+  if(prog){ settings=mergeRestoredSettings(prog, man.at); persistSettings(); try{ syncPrefsFromSettings(); }catch(e){} renderProgress(); }
+  if(ops.length){ try{ await opRestoreItems(ops); }catch(e){ try{ logIssue('restore-onepager-failed', errBrief(e), 'orf'); }catch(x){} } }
   if(!dbNS){ try{ await idbSet('gc_man_'+tkey, man); }catch(e){} }
   dirty.clear(); saveLocal('gc_dirty',[]); saveLocal('gc_tombs',tombs); saveLocal('gc_conflicts',conflicts); saveLocal('gc_notes',notes); clearTimeout(bkTimer); clearTimeout(dTimer);
   const ok = qs.length===man.questions, m='Restored '+qs.length+' question(s) and '+hist.length+' history record(s)'+(ok?' ✓':' — expected '+man.questions+', some files may be missing');
@@ -6768,7 +6900,7 @@ function importSig(q){
 function tagParts(t){ return String(t||'').split(',').map(x=>x.trim()).filter(Boolean); }
 /* Returns {fresh, dupes, tagged}. fresh = questions to add; dupes = how many were skipped; tagged = existing questions that
    gained a new exam/year tag from a skipped repeat (so no exam information is lost). */
-function dedupeIncoming(list){
+function dedupeIncoming(list, onHit){
   const seen=new Map();                                   // signature -> question already in the bank (or already accepted)
   bank.forEach(q=>{ const k=qKey0(q); if(k && !seen.has(k)) seen.set(k,q); });
   const fresh=[]; let dupes=0; const tagged=new Set();
@@ -6778,6 +6910,7 @@ function dedupeIncoming(list){
     const hit=seen.get(k);
     if(!hit){ seen.set(k,q); fresh.push(q); return; }
     dupes++;
+    if(onHit){ try{ onHit(hit,q); }catch(e){} }   // the caller can still use the repeated record (restore: its progress)
     const have=tagParts(hit.sourceTag), low=new Set(have.map(x=>x.toLowerCase())), add=tagParts(q.sourceTag).filter(x=>!low.has(x.toLowerCase()));
     if(add.length){ hit.sourceTag=have.concat(add).join(', '); tagged.add(hit); }
   });
@@ -6800,21 +6933,24 @@ async function importFromText(text){
       if(Array.isArray(q.h) && q.h.length) nq.h=hRows(q);
       SMART_KEYS.forEach(k=>{ if(q[k]) nq[k]=q[k]; });
     });
-    const dd=dedupeIncoming(newQs); newQs.length=0; dd.fresh.forEach(q=>newQs.push(q));
+    const ph=[]; const dd=dedupeIncoming(newQs,(hit,q)=>ph.push([hit,q])); newQs.length=0; dd.fresh.forEach(q=>newQs.push(q));
     newQs.forEach(newQ=>bank.push(newQ));
     await persistNewQuestions(newQs);
+    const prN=restoreProgressInto(ph);   // questions that were already here are not added twice, but their flags, attempts and schedules come back
     const haveH = new Set(history.map(HK)), freshH = incomingHistory.filter(h=>h && typeof h==='object' && !haveH.has(HK(h)));
     freshH.forEach(h=>history.push(h));
     const savedH = await persistHistoryBulk(freshH);
     history.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     if(Array.isArray(data.notes)){ const have=new Map(notes.map(n=>[n.id,n])); data.notes.filter(validNote).forEach(n=>{ const l=have.get(n.id); if(!l) notes.push(n); else if(n.u>l.u) Object.assign(l,n); }); saveNotes(false); }
     if(data.settings && typeof data.settings==='object'){
-      settings = {target:500, examDate:null, ...data.settings};
+      settings = mergeRestoredSettings(data.settings, data.exportedAt);   // the more recent value of each setting wins; nothing is deleted because the backup lacks it
       persistSettings();
+      try{ syncPrefsFromSettings(); }catch(e){}
       renderProgress();
     }
+    let opN=0; try{ if(Array.isArray(data.onepagers) && data.onepagers.length) opN=await opRestoreItems(data.onepagers); }catch(e){ try{ logIssue('restore-onepager-failed', errBrief(e), 'orf'); }catch(x){} }
     if(savedH < freshH.length && (logIssue('restore-history-partial', savedH+' of '+freshH.length, 'hp')||true)) notify(`Restore finished, but only ${savedH} of ${freshH.length} history record(s) could be saved. Check your connection and import again (already-imported items are skipped).`,'error');
-    else notify(`Restore completed ✓ ${newQs.length} question(s) and ${freshH.length} history record(s) imported.`+(dd.dupes?' '+dupeNote(dd)+'.':''),'success');
+    else notify(`Restore completed ✓ ${newQs.length} question(s) and ${freshH.length} history record(s) imported.`+(prN?` Flags and progress restored on ${prN} question(s) already in the app.`:'')+(opN?` ${opN} one-pager(s) restored.`:'')+(dd.dupes?' '+dupeNote(dd)+'.':''),'success');
     renderBank();
     renderHistory();
   }catch(e){
@@ -7169,7 +7305,7 @@ async function opStore(s,f){
   const id=opId(s), u=Date.now(), big=buf.byteLength>OP_MAX_CLOUD;
   await idbSet('gc_op_'+id,{u,type,mime,buf});
   opIdx.set(s,{id,subject:s,name:nm.slice(0,80),type,mime,size:buf.byteLength,u,ch:0,have:1,...(big?{big:1}:{})});
-  opIdxSave(); try{ renderBankBreakdown(); }catch(e){}
+  opIdxSave(); try{ renderBankBreakdown(); }catch(e){} try{ scheduleBackup(); }catch(e){}   // the backup is told
   showToast('One-pager saved for '+s+(big?'. It is over 3 MB, so it stays on this device only.':'.'),big?'info':'success');
   if(!big) opCloudSoon(1500);
 }
@@ -7222,12 +7358,50 @@ async function opCloudSync(force){
       for(const [s,l] of [...opIdx.entries()]){   // fetch what other devices added, so it also opens offline
         if(l.del || !(l.ch>0)) continue;
         let c=null; try{ c=await idbGet('gc_op_'+l.id); }catch(e){}
-        if(!c || !c.buf || c.u!==l.u){ try{ await opFetchCloud(l); }catch(e){} }
+        if(!c || !c.buf || c.u!==l.u){ try{ await opFetchCloud(l); try{ scheduleBackup(); }catch(x){} }catch(e){} }
       }
     }while(_opAgain);
     ok=true; _opLast=Date.now();
   }catch(e){ console.warn('One-pager sync',e); }
   _opBusy=false; return ok;
+}
+/* ---- backup and restore of one-pagers (build index-36) ----
+   Each one-pager that is on this device goes into the backup file (field "onepagers") and into the backup folder (one file each: "onepager - <id>.json").
+   Restoring or merging keeps, per subject, the version with the newer time (u); a newer removal on this device is not undone. */
+const _opTxt = new Map();   // 'id|u' -> file text, so a backup run does not read and convert every one-pager again
+async function opBackupFiles(){
+  const files={}, keep=[], live=new Set(); await opIdxLoad();
+  for(const [s,r] of [...opIdx.entries()]){
+    if(!r || r.del) continue;
+    const p='onepager - '+r.id+'.json', key=r.id+'|'+r.u; live.add(key);
+    let txt=_opTxt.get(key);
+    if(!txt){
+      const c=await idbGet('gc_op_'+r.id);   // a failed read throws: it must never look like "no one-pager"
+      if(!c || !c.buf || c.u!==r.u){ keep.push(p); continue; }   // not on this device (yet): its old backup file stays as it is
+      txt=JSON.stringify({app:'test-maker-onepager',v:1,id:r.id,subject:r.subject,name:r.name||'',type:r.type,mime:r.mime||c.mime||'',size:c.buf.byteLength,u:r.u,d:opToB64(c.buf)});
+      if(txt.length<8e6) _opTxt.set(key,txt);
+    }
+    files[p]=txt;
+  }
+  [..._opTxt.keys()].forEach(k=>{ if(!live.has(k)) _opTxt.delete(k); });
+  return {files,keep};
+}
+async function opRestoreItems(list){
+  await opIdxLoad(); let n=0;
+  for(const x of (list||[])){
+    try{
+      if(!x || typeof x.subject!=='string' || typeof x.d!=='string' || !x.type) continue;
+      const u=(typeof x.u==='number' && x.u>0) ? x.u : Date.now(), l=opIdx.get(x.subject);
+      if(l && l.u>=u) continue;   // this device has the same or a newer version (or a newer removal)
+      const buf=opFromB64(x.d); if(!buf.byteLength || buf.byteLength>OP_MAX_LOCAL) continue;
+      const id=opId(x.subject), big=buf.byteLength>OP_MAX_CLOUD;
+      await idbSet('gc_op_'+id,{u,type:x.type,mime:x.mime||'',buf});
+      opIdx.set(x.subject,{id,subject:x.subject,name:String(x.name||'').slice(0,80),type:x.type,mime:x.mime||'',size:buf.byteLength,u,ch:0,have:1,...(big?{big:1}:{})});
+      n++;
+    }catch(e){}
+  }
+  if(n){ opIdxSave(); try{ renderBankBreakdown(); }catch(e){} opCloudSoon(1500); }
+  return n;
 }
 /* ---- viewer ---- */
 async function opOpen(s){
@@ -7283,7 +7457,7 @@ async function opRemove(s){
   const r=opIdx && opIdx.get(s); if(!r) return;
   const id=r.id, ch=r.ch||0;
   opIdx.set(s,{id,subject:s,name:'',type:r.type,mime:r.mime,size:0,u:Date.now(),del:1,ch:0,have:0});
-  opIdxSave(); try{ await idbSet('gc_op_'+id,null); }catch(e){}
+  opIdxSave(); try{ await idbSet('gc_op_'+id,null); }catch(e){} try{ scheduleBackup(); }catch(e){}
   opViewClose(); try{ renderBankBreakdown(); }catch(e){}
   showToast('One-pager removed.','info');
   if(notesCloudOn()){ for(let i=1;i<=ch;i++) dbNS.doc('meta/'+id+'_'+i).delete().catch(()=>{}); opCloudSoon(800); }
@@ -8438,7 +8612,7 @@ document.addEventListener('click',function(e){
    out of (those) + (flagged questions that have not yet reached that attempt). Nothing new is stored per question. */
 var plSeen=null, plSeenP=null, plSeenQ=[], plLast=null, plList=[], plOpen={}, plEd=null;
 var PL_MIN=5, PL_PASS=90;   // fixed rules: a skipped question counts after 5 s on screen; 90% covered counts as complete (not user settings)
-var PL_COL=['#378ADD','#1D9E75','#D85A30','#7F77DD','#D4537E','#639922'];
+var PL_COL=['#185FA5','#0F6E56','#993C1D','#534AB7','#854F0B','#993556','#3B6D11','#A32D2D'];   // dark enough for white text on the calendar bars
 var PL_STYLES=[['one','One subject at a time'],['n1r1','1 new + 1 review'],['n1r2','1 new + 2 reviews'],['free','Free (no limit)']];
 function plEC(){ return {t:0,a:0,s:0,c2:0,c3:0,c4:0,fl:0,f1:0,f2:0,f3:0}; }
 function plMigrate(P){
@@ -8496,6 +8670,32 @@ function plRate(P,t){
   return B;
 }
 function plCaps(P){ if(plSimple(P)) return {tot:99,n:99,v:99}; const st=P.style||'one'; return st==='one'?{tot:1,n:9,v:9}:(st==='n1r1'?{tot:9,n:1,v:1}:(st==='n1r2'?{tot:9,n:1,v:2}:{tot:99,n:99,v:99})); }
+/* ---- Breaks and off days (build index-35). A study day is any day that is not a weekly off day (P.off, 0=Sunday) and not inside a break (P.brk). ---- */
+function plCfg(P){ P=P||plP(); const brk=((P&&P.brk)||[]).filter(b=>b&&b.s&&b.e).map(b=>[dayStrN(b.s),dayStrN(b.e)]), off=new Set((P&&P.off)||[]); return {off,brk,none:!off.size&&!brk.length}; }
+function plDow(d){ return new Date(d*864e5).getUTCDay(); }
+function plInBrk(d,c){ for(let i=0;i<c.brk.length;i++) if(d>=c.brk[i][0]&&d<=c.brk[i][1]) return true; return false; }
+function plIsStudy(d,c){ if(c.none) return true; return !c.off.has(plDow(d)) && !plInBrk(d,c); }
+function plStudyCount(a,b,c){ if(b<a) return 0; if(c.none) return b-a+1; let n=0; for(let d=a;d<=b;d++) if(plIsStudy(d,c)) n++; return n; }
+function plNextStudy(d,c){ for(let i=0;i<4000;i++,d++) if(plIsStudy(d,c)) return d; return d; }
+function plNthStudy(a,k,c){ let d=plNextStudy(a,c); for(let i=1;i<k;i++) d=plNextStudy(d+1,c); return d; }
+function plMoveStudy(d,k,c){ for(let i=0;i<k;i++) d=plNextStudy(d+1,c); return d; }
+function plCol(P,s){ const pl=P.subs[s]; if(!pl) return PL_COL[0]; if(pl.ci==null){ const used=new Set(Object.keys(P.subs).map(k=>P.subs[k].ci).filter(v=>v!=null)); let i=0; while(used.has(i)&&i<PL_COL.length) i++; pl.ci=i%PL_COL.length; } return PL_COL[pl.ci%PL_COL.length]; }
+/* After the break list or the off days changed: every block that is not finished keeps the same number of study days left, counted from today,
+   so the plan slides past the break (or comes back earlier when a break is removed). Returns how many blocks moved. */
+function plReflow(P,oldC,newC){
+  const tn=dayStrN(localDayStr()); let n=0;
+  const oi=d=>plStudyCount(tn,d,oldC), nth=k=>plNthStudy(tn,k,newC);
+  Object.keys(P.subs).forEach(s=>(P.subs[s].blocks||[]).forEach(b=>{
+    if(b.done||!b.s||!b.e) return;
+    const S=dayStrN(b.s), E=dayStrN(b.e); if(E<tn) return;
+    let ns=S, ne=E;
+    if(S>=tn) ns=nth(oi(S-1)+1);
+    const ke=oi(E); if(ke>0) ne=nth(ke);
+    if(ne<ns) ne=ns;
+    if(ns!==S||ne!==E){ b.s=plDS(ns); b.e=plDS(ne); n++; }
+  }));
+  return n;
+}
 function plStages(pl,cv,P){
   const N=Math.max(pl.n||0,cv.t||0); if(!N) return null;
   const pass=PL_PASS, c1=cv.a+cv.s, T1=Math.ceil(N*pass/100), rb=(pl.blocks||[]).find(b=>b.t==='r');
@@ -8512,7 +8712,7 @@ function plStages(pl,cv,P){
 /* Everything about one subject's blocks; cur = the block the student is on now */
 function plInfo(P,s,pl,cv){
   const stg=plStages(pl,cv,P); if(!stg) return null;
-  const tn=dayStrN(localDayStr()), out=[];
+  const tn=dayStrN(localDayStr()), out=[], cf=plCfg(P);
   (pl.blocks||[]).forEach((b,i)=>{
     if(plSimple(P)&&b.t!=='r') return;
     const rd=b.t==='r', k=rd?0:(+b.t.slice(1)||1), o={i,b,t:b.t,k,s:b.s||null,e:b.e||null};
@@ -8521,9 +8721,10 @@ function plInfo(P,s,pl,cv){
     o.complete=!!b.done||o.auto;
     o.canMark=rd?stg.c1>=stg.T1:(stg.readDone&&(o.pool===0||o.dn>=o.T));
     o.rate=plRate(P,rd?'r':'v');
-    o.total=(b.s&&b.e)?dayStrN(b.e)-dayStrN(b.s)+1:0;
-    o.el=o.total?Math.min(o.total,Math.max(0,tn-dayStrN(b.s)+1)):0;
-    o.left=b.e?dayStrN(b.e)-tn+1:0;
+    o.total=(b.s&&b.e)?Math.max(1,plStudyCount(dayStrN(b.s),dayStrN(b.e),cf)):0;
+    o.el=o.total?Math.min(o.total,plStudyCount(dayStrN(b.s),tn,cf)):0;
+    o.elb=o.total?Math.min(o.total,plStudyCount(dayStrN(b.s),tn-1,cf)):0;   // study days before today
+    o.left=b.e?plStudyCount(tn,dayStrN(b.e),cf):0;
     o.rem=Math.max(0,o.T-o.dn);
     o.need=(o.rem>0&&b.e)?Math.ceil(o.rem/Math.max(1,o.left)):0;
     o.blocked=!rd&&!stg.readDone;
@@ -8533,7 +8734,7 @@ function plInfo(P,s,pl,cv){
     else if(o.canMark) o.status='ready';
     else if(b.e&&tn>dayStrN(b.e)) o.status='overdue';
     else if(b.e&&o.total){
-      const b0=rd?Math.min(b.b0||0,o.T):0; o.exp=b0+(o.T-b0)*(Math.max(0,o.el-1)/o.total);   // planned progress at the start of today
+      const b0=rd?Math.min(b.b0||0,o.T):0; o.exp=b0+(o.T-b0)*(o.elb/o.total);   // planned progress at the start of today
       const diff=o.dn-o.exp, tol=0.10*Math.max(1,o.pool);
       o.status=diff>=tol?'ahead':(diff<=-tol?'behind':'on');
     } else o.status='open';
@@ -8544,28 +8745,30 @@ function plInfo(P,s,pl,cv){
 }
 /* Planned questions per day, from today on, across all blocks (and how many blocks sit on each day) */
 function plLoad(P,cov,skipB){
-  const m={}, tn=dayStrN(localDayStr());
+  const m={}, tn=dayStrN(localDayStr()), cf=plCfg(P);
   Object.keys(P.subs).forEach(s=>{
     const inf=plInfo(P,s,P.subs[s],cov[s]||plEC()); if(!inf) return;
     inf.bl.forEach(o=>{
       if(o.b===skipB||o.complete||!o.s||!o.e) return;
       const a=Math.max(dayStrN(o.s),tn), z=dayStrN(o.e); if(z<a) return;
-      const per=o.rem/(z-a+1);
-      for(let d=a;d<=z;d++){ const c=m[d]||(m[d]={tot:0,n:0,v:0,by:{}}); c.tot+=per; c.by[s]=(c.by[s]||0)+per; if(o.k===0) c.n++; else c.v++; }
+      const sd=plStudyCount(a,z,cf); if(!sd) return;
+      const per=o.rem/sd;
+      for(let d=a;d<=z;d++){ if(!plIsStudy(d,cf)) continue; const c=m[d]||(m[d]={tot:0,n:0,v:0,by:{}}); c.tot+=per; c.by[s]=(c.by[s]||0)+per; if(o.k===0) c.n++; else c.v++; }
     });
   });
   return m;
 }
 /* First run of days where the style's limits allow this block, and how many days it needs at the student's pace */
 function plPropose(P,cov,t,rem,from,skipB){
-  const rate=plRate(P,t==='r'?'r':'v'), days=Math.max(1,Math.ceil(rem/rate)), caps=plCaps(P), m=plLoad(P,cov,skipB);
-  let d=Math.max(dayStrN(from||localDayStr()),dayStrN(localDayStr()));
-  for(let tries=0;tries<500;tries++,d++){
-    let ok=true;
-    for(let j=0;j<days;j++){ const c=m[d+j]||{n:0,v:0}; if(c.n+c.v>=caps.tot||(t==='r'?c.n>=caps.n:c.v>=caps.v)){ ok=false; break; } }
-    if(ok) return {s:plDS(d),e:plDS(d+days-1),days,rate};
+  const rate=plRate(P,t==='r'?'r':'v'), days=Math.max(1,Math.ceil(rem/rate)), caps=plCaps(P), m=plLoad(P,cov,skipB), cf=plCfg(P);
+  let d=plNextStudy(Math.max(dayStrN(from||localDayStr()),dayStrN(localDayStr())),cf);
+  for(let tries=0;tries<500;tries++){
+    let ok=true, x=d, e=d;
+    for(let j=0;j<days;j++){ const c=m[x]||{n:0,v:0}; if(c.n+c.v>=caps.tot||(t==='r'?c.n>=caps.n:c.v>=caps.v)){ ok=false; break; } e=x; x=plNextStudy(x+1,cf); }
+    if(ok) return {s:plDS(d),e:plDS(e),days,rate};
+    d=plNextStudy(d+1,cf);
   }
-  const f=from||localDayStr(); return {s:f,e:plAdd(f,days-1),days,rate};
+  const f=from||localDayStr(); return {s:f,e:plDS(plNthStudy(dayStrN(f),days,cf)),days,rate};
 }
 function plReviewFrom(pl,k){
   const gaps=[1,7,30], rb=(pl.blocks||[]).find(b=>b.t==='r'), tn=dayStrN(localDayStr());
@@ -8608,6 +8811,7 @@ function plToday(cov,bal){
   const td=localDayStr();
   if(!P.today||P.today.d!==td) P.today={d:td,q:{},c:{}};
   const T=P.today; let ch=false;
+  if(!plIsStudy(dayStrN(td),plCfg(P))) return T;   // weekly off day or break: no quotas today
   Object.keys(P.subs).forEach(s=>{
     if(T.q[s]) return;
     const inf=plInfo(P,s,P.subs[s],cov[s]||plEC()); if(!inf||!inf.cur) return;
@@ -8700,7 +8904,7 @@ var PL_RANK={overdue:0,behind:1,on:2,open:3,ahead:4,ready:5,wait:6,complete:9};
 function plStageName(o){ return o.k===0?'Reading':'Review '+o.k; }
 function plRender(){
   const box=$h('plBody'); if(!box) return; plRenderMode();
-  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects, enter how many questions you will practise in each subject, then set the dates by which you want to finish.</p></div>'; plList=[]; return; }
+  if(!plHas()){ box.innerHTML='<div class="card"><p class="muted" style="margin:0;">No plans yet. Tap Plan subjects, enter how many questions you will practise in each subject, then set the dates by which you want to finish.</p><div class="pl-btns"><button class="secondary" onclick="plBrkOpen()">Set breaks and off days first</button></div></div>'; plList=[]; return; }
   if(!plSeen){ plSeenLoad().then(()=>{ try{ plRender(); }catch(e){} }); box.innerHTML='<p class="muted">Loading\u2026</p>'; return; }
   const P=plP(), simple=plSimple(P), cov=plCover(), bal=plBalance(P,cov), names=Object.keys(P.subs);
   const items=names.map(s=>({s,inf:plInfo(P,s,P.subs[s],cov[s]||plEC())})).filter(x=>x.inf);
@@ -8709,24 +8913,166 @@ function plRender(){
   let sumN=0,sumC=0,nDone=0; items.forEach(x=>{ sumN+=x.inf.stg.N; sumC+=x.inf.stg.readDone?x.inf.stg.N:Math.min(x.inf.stg.c1,x.inf.stg.N); if(x.inf.allDone) nDone++; });
   const op=sumN?Math.round(sumC/sumN*100):0;
   let h='<div class="card pl-card"><div class="pl-row1"><b>Overall reading</b><span class="pl-chip n">'+nDone+' of '+items.length+' fully done</span></div><div class="pl-bar" style="margin-top:10px;"><i style="width:'+op+'%"></i></div><div class="pl-cap"><span>'+op+'% covered</span><span>'+fmtN(sumC)+' of '+fmtN(sumN)+' questions</span></div></div>';
+  h+=plCalHtml(P,items,names);
   if(simple) h+=plDaysHtml(P,items);
   else { h+=plStripHtml(P,cov,names); h+=plBalHtml(P,bal,names); }
   items.forEach((x,i)=>{ h+=plCardHtml(i,x.s,P.subs[x.s],x.inf,bal); });
   box.innerHTML=h;
 }
+/* ---- Calendar: month grid and long-term timeline (build index-35). Reads the same blocks as the cards below; breaks and off days live in P.brk and P.off. ---- */
+var plVw='m', plYM=null, plSel=null, plTSel=null, plBrkType='Rest', plCalNames=[];
+var PL_DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], PL_MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function plSetVw(v){ plVw=v; plRender(); }
+function plNav(k){ if(!plYM){ const n=new Date(); plYM=[n.getFullYear(),n.getMonth()+1]; } plYM[1]+=k; if(plYM[1]<1){ plYM[1]=12; plYM[0]--; } if(plYM[1]>12){ plYM[1]=1; plYM[0]++; } plRender(); }
+function plPick(d){ plSel=d; plRender(); }
+function plPickSub(i){ plTSel=plCalNames[i]; plRender(); }
+function plBar(a,z,lane,st,lb){ return '<div class="pl-br" style="left:calc('+(a*100/7)+'% + 1px);width:calc('+((z-a+1)*100/7)+'% - 2px);top:'+(24+lane*17)+'px;'+st+'">'+lb+'</div>'; }
+function plWeekHtml(ws,M,cf,blocks,tn,ex,brks){
+  const we=ws+6, used={}; let bars='', mx=1, cells='';
+  brks.forEach(b=>{ if(b.z<ws||b.a>we) return; bars+=plBar(Math.max(b.a,ws)-ws,Math.min(b.z,we)-ws,0,'background:rgba(128,128,128,.3);border:1px dashed var(--muted);color:var(--text);',escH(b.n)); });
+  blocks.forEach(b=>{
+    if(b.z<ws||b.a>we) return;
+    const a0=Math.max(b.a,ws)-ws, z0=Math.min(b.z,we)-ws; let L=1;
+    while(used[L]&&used[L].some(c=>c>=a0&&c<=z0)) L++;
+    used[L]=used[L]||[]; for(let c=a0;c<=z0;c++) used[L].push(c); if(L>mx) mx=L;
+    const k=b.o.k, c=b.c, st=k===0?'background:'+c+';color:#fff;':'background:'+c+'26;border:1.5px solid '+c+';color:var(--text);line-height:9px;';
+    const lb=(b.o.complete?'\u2713 ':'')+(k===0?'':'R'+k+' ')+escH(b.s);
+    let i=a0, lab=false;
+    while(i<=z0){
+      const p=plInBrk(ws+i,cf); let j=i; while(j<z0&&plInBrk(ws+j+1,cf)===p) j++;
+      if(p) bars+='<div class="pl-br" style="left:calc('+(i*100/7)+'% + 1px);width:calc('+((j-i+1)*100/7)+'% - 2px);top:'+(24+L*17+7)+'px;height:0;padding:0;border-top:2px dashed '+c+';"></div>';
+      else { bars+=plBar(i,j,L,st,(!lab&&j>i)?lb:''); if(j>i) lab=true; }
+      i=j+1;
+    }
+  });
+  for(let i=0;i<7;i++){
+    const d=ws+i, dd=new Date(d*864e5), inM=dd.getUTCMonth()===M-1;
+    const bg=plInBrk(d,cf)?'rgba(128,128,128,.2)':(cf.off.has(dd.getUTCDay())?'var(--ink-bg)':'');
+    cells+='<div class="pl-cl'+(d===tn?' t':'')+'" onclick="plPick('+d+')" style="'+(bg?'background:'+bg+';':'')+(d===plSel?'outline:1.5px solid var(--brand);outline-offset:-1.5px;':'')+(inM?'':'opacity:.45;')+'"><span class="pl-dn">'+dd.getUTCDate()+'</span>'+(d===ex?'<span class="pl-exm">Exam</span>':'')+'</div>';
+  }
+  return '<div class="pl-wk"><div class="pl-wg" style="height:'+(24+17*(mx+1)+3)+'px">'+cells+'</div>'+bars+'</div>';
+}
+function plBrkRanges(P){ return (P.brk||[]).filter(b=>b&&b.s&&b.e).map(b=>({n:b.n,a:dayStrN(b.s),z:dayStrN(b.e)})); }
+function plMonthHtml(P,cf,blocks,tn,ex){
+  if(!plYM){ const n=new Date(); plYM=[n.getFullYear(),n.getMonth()+1]; }
+  const Y=plYM[0], M=plYM[1], first=Math.floor(Date.UTC(Y,M-1,1)/864e5), last=Math.floor(Date.UTC(Y,M,1)/864e5)-1, brks=plBrkRanges(P);
+  let ws=first-((plDow(first)+6)%7);   // weeks start on Monday
+  let h='<div class="pl-mn"><button onclick="plNav(-1)" aria-label="Previous month">\u2039</button><b>'+PL_MN[M-1]+' '+Y+'</b><button onclick="plNav(1)" aria-label="Next month">\u203a</button></div>';
+  h+='<div class="pl-wd">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>'<span>'+x+'</span>').join('')+'</div>';
+  for(;ws<=last;ws+=7) h+=plWeekHtml(ws,M,cf,blocks,tn,ex,brks);
+  h+='<div class="pl-cap" style="margin-top:8px;"><span>Solid bar: reading. Outlined: review. Dashed line: paused by a break. Grey: break. Tinted: weekly off day.</span></div>';
+  return h;
+}
+function plDayHtml(P,cf,blocks,tn,ex){
+  const d=plSel==null?tn:plSel, dw=plDow(d);
+  const bk=(P.brk||[]).find(b=>b&&b.s&&b.e&&d>=dayStrN(b.s)&&d<=dayStrN(b.e));
+  const here=blocks.filter(b=>d>=b.a&&d<=b.z); let s2='';
+  if(bk) s2='<div>'+escH(bk.n)+': a break, so no questions are planned.</div>';
+  else if(cf.off.has(dw)) s2='<div>Weekly off day: no questions are planned.</div>';
+  else if(here.length) s2=here.map(b=>{ const o=b.o, n=plStudyCount(b.a,d,cf), b0=o.k===0?Math.min(o.b.b0||0,o.T):0, per=Math.ceil(Math.max(1,o.T-b0)/Math.max(1,o.total));
+    return '<div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;background:'+b.c+';"></span>'+escH(b.s)+' \u00b7 '+plStageName(o)+' \u00b7 day '+n+' of '+o.total+' \u00b7 about '+fmtN(per)+' questions</div>'; }).join('');
+  else s2='<div>Nothing is planned for this day.</div>';
+  if(d===ex) s2+='<div style="color:var(--red);font-weight:600;">Your exam day.</div>';
+  return '<div class="pl-det"><b>'+PL_DN[dw]+' '+plFmt(plDS(d))+'</b>'+s2+'<div style="margin-top:8px;"><button class="secondary sm" onclick="plBrkOpen('+d+')">Add break from this day</button></div></div>';
+}
+function plTimelineHtml(P,cf,blocks,tn,ex,names){
+  if(!blocks.length) return '<p class="pl-note">Set dates for a subject (open it below) to see it here.</p>';
+  const brks=plBrkRanges(P); let a0=tn, z0=tn+30;
+  blocks.forEach(b=>{ a0=Math.min(a0,b.a); z0=Math.max(z0,b.z); }); if(ex!=null) z0=Math.max(z0,ex); brks.forEach(b=>{ z0=Math.max(z0,b.z); });
+  const sd=new Date(a0*864e5), ed=new Date(z0*864e5);
+  const T0=Math.floor(Date.UTC(sd.getUTCFullYear(),sd.getUTCMonth(),1)/864e5);
+  let T1=Math.floor(Date.UTC(ed.getUTCFullYear(),ed.getUTCMonth()+1,1)/864e5); if(T1-T0<92) T1=T0+92;
+  const sp=T1-T0, p=d=>((d-T0)/sp*100), W=Math.round(sp*2.6)+78;
+  let ticks='';
+  for(let t=new Date(T0*864e5); t.getTime()/864e5<T1; t=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,1))) ticks+='<span style="position:absolute;left:'+p(t.getTime()/864e5).toFixed(2)+'%;font-size:11px;color:var(--muted);">'+PL_MN[t.getUTCMonth()]+(t.getUTCMonth()===0?' '+String(t.getUTCFullYear()).slice(2):'')+'</span>';
+  let over=''; brks.forEach(b=>{ over+='<div style="position:absolute;top:0;bottom:0;left:'+p(b.a).toFixed(2)+'%;width:'+Math.max(.8,p(b.z+1)-p(b.a)).toFixed(2)+'%;background:rgba(128,128,128,.25);"></div>'; });
+  over+='<div style="position:absolute;top:0;bottom:0;left:'+p(tn).toFixed(2)+'%;border-left:1.5px solid var(--brand);"></div>';
+  if(ex!=null) over+='<div style="position:absolute;top:0;bottom:0;left:'+p(ex).toFixed(2)+'%;border-left:2px solid var(--red);"></div>';
+  let h='<div class="pl-tlw"><div style="position:relative;width:max(100%,'+W+'px);"><div style="position:absolute;left:78px;right:0;top:16px;bottom:0;pointer-events:none;">'+over+'</div>';
+  h+='<div style="display:flex;position:relative;"><div class="pl-tll"></div><div style="position:relative;flex:1;height:16px;">'+ticks+'</div></div>';
+  names.forEach((s,i)=>{
+    const bs=blocks.filter(b=>b.s===s); if(!bs.length) return;
+    h+='<div style="display:flex;position:relative;margin-bottom:5px;cursor:pointer;" onclick="plPickSub('+i+')"><div class="pl-tll"'+(plTSel===s?' style="font-weight:700;"':'')+'>'+escH(s)+'</div><div style="position:relative;flex:1;height:20px;">'
+      +bs.map(b=>'<div style="position:absolute;top:2px;height:16px;box-sizing:border-box;border-radius:3px;left:'+p(b.a).toFixed(2)+'%;width:'+Math.max(.9,p(b.z+1)-p(b.a)).toFixed(2)+'%;'+(b.o.k===0?'background:'+b.c:'background:'+b.c+'26;border:1.5px solid '+b.c)+(b.o.complete?';opacity:.5':'')+'"></div>').join('')+'</div></div>';
+  });
+  h+='</div></div>';
+  h+='<div class="pl-cap" style="margin-top:6px;"><span>Solid: reading. Outlined: review. Grey band: break. Line: today'+(ex!=null?'; red line: exam':'')+'. Tap a subject for its dates.</span></div>';
+  const sel=blocks.find(b=>b.s===plTSel)?plTSel:blocks[0].s, sb=blocks.filter(b=>b.s===sel);
+  h+='<div class="pl-det"><b>'+escH(sel)+'</b>'+sb.map(b=>'<div style="display:flex;justify-content:space-between;gap:8px;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;background:'+b.c+(b.o.k?'66':'')+';"></span>'+plStageName(b.o)+(b.o.complete?' \u00b7 done':'')+'</span><span style="color:var(--muted);">'+plFmt(b.o.s)+' to '+plFmt(b.o.e)+'</span></div>').join('')+'</div>';
+  return h;
+}
+function plCalHtml(P,items,names){
+  plCalNames=names;
+  const cf=plCfg(P), tn=dayStrN(localDayStr()), blocks=[];
+  items.forEach(x=>x.inf.bl.forEach(o=>{ if(o.s&&o.e) blocks.push({s:x.s,o:o,a:dayStrN(o.s),z:dayStrN(o.e),c:plCol(P,x.s)}); }));
+  blocks.sort((x,y)=>x.a-y.a||x.o.k-y.o.k);
+  const ex=(settings.examDate&&/^\d{4}-\d\d-\d\d$/.test(settings.examDate))?dayStrN(settings.examDate):null;
+  let end=0; blocks.forEach(b=>{ if(!b.o.complete&&b.z>end) end=b.z; });
+  let h='<div class="card pl-card"><div class="pl-calh"><div class="pl-vw"><button class="'+(plVw==='m'?'on':'')+'" onclick="plSetVw(\'m\')">Month</button><button class="'+(plVw==='t'?'on':'')+'" onclick="plSetVw(\'t\')">Timeline</button></div><button class="secondary sm" onclick="plBrkOpen()">Breaks</button></div>';
+  if(end){
+    const sp=ex!=null?ex-end:null;
+    if(sp==null) h+='<div class="pl-sub" style="margin:0 0 10px;">Plan runs to '+plFmt(plDS(end))+'. Set your exam date on Home to see how many days are spare.</div>';
+    else h+='<div class="'+(sp<0?'pl-warn':'pl-ok')+'" style="margin-bottom:10px;">Plan runs to '+plFmt(plDS(end))+' \u00b7 exam '+plFmt(settings.examDate)+' \u00b7 '+(sp>=0?sp+' day'+(sp===1?'':'s')+' spare':'short by '+(-sp)+' day'+(sp===-1?'':'s')+'. Add fewer breaks or raise your daily goal.')+'</div>';
+  }
+  h+=plVw==='m'?plMonthHtml(P,cf,blocks,tn,ex)+plDayHtml(P,cf,blocks,tn,ex):plTimelineHtml(P,cf,blocks,tn,ex,names);
+  return h+'</div>';
+}
+/* ---- Breaks sheet ---- */
+function plBrkOpen(d){
+  plEnsure();
+  $h('plBrkN').value=''; $h('plBrkF').value=d?plDS(d):''; $h('plBrkT').value=d?plDS(d):''; plBrkErr('');
+  plBrkDraw(); $h('plBrkOverlay').classList.add('open');
+}
+function plBrkClose(){ $h('plBrkOverlay').classList.remove('open'); }
+function plBrkErr(t){ const e=$h("plBrkErrBox"); if(e) e.textContent=t||''; }
+function plBrkDraw(){
+  const P=plP(); if(!P) return; const off=new Set(P.off||[]);
+  $h('plOffChips').innerHTML=[[1,'Mon'],[2,'Tue'],[3,'Wed'],[4,'Thu'],[5,'Fri'],[6,'Sat'],[0,'Sun']].map(a=>'<button class="'+(off.has(a[0])?'on':'')+'" onclick="plOffToggle('+a[0]+')">'+a[1]+'</button>').join('');
+  const L=(P.brk||[]).filter(b=>b&&b.s&&b.e).slice().sort((a,b)=>a.s<b.s?-1:(a.s>b.s?1:0));
+  $h("plBrkListBox").innerHTML=L.length?L.map(b=>'<div class="pl-srow" style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span><b>'+escH(b.n)+'</b><br><small style="color:var(--muted)">'+plFmt(b.s)+(b.e!==b.s?' to '+plFmt(b.e):'')+'</small></span><button class="pl-ed" onclick="plBrkDel(\''+escH(b.id)+'\')">Remove</button></div>').join(''):'<p class="pl-note" style="margin:0 0 6px;">No breaks yet.</p>';
+  $h('plBrkTypes').innerHTML=['Rest','Travel','Exam','Festival','Illness'].map(t=>'<button class="'+(plBrkType===t?'on':'')+'" onclick="plBrkType=\''+t+'\';plBrkDraw()">'+t+'</button>').join('');
+}
+/* One change to breaks or off days: apply it, then (if ticked) slide the plan so each block keeps its study days. */
+function plBrkApply(mut){
+  const P=plEnsure(), old=plCfg(P), mv=!$h('plBrkMove')||$h('plBrkMove').checked;
+  mut(P);
+  const n=(mv&&plHas())?plReflow(P,old,plCfg(P)):0;
+  P.today=null; persistSettings(); plBrkDraw(); plRender();
+  try{ renderHome(); }catch(e){}
+  return n;
+}
+function plOffToggle(dw){
+  const P=plEnsure(), off=new Set(P.off||[]);
+  if(!off.has(dw)&&off.size>=6){ showToast('Keep at least one study day in the week.','warn'); return; }
+  const n=plBrkApply(Q=>{ const o=new Set(Q.off||[]); if(o.has(dw)) o.delete(dw); else o.add(dw); Q.off=Array.from(o).sort(); });
+  if(n) showToast(n+' plan block'+(n>1?'s':'')+' moved.','info');
+}
+function plBrkAdd(){
+  const f=$h('plBrkF').value, t=$h('plBrkT').value;
+  if(!f||!t){ plBrkErr('Pick both dates.'); return; }
+  if(dayStrN(t)<dayStrN(f)){ plBrkErr('The end date is before the start.'); return; }
+  const P=plEnsure(), cf=plCfg(P), nm=($h('plBrkN').value||'').trim()||plBrkType;
+  const n=plBrkApply(Q=>{ Q.brk=(Q.brk||[]).concat([{id:'b'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n:nm.slice(0,40),s:f,e:t}]); });
+  $h('plBrkN').value=''; $h('plBrkF').value=''; $h('plBrkT').value=''; plBrkErr('');
+  showToast(n?'Break saved. '+n+' plan block'+(n>1?'s':'')+' moved.':'Break saved','info');
+}
+function plBrkDel(id){
+  const n=plBrkApply(Q=>{ Q.brk=(Q.brk||[]).filter(b=>b.id!==id); });
+  showToast(n?'Break removed. '+n+' plan block'+(n>1?'s':'')+' moved.':'Break removed','info');
+}
 /* Simple mode tracker: on how many different days you practised each subject, against the days you planned for its reading */
 function plDaysHtml(P,items){
-  const tn=dayStrN(localDayStr()), used={};
+  const tn=dayStrN(localDayStr()), used={}, cf=plCfg(P);
   items.forEach(x=>{ used[x.s]=new Set(); });
   (history||[]).forEach(h=>{
     if(!h||!h.date) return; const dt=new Date(h.date); if(isNaN(dt.getTime())) return;
     const ds=localDayStr(dt), n=dayStrN(ds);
     const subs=h.subSec?Object.keys(h.subSec).filter(s=>h.subSec[s]>0):(h.topicBreakdown?Object.keys(h.topicBreakdown).map(k=>k.split('|||')[0]):[]);
-    subs.forEach(s=>{ if(!used[s]) return; const rb=(P.subs[s].blocks||[]).find(b=>b.t==='r'), from=rb&&rb.s?dayStrN(rb.s):tn-29; if(n>=from) used[s].add(ds); });
+    subs.forEach(s=>{ if(!used[s]||!plIsStudy(n,cf)) return; const rb=(P.subs[s].blocks||[]).find(b=>b.t==='r'), from=rb&&rb.s?dayStrN(rb.s):tn-29; if(n>=from) used[s].add(ds); });
   });
   const over=[]; let anyPlan=false;
   const rows=items.map(x=>{
-    const s=x.s, rb=(P.subs[s].blocks||[]).find(b=>b.t==='r'), given=used[s].size, plan=(rb&&rb.s&&rb.e)?dayStrN(rb.e)-dayStrN(rb.s)+1:0, fin=x.inf.stg.readDone;
+    const s=x.s, rb=(P.subs[s].blocks||[]).find(b=>b.t==='r'), given=used[s].size, plan=(rb&&rb.s&&rb.e)?Math.max(1,plStudyCount(dayStrN(rb.s),dayStrN(rb.e),cf)):0, fin=x.inf.stg.readDone;
     const dw=given+' day'+(given===1?'':'s');
     if(!plan) return '<div class="pl-stg" style="border-top:none;margin-top:10px;padding-top:0;"><div class="pl-r1"><span>'+escH(s)+'</span><span>'+dw+' so far</span></div></div>';
     anyPlan=true;
@@ -8746,12 +9092,12 @@ function plStripHtml(P,cov,names){
   let cols='', lab='', used={}, any=false;
   for(let d=tn;d<tn+14;d++){
     const c=m[d], over=!!c&&c.tot>B*1.05; let seg='';
-    if(c){ any=true; Object.keys(c.by).forEach(s=>{ used[s]=1; const ix=names.indexOf(s), hp=Math.max(2,Math.round(c.by[s]/mx*H)); seg+='<i style="height:'+hp+'px;background:'+PL_COL[ix%PL_COL.length]+(over?';opacity:.85':'')+'"></i>'; }); }
+    if(c){ any=true; Object.keys(c.by).forEach(s=>{ used[s]=1; const ix=names.indexOf(s), hp=Math.max(2,Math.round(c.by[s]/mx*H)); seg+='<i style="height:'+hp+'px;background:'+plCol(P,s)+(over?';opacity:.85':'')+'"></i>'; }); }
     cols+='<div class="pl-day">'+seg+'</div>';
     const dt=new Date(d*864e5);
     lab+='<span class="'+(d===tn?'t':'')+(over?' o':'')+'">'+dt.getUTCDate()+'</span>';
   }
-  const leg=Object.keys(used).map(s=>'<span><b style="background:'+PL_COL[names.indexOf(s)%PL_COL.length]+'"></b>'+escH(s)+'</span>').join('');
+  const leg=Object.keys(used).map(s=>'<span><b style="background:'+plCol(P,s)+'"></b>'+escH(s)+'</span>').join('');
   return '<div class="card pl-card"><div class="pl-row1"><b>Days ahead</b></div>'
     +'<div class="pl-sub" style="margin:2px 0 0;">Daily goal '+fmtN(B)+' \u00b7 '+plStyleName(P.style)+'</div>'
     +(any?'<div class="pl-days">'+cols+'<div class="pl-bud" style="bottom:'+Math.round(B/mx*H)+'px"></div></div><div class="pl-dl">'+lab+'</div><div class="pl-leg">'+leg+'</div><div class="pl-cap" style="margin-top:6px;"><span>Dashed line is your daily goal. A red date is planned above it.</span></div>'
@@ -8868,7 +9214,7 @@ function plUndo(i){
 function plShiftDays(P,cur){
   if(!P||!cur||!cur.b.e||!cur.b.s) return 0;
   if(cur.status!=='behind'&&cur.status!=='overdue') return 0;
-  const tn=dayStrN(localDayStr()), days=Math.max(1,Math.ceil(cur.rem/cur.rate)), ne=tn+days-1;
+  const tn=dayStrN(localDayStr()), days=Math.max(1,Math.ceil(cur.rem/cur.rate)), ne=plNthStudy(tn,days,plCfg(P));
   return Math.max(0,ne-dayStrN(cur.b.e));
 }
 function plShift(i){
@@ -8878,7 +9224,8 @@ function plShift(i){
   const oldEnd=dayStrN(cur.b.e), later=[];
   Object.keys(P.subs).forEach(x=>(P.subs[x].blocks||[]).forEach(b=>{ if(b!==cur.b&&!b.done&&b.s&&b.e&&dayStrN(b.s)>oldEnd) later.push(b); }));
   if(!confirm(s+' '+plStageName(cur).toLowerCase()+' will end '+plFmt(plAdd(cur.b.e,sh))+' ('+sh+' day'+(sh>1?'s':'')+' later), and '+later.length+' later block'+(later.length===1?'':'s')+' move by the same amount. Continue?')) return;
-  later.forEach(b=>{ b.s=plAdd(b.s,sh); b.e=plAdd(b.e,sh); });
+  const cf=plCfg(P), k=plStudyCount(oldEnd+1,dayStrN(plAdd(cur.b.e,sh)),cf);
+  later.forEach(b=>{ b.s=plDS(plMoveStudy(dayStrN(b.s),k,cf)); b.e=plDS(plMoveStudy(dayStrN(b.e),k,cf)); });
   cur.b.e=plAdd(cur.b.e,sh); P.today=null;
   persistSettings(); plRender(); try{ renderHome(); }catch(e){}
   showToast('Plan shifted by '+sh+' day'+(sh>1?'s':'')+'.','info');
@@ -8906,7 +9253,7 @@ function plBkOpen(i,bi,t){
 function plBkClose(){ $h('plBkOverlay').classList.remove('open'); plEd=null; }
 function plBkChange(w){
   if(!plEd) return; const P=plP(), rate=plRate(P,plEd.t==='r'?'r':'v');
-  if(w==='s'&&!plEd.endTouched){ const s=$h('plBkS').value; if(s) $h('plBkE').value=plDS(dayStrN(s)+Math.max(1,Math.ceil(plEd.rem/rate))-1); }
+  if(w==='s'&&!plEd.endTouched){ const s=$h('plBkS').value; if(s) $h('plBkE').value=plDS(plNthStudy(dayStrN(s),Math.max(1,Math.ceil(plEd.rem/rate)),plCfg(P))); }
   if(w==='e') plEd.endTouched=true;
   plBkInfo();
 }
@@ -8923,11 +9270,11 @@ function plBkInfo(){
   $h('plBkSize').textContent=fmtN(rem)+' questions to do \u00b7 your pace is '+fmtN(rate)+' a day, so about '+need+' day'+(need>1?'s':'');
   let h='';
   if(s&&e&&dayStrN(e)>=dayStrN(s)){
-    const dur=dayStrN(e)-dayStrN(s)+1, per=Math.ceil(rem/dur);
-    if(per>rate*1.05){ const sug=plDS(dayStrN(s)+need-1); h+='<div class="pl-warn" style="margin-top:10px;">'+fmtN(per)+' a day is above your pace of '+fmtN(rate)+'. At your pace it ends '+plFmt(sug)+'.<div class="row pair" style="margin-top:8px;"><button class="primary sm" onclick="plBkUse(\''+sug+'\')">Use '+plFmt(sug)+'</button><button class="secondary sm" onclick="this.parentNode.parentNode.style.display=\'none\'">Keep my dates</button></div></div>'; }
+    const cf=plCfg(P), dur=Math.max(1,plStudyCount(dayStrN(s),dayStrN(e),cf)), per=Math.ceil(rem/dur);
+    if(per>rate*1.05){ const sug=plDS(plNthStudy(dayStrN(s),need,cf)); h+='<div class="pl-warn" style="margin-top:10px;">'+fmtN(per)+' a day is above your pace of '+fmtN(rate)+'. At your pace it ends '+plFmt(sug)+'.<div class="row pair" style="margin-top:8px;"><button class="primary sm" onclick="plBkUse(\''+sug+'\')">Use '+plFmt(sug)+'</button><button class="secondary sm" onclick="this.parentNode.parentNode.style.display=\'none\'">Keep my dates</button></div></div>'; }
     else h+='<div class="pl-ok" style="margin-top:10px;">'+fmtN(per)+' a day fits your pace.</div>';
     const m=plLoad(P,plEd.cov,b), caps=plCaps(P), bad=[]; let capHit=0;
-    for(let d=dayStrN(s);d<=dayStrN(e);d++){ const c=m[d]||{tot:0,n:0,v:0}; if(c.tot+rem/dur>B*1.05) bad.push(plFmt(plDS(d))+' ('+fmtN(Math.round(c.tot+rem/dur))+')'); if(c.n+c.v+1>caps.tot||(t==='r'?c.n+1>caps.n:c.v+1>caps.v)) capHit++; }
+    for(let d=dayStrN(s);d<=dayStrN(e);d++){ if(!plIsStudy(d,cf)) continue; const c=m[d]||{tot:0,n:0,v:0}; if(c.tot+rem/dur>B*1.05) bad.push(plFmt(plDS(d))+' ('+fmtN(Math.round(c.tot+rem/dur))+')'); if(c.n+c.v+1>caps.tot||(t==='r'?c.n+1>caps.n:c.v+1>caps.v)) capHit++; }
     if(capHit) h+='<div class="pl-warn" style="margin-top:8px;">Your style ('+plStyleName(P.style).toLowerCase()+') allows fewer blocks at once, and '+capHit+' of these days already have another one.</div>';
     if(bad.length) h+='<div class="pl-warn" style="margin-top:8px;">Above your daily goal of '+fmtN(B)+' on '+bad.slice(0,3).join(', ')+(bad.length>3?' and '+(bad.length-3)+' more':'')+'.</div>';
   }
