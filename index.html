@@ -4552,10 +4552,41 @@ const HEAD_RE=/(?:^|\n)[ \t]*Q\.?[ \t]*(\d{1,3})[ \t]*[.:)\-\u2013]?[ \t]*\(?([A
    for the solutions part (a question's own option lines are never alone on a line after a bare number). */
 function seqFix(n, prev){ n=String(n); if(prev==null) return n; const want=String(prev+1); return (+n<=prev && want.length>n.length && want.startsWith(n)) ? want : n; }   // dropped-digit typo in a printed list
 const HEAD_NUM_RE=/(?:^|\n)[ \t]*(\d{1,3})[ \t]*[.:)\-\u2013][ \t]*\(([A-Ea-e*])\)?[ \t]*(?=\n|$)/g;   // solution headings like "Q 12.C"
+/* Answer TABLE printed after the last question (build index-37). Test-series papers list every answer in a grid, several question numbers per row:
+     Q. No. Ans. Q. No. Ans. Q. No. Ans.      <- header (optional)
+     1 B 31 A 61 C                             <- number, letter, number, letter ...
+   The grid is read row by row (the way the PDF reader hands it over). A header line such as \"Q. No. Ans.\" makes the rows below it a table; without a
+   header it takes 4+ rows of 2+ pairs, or a shorter grid whose 5+ numbers are all different and run from 1 or 2 without big gaps (a lone \"1 B\" is never a key).
+   Returns [{start,end,pairs}] (character offsets in the text). The first question block uses it to stop before the table, buildAnswerMap to read it. */
+const KEY_HEAD=/^[ \t]*(?:(?:(?:Q(?:ue(?:s(?:tion)?)?)?|Sr|Sl)\.?[ \t]*)?(?:No\.?|Num(?:ber)?\.?)?[ \t]*[-:|]?[ \t]*(?:Ans(?:wer)?|Key)\.?[ \t|]*)+$/i;
+const KEY_ROW=/^[ \t]*(?:\d{1,3}[ \t|]*[-\u2013:.)]?[ \t|]*\(?[A-Ea-e*]\)?(?![A-Za-z0-9])[ \t,;|]*)+$/;
+const KEY_PAIR=/(\d{1,3})[ \t|]*[-\u2013:.)]?[ \t|]*\(?([A-Ea-e*])\)?(?![A-Za-z0-9])/g;
+function keyTables(text){
+  const L=String(text||'').split('\n'), offs=[]; let o=0; L.forEach(l=>{ offs.push(o); o+=l.length+1; });
+  const rowPairs=l=>{ if(l.length>220 || !KEY_ROW.test(l)) return null; const a=[]; let m; const re=new RegExp(KEY_PAIR.source,'g'); while((m=re.exec(l))) a.push([m[1],m[2].toLowerCase()]); return a.length ? a : null; };
+  const out=[]; let i=0;
+  while(i<L.length){
+    const head = L[i].length<=200 && /\S/.test(L[i]) && KEY_HEAD.test(L[i]);
+    let j = head ? i+1 : i; const pairs=[]; let rows=0, multi=0, last=head ? i : -1, gap=0;
+    for(; j<L.length; j++){
+      if(!/\S/.test(L[j])){ if(++gap>2) break; continue; }   // a blank line or two (page break) does not end the table
+      const rp=rowPairs(L[j]); if(!rp) break;
+      gap=0; rows++; if(rp.length>=2) multi++; rp.forEach(x=>pairs.push(x)); last=j;
+    }
+    const nums=pairs.map(x=>+x[0]).sort((a,b)=>a-b), uniq=new Set(nums).size===nums.length;
+    const dense=uniq && nums.length>=5 && nums[0]<=2 && (nums[nums.length-1]-nums[0]+1)<=nums.length*1.25;   /* no header: a short grid still counts when its numbers are all different and run 1,2,3... without big gaps (a 10-question quiz is just 2 rows) */
+    if(rows && ((head && pairs.length>=1) || (rows>=4 && multi>=4 && pairs.length>=8) || (dense && (multi>=1 || rows>=8)))){
+      out.push({start:offs[i], end:last+1<L.length ? offs[last+1] : text.length, pairs});
+      i=Math.max(j, i+1);
+    } else i++;
+  }
+  return out;
+}
 function buildAnswerMap(t, keyRegionOnly){
   t = dropOtherLanguage(t);
   const map = {}, set=(n,k)=>{ if(!map[n]) map[n]=k.toLowerCase(); };
   let m;
+  keyTables(t).forEach(b=>b.pairs.forEach(x=>set(x[0],x[1])));   // answer grid after the questions ("1 B 31 A 61 C")
   const rh=new RegExp(HEAD_RE.source,'g'); while((m=rh.exec(t))) set(m[1],m[2]);
   if(!keyRegionOnly){ const rn=new RegExp(HEAD_NUM_RE.source,'g'); while((m=rn.exec(t))) set(m[1],m[2]); }
   const r1=/(?:^|\n)[ \t]*(?:Q\.?[ \t]*)?(\d{1,3})[ \t]*[-\u2013.)]?\s*(?:Correct[ \t]+)?Ans(?:wer)?\b[ \t]*[-:.)]*[ \t]*\(?([a-e*])\)?(?![A-Za-z])/gi;
@@ -4751,6 +4782,7 @@ const PARSER_TESTS=[
   {name:'Missing bracket typo (b 750', count:2, keys:'ca', text:'1. How many watts are there in a horsepower?\n(a) 1000 (b 750\n(c) 746 (d) 748\nAns. (c)\nHorse power.\n2. Unit of work is :\n(a) Joule (b) Watt\n(c) Pascal (d) Tesla\nAns. (a)\nJoule.'},
   {name:'Units after numbers (500 ml)', count:2, keys:'ba', text:'1. Blood in an adult is about :\n(a) 6000 ml (b) 5000 ml\n(c) 4000 ml (d) 3000 ml\nAns. (b)\nBlood.\n2. Dose of vaccine is :\n(a) 0.5 ml (b) 1 ml\n(c) 2 ml (d) 3 ml\nAns. (a)\nDose.'},
   {name:'Q.1) style with answer key at the end', count:2, keys:'aa', text:'Q.1) Which of the following is a river?\na) Ganga\nb) Mount\nc) Lake\nd) Sea\nQ.2) Capital of India?\na) Delhi\nb) Mumbai\nc) Pune\nd) Goa\n\nAnswer Key\n1-a, 2-a'},
+  {name:'Answer grid at the end (Q. No. Ans. rows)', count:4, keys:'bcad', text:'Q1. Capital of India?\n(a) Mumbai\n(b) Delhi\n(c) Pune\n(d) Goa\nQ2. Which is a river?\n(a) Hill\n(b) Lake\n(c) Ganga\n(d) Sea\nQ3. Unit of force?\n(a) Newton\n(b) Joule\n(c) Watt\n(d) Pascal\nQ4. Largest planet?\n(a) Mars\n(b) Venus\n(c) Earth\n(d) Jupiter\n5 | P a g e\nQ. No. Ans. Q. No. Ans.\n1 B 3 A\n2 C 4 D'},
   {name:'Assertion and Reason', count:2, keys:'ba', text:'1. Assertion (A): The sky is blue.\nReason (R): Light scatters.\n(a) Both A and R are true and R explains A\n(b) Both A and R are true but R does not explain A\n(c) A is true but R is false\n(d) A is false but R is true\nAns. (b)\nex\n2. Unit of force is\n(a) Newton (b) Joule\n(c) Watt (d) Pascal\nAns. (a)\nex'},
   {name:'A question with picture options is reported, not lost silently', count:2, keys:'ab', text:'1. The unit of force is :\n(a) Newton (b) Joule\n(c) Watt (d) Pascal\nAns. (a)\nex1\n2. Which graph shows free fall?\nAns. (c)\nex2\n3. Unit of work is :\n(a) Joule (b) Watt\n(c) Pascal (d) Tesla\nAns. (b)\nex3'}
 ];
@@ -4779,7 +4811,7 @@ function parseFullText(text, solutionsText){
   for(let i=0;i<boundaries.length;i++){
     const bodyStart = boundaries[i].bodyStart;
     let bodyEnd = (i+1<boundaries.length) ? boundaries[i+1].start : text.length;
-    if(i+1===boundaries.length){ const cut=text.slice(bodyStart).search(/\n[ \t]*(?:answer\s*key\b|answers?\s+(?:with|&|and)\s+explanations?\b|(?:detailed\s+)?(?:solutions?|explanations?)(?:\s*(?:&|and)\s*(?:solutions?|explanations?|answers?))?[ \t]*(?=\n|$))/i); if(cut>0) bodyEnd=bodyStart+cut; }   /* only a heading ON ITS OWN LINE ends the last question: an option that wraps onto a line starting "explanation of (A)." must not */   // last question must not swallow the answer section
+    if(i+1===boundaries.length){ const cut=text.slice(bodyStart).search(/\n[ \t]*(?:answer\s*key\b|answers?\s+(?:with|&|and)\s+explanations?\b|(?:detailed\s+)?(?:solutions?|explanations?)(?:\s*(?:&|and)\s*(?:solutions?|explanations?|answers?))?[ \t]*(?=\n|$))/i); if(cut>0) bodyEnd=bodyStart+cut; { const kt=keyTables(text.slice(bodyStart, bodyEnd)); if(kt.length) bodyEnd=bodyStart+kt[0].start; } }   /* an answer grid ("Q. No. Ans." + rows of number/letter pairs) must not become the last option */   /* only a heading ON ITS OWN LINE ends the last question: an option that wraps onto a line starting "explanation of (A)." must not */   // last question must not swallow the answer section
     const q = parseBlock(String(boundaries[i].num), text.slice(bodyStart, bodyEnd));
     q.run = boundaries[i].run||0;
     if(q.options.length>=2 && q.text){ out.push(q); if((text.slice(bodyStart, bodyEnd).match(ANS_LINE)||[]).length>=2) diag.merged.push(boundaries[i].num); }
@@ -4830,7 +4862,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-36';
+const APP_BUILD = 'index-37';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
