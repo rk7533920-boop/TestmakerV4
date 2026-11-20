@@ -118,3 +118,9 @@ Asked for by the owner after a full sync/backup audit. The new functions were te
 - Profile switch `settings.shuffleOpts` (synced, default off). Only questions with `attemptCount>0` and no positional option text ("All of the above", "None of these", "above", "below"...) are shuffled.
 - Only the on-screen order changes; option keys/letters stay original, so explanations like "option B" and all scoring stay valid. The order is made lazily when a question is first shown (`ordOpts`), kept in `session.ord` (saved in the session snapshot), and used by the test screen, the review of wrong answers and keys 1-4 (which follow position). Library, editing, duel and exports keep the original order.
 - The one-pager prompt (`OP_PROMPT`) was replaced with the user's improved version: under 10 pages, notes decide, SVG diagrams required, render-check only if possible.
+
+## Test analysis (Profile > Test analysis)
+All new features are OFF by default and remembered in `settings.an` (`cm` confidence marking, `cr` confidence report, `da` detailed analysis, `sf` source-first ticks). `settings.afw` (flag wrong answers automatically) is ON unless set to false and gates the end-of-test auto-flag + `srOnWrong` in `applyAttempts`.
+- Capture: confidence chips (50-50 / 1 in 3 / Guess, no tap = Sure) stored in `session.conf`; source (`practice|pyq|series`) chosen on the test start screen (`testSrc`).
+- Record: `finishTest` -> `addAnalysis` adds `src`, `sch` (marking r/w) and `qr` (one compact record per answered question: i,s,t,a,k,o,c,f,d + later g=category c/s/r/k, sr/er ticks) to the history entry, saved through `persistHistoryEntry`. The 8-entry `q.h` log is not used for this.
+- Screens: results > Detailed analysis (`openAnalysis`), Progress/History card `#anHistCard` (`renderAnHist`). Goal = (Conceptual + Silly) / total questions < 2%, text only, no tracker.

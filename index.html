@@ -990,6 +990,16 @@ button.primary.sm,button.secondary.sm,.bkb button.primary,.bkb button.secondary,
         <p class="muted" style="font-size:11.5px;margin:8px 0 0;">Days are counted from the day you got a question wrong or flagged it, so day 1 is the next day. A question you flagged by hand and never got wrong is reviewed only on the 1st and 3rd review days. Get both right and the flag is removed; get one wrong and it starts the full wrong-question cycle.</p>
       </div>
     </div>
+    <div class="grp-h">Test analysis</div>
+    <div class="card" style="margin-top:0;">
+      <label class="st-sw" style="margin-top:0;"><input type="checkbox" id="afwChk" class="sw" onchange="setAfw(this.checked)">Flag wrong answers automatically</label>
+      <p class="muted" style="font-size:11.5px;margin:8px 0 0;">On by default, as before. Turn it off to flag by hand only.</p>
+      <label class="st-sw"><input type="checkbox" id="anCm" class="sw" onchange="setAn('cm',this.checked)">Confidence marking</label>
+      <label class="st-sw"><input type="checkbox" id="anCr" class="sw" onchange="setAn('cr',this.checked)">Confidence report <span class="muted" style="font-size:11.5px;">(needs Confidence marking)</span></label>
+      <label class="st-sw"><input type="checkbox" id="anDa" class="sw" onchange="setAn('da',this.checked)">Detailed analysis</label>
+      <label class="st-sw"><input type="checkbox" id="anSf" class="sw" onchange="setAn('sf',this.checked)">Source-first ticks <span class="muted" style="font-size:11.5px;">(needs Detailed analysis)</span></label>
+      <p class="muted" style="font-size:11.5px;margin:8px 0 0;">The new features are off until you turn them on, and your choice is remembered.</p>
+    </div>
     <div class="grp-h">Flagged questions</div>
     <div class="card" style="margin-top:0;">
       <label class="st-sw" style="margin-top:0;"><input type="checkbox" id="autoUnflagChk" class="sw" onchange="setAutoUnflag(this.checked)">Remove the flag after I get a question right 2 times in a row</label>
@@ -1155,6 +1165,7 @@ Ans. (b)
         <button class="modebtn active-mode" id="modePractice" onclick="setTestMode('practice')">Practice<span class="mdesc">see answer instantly</span></button>
         <button class="modebtn" id="modeExam" onclick="setTestMode('exam')">Exam<span class="mdesc">reveal at the end</span></button>
       </div>
+      <div class="row" id="srcRow" style="margin:8px 0;display:none;align-items:center;gap:8px;"></div>
       <details class="adv" ontoggle="updateSimNote()"><summary>More options</summary>
       <div class="row" style="margin:8px 0;align-items:center;">
         <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer;"><input type="checkbox" id="simToggle" class="sw" checked onchange="setSimilar(this.checked)">Skip very similar questions</label>
@@ -1218,6 +1229,7 @@ Ans. (b)
   </section>
 
   <section id="screen-history" class="screen">
+    <div class="card" id="anHistCard" style="display:none;"></div>
     <div class="card" id="dayChartCard">
       <div class="row" style="justify-content:space-between;align-items:center;"><h3 style="margin:0;">New vs revised</h3>
         <span class="chips" id="dcRange"><button data-v="7" onclick="setDayRange(7)">7 d</button><button data-v="14" onclick="setDayRange(14)">14 d</button><button data-v="30" onclick="setDayRange(30)">30 d</button></span></div>
@@ -2020,7 +2032,7 @@ function toggleTheme(){
   persistSettings();
   applyTheme();
 }
-function setTestMode(m){
+function setTestMode(m){ try{ renderSrcRow(); }catch(e){}
   testMode = m;
   document.getElementById('modePractice').classList.toggle('active-mode', m==='practice');
   document.getElementById('modeExam').classList.toggle('active-mode', m==='exam');
@@ -6023,7 +6035,7 @@ function buildMeta(){
 const SESS_KEY='gc_session'; let _sessAt=0, _sessT=null;
 function sessSnapshot(){
   if(!session || session.done) return null;
-  return {v:1, ord:session.ord||{}, ids:session.questions.map(q=>q.id), answers:session.answers, cur:session.currentIdx, elapsed:Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000), qt:(qBank(),session.qt), mode:session.mode, testMode:session.testMode, marking:session.marking||null, am:session.arch||{}, bmk:session.bm||{}, mk:session.mask||{}, rm:session.recallMiss||{}, pf:Object.keys(session.pendFlag||{}), lf:Object.keys(session.liveFlag||{}), savedAt:Date.now()};
+  return {v:1, ord:session.ord||{}, ids:session.questions.map(q=>q.id), answers:session.answers, cur:session.currentIdx, elapsed:Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000), qt:(qBank(),session.qt), mode:session.mode, testMode:session.testMode, marking:session.marking||null, am:session.arch||{}, bmk:session.bm||{}, mk:session.mask||{}, cf:session.conf||{}, src:session.src||null, rm:session.recallMiss||{}, pf:Object.keys(session.pendFlag||{}), lf:Object.keys(session.liveFlag||{}), savedAt:Date.now()};
 }
 function saveSession(){
   clearTimeout(_sessT); _sessAt=Date.now();
@@ -6087,6 +6099,7 @@ function resumeSession0(s){
   session.ord=(s.ord && typeof s.ord==='object') ? s.ord : {};
   Object.keys(s.mk||{}).forEach(i=>{ if(map[i]!==undefined) session.mask[map[i]]=s.mk[i]; });
   session.recallMiss={}; Object.keys(s.rm||{}).forEach(i=>{ if(map[i]!==undefined) session.recallMiss[map[i]]=1; });
+  session.conf={}; Object.keys(s.cf||{}).forEach(i=>{ if(map[i]!==undefined) session.conf[map[i]]=s.cf[i]; }); session.src=s.src||null;
   session.pendFlag={}; (s.pf||[]).forEach(id=>{ const q=byId.get(id); if(q){ if(!q.flagged){ q.flagged=true; srOnFlag(q,true); } session.pendFlag[id]=1; } });   // flags raised during the test but not yet saved online
   session.liveFlag={}; (s.lf||[]).forEach(id=>{ session.liveFlag[id]=1; });
   Object.keys(s.qt||{}).forEach(i=>{ if(map[i]!==undefined) session.qt[map[i]]=s.qt[i]; }); qResume();   // time spent away is not counted
@@ -7050,7 +7063,7 @@ async function executeDelete(){
 
 /* ---------- Progress bar + revision detail + target/exam date ---------- */
 function totalAttempted(){ return bank.reduce((s,q)=>s+(q.attemptCount||0),0); }
-function renderProgress(){ try{ renderDayChart(); }catch(e){} }
+function renderProgress(){ try{ renderDayChart(); }catch(e){} try{ renderAnHist(); }catch(e){} }
 /* ---------- Questions tab rendering ---------- */
 function renderBank(){
   { let live=0, fl=0, is=0, ar=0;   // one pass over the bank instead of six
@@ -7902,6 +7915,7 @@ function updateFilterSummary(){ refreshNotesBtn(); try{ kwRender(); }catch(e){}
 }
 function renderTestIdle(){
   try{ renderMaskControls(); }catch(e){}
+  try{ renderSrcRow(); }catch(e){}
   document.getElementById('testIdle').style.display='block';
   document.getElementById('testRunning').style.display='none';
   document.getElementById('testResults').style.display='none';
@@ -7932,7 +7946,7 @@ function beginSession(source, mode, _skipKeys){
   if(document.getElementById('keysIntro')) return;
   if(!_skipKeys && !settings.keysIntroHide && !_keysIntroSeen){ _keysIntroSeen=true; showKeysIntro(()=>beginSession(source,mode,true)); return; }
   explOpen = {};
-  session = {questions:source, answers:{}, startTime:Date.now(), mode, testMode, done:false, currentIdx:0, marking: getMarking(), qt:{}, qAt:Date.now(), ord:{}};
+  session = {questions:source, answers:{}, startTime:Date.now(), mode, testMode, done:false, currentIdx:0, marking: getMarking(), qt:{}, qAt:Date.now(), ord:{}, conf:{}, src:(anOn('da')||anOn('cm'))?testSrc:null};
   session.mask = (testMode==='practice') ? buildMasks(source, mode) : {};
   document.getElementById('testIdle').style.display='none';
   document.getElementById('testResults').style.display='none';
@@ -8171,6 +8185,7 @@ function renderRunning(){
   ).join('');
   const _mkPending = !!(session.mask && session.mask[idx]==='hide' && !session.answers[idx]);
   if(_mkPending) optsHtml = maskBoxHtml(idx);
+  if(anOn('cm') && !_mkPending) optsHtml = confRowHtml(idx) + optsHtml;
   const tagHtml = srcTagHtml(q.sourceTag);
   // Disputed (*) questions have no single right answer, so unlike a normal reveal this note/explanation
   // is shown immediately — in both practice and exam mode — rather than withheld until the test ends.
@@ -8223,6 +8238,7 @@ function answerQ(idx,key){
   session.answers[idx] = key;
   if(!exam){ qBank(); session.qAt = null; }
   applyAnsweredState(idx);
+  try{ confLock(idx); }catch(e){}
   /* A wrong answer is flagged automatically when the test ends (or is discarded); nothing changes on screen while the test is running. */
   try{ syncRecallFab(idx); }catch(e){}
   updateFooter();
@@ -8391,8 +8407,8 @@ function applyAttempts(sess, avgTimeQ){
       wrongIds.push(q.id);
       reviewItems.push({q,chosen:a});
       const _dropped = !!(sess.liveFlag && sess.liveFlag[q.id]) && !(sess.pendFlag && sess.pendFlag[q.id]) && !q.flagged;   // flagged when it was wrong, then un-flagged by hand: leave it that way
-      if(!q.flagged && !q.arch && !_dropped) q.flagged = true;
-      if(!q.arch && !_dropped) srOnWrong(q, localDayStr());
+      if(!q.flagged && !q.arch && !_dropped && afwOn()) q.flagged = true;
+      if(!q.arch && !_dropped && (afwOn() || q.flagged)) srOnWrong(q, localDayStr());
     }
     if(q.flagged && !srClean(q.sr)) srOnFlag(q, true);
     { const _ok=(a===q.correctKey||q.correctKey==='*'); const _ms=sess.mask&&sess.mask[idx], _ev=_rm?'miss':(_ms==='rec'?'strong':(_ms==='show'?'weak':null)); if(_ev){ const t=(maskTally[_ms]=maskTally[_ms]||{n:0,ok:0}); t.n++; if(_rm) t.miss=(t.miss||0)+1; else if(_ok) t.ok++; } try{ attemptLog(q,_ok,idx,_rm?'miss':_ms); smartAfter(q,_ok,_pl,_first,_ev); }catch(e){} }
@@ -8400,6 +8416,189 @@ function applyAttempts(sess, avgTimeQ){
   });
   return {correct, incorrect, dayNew, dayRev, wrongIds, reviewItems, maskTally, topicBreakdown, marksBy, subSec};
 }
+/* ===== Test analysis: off by default, switched on in Profile > Test analysis. Stage 1 = capture (confidence, source, per-question record). ===== */
+let testSrc='practice';
+function anOn(k){ return !!(settings.an && settings.an[k]===true); }
+function afwOn(){ return settings.afw!==false; }   /* flag wrong answers automatically: on by default, as before */
+function setAn(k,v){ settings.an=settings.an||{}; settings.an[k]=!!v; persistSettings(); try{ renderProfile(); renderSrcRow(); }catch(e){} }
+function setAfw(v){ settings.afw=!!v; persistSettings(); }
+const CONF=[['b','50\u201350'],['t','1 in 3'],['g','Guess']];   /* no tap = Sure */
+function confRowHtml(idx){
+  const cur=(session.conf||{})[idx], lock=!!session.answers[idx] && session.testMode!=='exam';
+  return '<div id="cf-'+idx+'" style="display:flex;align-items:center;gap:6px;margin:0 0 8px;"><span class="muted" style="font-size:12px;white-space:nowrap;">How sure?</span>'
+    + CONF.map(c=>'<button type="button" class="secondary" style="flex:1;padding:6px 4px;font-size:13px;'+(cur===c[0]?'outline:2px solid var(--accent);':'')+'"'+(lock?' disabled':'')+' onclick="setConf('+idx+',\''+c[0]+'\')">'+c[1]+'</button>').join('')+'</div>';
+}
+function setConf(idx,k){
+  if(!session || (session.answers[idx] && session.testMode!=='exam')) return;
+  session.conf=session.conf||{};
+  if(session.conf[idx]===k) delete session.conf[idx]; else session.conf[idx]=k;
+  const r=document.getElementById('cf-'+idx);
+  if(r) r.querySelectorAll('button').forEach((b,i)=>{ b.style.outline=(session.conf[idx]===CONF[i][0])?'2px solid var(--accent)':''; });
+  saveSession();
+}
+function confLock(idx){ if(!session || session.testMode==='exam') return; const r=document.getElementById('cf-'+idx); if(r) r.querySelectorAll('button').forEach(b=>{ b.disabled=true; }); }
+function setTestSrc(k){ testSrc=k; renderSrcRow(); }
+function renderSrcRow(){
+  const el=document.getElementById('srcRow'); if(!el) return;
+  const on=anOn('da')||anOn('cm'); el.style.display=on?'flex':'none'; if(!on) return;
+  el.innerHTML='<span class="muted" style="font-size:12px;">Source</span>'+[['practice','Practice'],['pyq','PYQ'],['series','Test Series']].map(c=>'<button type="button" class="modebtn'+(testSrc===c[0]?' active-mode':'')+'" style="flex:1;" onclick="setTestSrc(\''+c[0]+'\')">'+c[1]+'</button>').join('');
+}
+/* One compact record per answered question, kept inside the test's own history entry (the 8-attempt log is not used for this). c: s=sure, b=50-50, t=1 in 3, g=guess. */
+function addAnalysis(entry,sess,mk){
+  entry.src=sess.src||'practice';
+  if(mk) entry.sch={r:mk.r,w:mk.w};
+  const qr=[];
+  sess.questions.forEach((q,i)=>{
+    const a=sess.answers[i]; if(!a) return;
+    const rec={i:q.id, s:q.subject||'General', t:q.topic||'General', a:a, k:q.correctKey, o:(a===q.correctKey||q.correctKey==='*')?1:0, c:(sess.conf&&sess.conf[i])||'s', f:q.flagged?1:0};
+    const sec=sess.qt&&sess.qt[i]; if(sec>0) rec.d=Math.round(sec);
+    qr.push(rec);
+  });
+  entry.qr=qr; sess.hEntry=entry;
+}
+/* ----- Detailed analysis (stage 2): summary + classify each wrong answer. Saved to the test's own history entry on every tap. ----- */
+const ANC=[['c','Conceptual','#E53935','#fff'],['s','Silly mistake','#8E3CFF','#fff'],['r','Revision void','#FFB300','#1a1a1a'],['k','Knowledge gap','#00B0FF','#0b1b2b']];
+let _anE=null, _anBack='', _anW=[];
+function qById(id){ const s=(session&&session.questions||[]).find(q=>q.id===id); if(s) return s; try{ return bank.find(q=>q.id===id); }catch(e){ return null; } }
+function anSave(){ try{ persistHistoryEntry(_anE); }catch(e){ console.warn(e); } }
+function anSummaryHtml(){
+  const e=_anE, qr=e.qr||[], tot=e.total||qr.length||1, n={c:0,s:0,r:0,k:0,p:0};
+  _anW.forEach(r=>{ if(r.g) n[r.g]++; else n.p++; });
+  const cs=n.c+n.s, rate=cs/tot*100, allowed=Math.max(0,Math.ceil(0.02*tot)-1), cut=Math.max(0,cs-allowed);
+  const unsure=qr.filter(r=>r.o && r.c!=='s').length, done=_anW.length-n.p, AX=25;
+  const seg=(k,col)=>n[k]?'<div style="width:'+(n[k]/tot/(AX/100)*100)+'%;background:'+col+';border-right:1.5px solid var(--card,#fff);box-sizing:border-box;"></div>':'';
+  const dot=(c,t)=>'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;"><span style="width:9px;height:9px;border-radius:50%;background:'+c+';display:inline-block;"></span>'+t+'</span>';
+  return '<div class="stats"><div class="stat"><div class="num" style="color:var(--green)">'+e.correct+'</div><div class="lbl">Correct</div></div><div class="stat"><div class="num" style="color:var(--red)">'+e.incorrect+'</div><div class="lbl">Wrong</div></div><div class="stat"><div class="num">'+e.unattempted+'</div><div class="lbl">Unattempted</div></div></div>'
+   +'<h3 style="margin:12px 0 2px;">Mistake distribution</h3><div class="muted" style="font-size:12px;">'+_anW.length+' wrong \u00b7 '+done+' classified \u00b7 '+n.p+' pending</div>'
+   +'<div style="position:relative;margin:22px 0 8px;"><div style="position:absolute;top:-16px;left:'+(2/AX*100)+'%;transform:translateX(-50%);font-size:10px;">2% goal</div>'
+   +'<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--bg2,#eee);">'+seg('c',ANC[0][2])+seg('s',ANC[1][2])+seg('r',ANC[2][2])+seg('k',ANC[3][2])+seg('p','#9aa0a6')+'</div>'
+   +'<div style="position:absolute;top:-4px;left:'+(2/AX*100)+'%;height:22px;width:2px;background:var(--text,#000);"></div></div>'
+   +'<div style="font-size:12px;line-height:1.9;">'+dot(ANC[0][2],'Conceptual '+n.c)+dot(ANC[1][2],'Silly '+n.s)+dot(ANC[2][2],'Revision void '+n.r)+dot(ANC[3][2],'Knowledge gap '+n.k)+(n.p?dot('#9aa0a6','Pending '+n.p):'')+'</div>'
+   +'<div style="border-top:1px solid var(--line,#ddd);margin-top:10px;padding-top:10px;"><div class="muted" style="font-size:12px;">Conceptual + Silly</div><div style="font-size:22px;font-weight:600;">'+cs+' / '+tot+' = '+rate.toFixed(1)+'%</div>'
+   +'<div style="font-size:13px;margin-top:4px;">Target: below 2% of the test, five tests in a row.</div>'
+   +'<div style="font-size:12px;margin-top:2px;color:'+(cut?'var(--red)':'var(--green)')+';">'+(cut?'Cut at least '+cut+' mistake'+(cut>1?'s':'')+'.':'Within target.')+(n.p?' '+n.p+' pending, so this is not final.':'')+'</div></div>'
+   +(anOn('cm')?'<div class="muted" style="font-size:12px;margin-top:8px;">Right but unsure: '+unsure+'</div>':'');
+}
+function anCardInner(k){
+  const r=_anW[k], q=qById(r.i)||{}, conf={s:'Sure',b:'50\u201350',t:'1 in 3',g:'Guess'}[r.c]||'Sure';
+  let ans='';
+  try{ const o=ordOpts(q), g=key=>{ const x=o.find(z=>z.key===key); return x?key.toUpperCase()+'. '+escH(x.text):escH(String(key||'')); }; ans='You: '+g(r.a)+'<br>Correct: '+g(r.k); }catch(e){}
+  const flagged=!!q.flagged;
+  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span class="muted" style="font-size:11px;">'+escH(r.s)+' \u203a '+escH(r.t)+'</span>'+(anOn('cm')?'<span class="muted" style="font-size:11px;border:1px solid var(--line,#ddd);border-radius:6px;padding:1px 7px;">You marked: '+conf+'</span>':'')+'</div>'
+   +'<div class="qhead">'+qHtml(q.text||'',(k+1)+'. ')+'</div><div class="muted" style="font-size:12px;margin:6px 0;">'+ans+'</div>'
+   +((anOn('cm') && r.c==='s')?'<div style="background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:12px;margin:6px 0;">Sure but wrong. Revise this from your own source, not from the explanation.</div>':'')
+   +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;">'+ANC.map(c=>'<button type="button" class="secondary" style="min-height:44px;'+(r.g===c[0]?'background:'+c[2]+';color:'+c[3]+';border:2px solid '+c[2]+';':'')+'" onclick="anPick('+k+',\''+c[0]+'\')"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+c[2]+';margin-right:7px;vertical-align:-1px;"></span>'+c[1]+'</button>').join('')+'</div>'
+   +'<div class="row" style="justify-content:space-between;align-items:center;"><span class="muted" style="font-size:12px;">'+(r.g?'Saved.':'Pending. Nothing is saved until you tap.')+'</span><button type="button" class="secondary" style="padding:6px 12px;" onclick="anFlag('+k+')" aria-pressed="'+flagged+'">'+(flagged?'Flagged':'Not flagged')+'</button></div>'
+   +explBlock(q);
+}
+/* ----- stage 3: ranked list, source/explanation ticks, right-but-unsure ----- */
+let _anOS={}, _anOQ=false, _anOT={}, _anG=[], _anSN=[];
+const anSm=a=>a.reduce((p,q)=>p+q,0);
+function anCmp(x,y){ return (anSm(y.c)-anSm(x.c))||(y.c[0]-x.c[0])||(y.c[1]-x.c[1])||(y.c[2]-x.c[2])||(y.c[3]-x.c[3]); }
+function anGroup(recs){
+  const S={}; recs.forEach(r=>{ const sj=S[r.s]||(S[r.s]={s:r.s,c:[0,0,0,0,0],T:{}}), tp=sj.T[r.t]||(sj.T[r.t]={n:r.t,c:[0,0,0,0,0],recs:[]}), i=r.g?'csrk'.indexOf(r.g):4; sj.c[i]++; tp.c[i]++; tp.recs.push(r); });
+  return Object.values(S).map(x=>({s:x.s,c:x.c,t:Object.values(x.T).sort(anCmp)})).sort(anCmp);
+}
+function anDom(c){ let k=0; for(let i=1;i<4;i++) if(c[i]>c[k]) k=i; return c[k]>0?k:-1; }
+function anBar(c){
+  const tot=_anE.total||1, AX=25, col=[ANC[0][2],ANC[1][2],ANC[2][2],ANC[3][2],'#9aa0a6'];
+  return '<div style="position:relative;margin:8px 0;"><div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--bg2,#eee);">'+c.map((v,i)=>v?'<div style="width:'+(v/tot/(AX/100)*100)+'%;background:'+col[i]+';border-right:1.5px solid var(--card,#fff);box-sizing:border-box;"></div>':'').join('')+'</div><div style="position:absolute;top:-3px;left:'+(2/AX*100)+'%;height:16px;width:2px;background:var(--text,#000);"></div></div>';
+}
+function anCounts(c){
+  const col=[ANC[0][2],ANC[1][2],ANC[2][2],ANC[3][2],'#9aa0a6'], nm=['Conceptual','Silly','Revision void','Knowledge gap','Pending'];
+  return [0,1,2,3].sort((x,y)=>c[y]-c[x]||x-y).concat([4]).filter(i=>c[i]>0).map(i=>'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;"><span style="width:9px;height:9px;border-radius:50%;background:'+col[i]+';display:inline-block;"></span>'+nm[i]+' '+c[i]+'</span>').join('');
+}
+function anAction(k,n){ return k===2?'Revise '+escH(n)+' from your original source.':k===0?'Revisit the concept in your source, then practise MCQs.':k===3?'Pick the important facts for your notes.':k===1?'Read questions slowly, then practise MCQs.':'Classify the pending question first.'; }
+function anTicks(recs){
+  if(!anOn('sf')) return ''; const gi=_anG.push(recs)-1;
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 4px;">'+[['sr','Source revised'],['er','Explanation read']].map(t=>{ const on=recs.every(r=>r[t[0]]); return '<button type="button" class="secondary" style="min-height:38px;font-size:12px;'+(on?'outline:2px solid var(--accent);':'')+'" aria-pressed="'+on+'" onclick="anTick('+gi+',\''+t[0]+'\')">'+(on?'\u2611 ':'\u2610 ')+t[1]+'</button>'; }).join('')+'</div>';
+}
+function anTick(gi,f){ const g=_anG[gi]; if(!g) return; const v=g.every(r=>r[f])?0:1; g.forEach(r=>{ r[f]=v; }); anSave(); anRefresh(); }
+function anRankHtml(){
+  _anG=[]; const gs=anGroup(_anW); _anSN=gs.map(g=>g.s);
+  return gs.map((sj,si)=>{
+    const open=!!_anOS[sj.s], d=anDom(sj.c);
+    let h='<div style="border-top:1px solid var(--line,#ddd);padding:6px 0;"><button type="button" onclick="anTogS('+si+')" aria-expanded="'+open+'" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;background:transparent;border:none;padding:8px 0;text-align:left;color:inherit;"><span><b style="font-size:15px;">'+escH(sj.s)+'</b><br><span class="muted" style="font-size:12px;">'+anSm(sj.c)+' mistakes</span></span><span style="display:flex;align-items:center;gap:8px;">'+(d>=0?'<span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:8px;background:'+ANC[d][2]+';color:'+ANC[d][3]+';">'+ANC[d][1]+'</span>':'')+'<span>'+(open?'\u25B4':'\u25BE')+'</span></span></button>';
+    if(open) h+=sj.t.map(t=>{ const k=anDom(t.c); return '<div style="border-top:1px solid var(--line,#ddd);padding:10px 0 2px;"><div style="display:flex;justify-content:space-between;"><b>'+escH(t.n)+'</b><span class="muted" style="font-size:12px;">'+anSm(t.c)+' mistakes</span></div>'+anBar(t.c)+'<div style="font-size:12px;line-height:1.8;">'+anCounts(t.c)+'</div><div style="background:var(--bg2,#eee);border-radius:8px;padding:7px 10px;font-size:13px;margin-top:6px;">Action: '+anAction(k,t.n)+'</div>'+anTicks(t.recs)+'</div>'; }).join('');
+    return h+'</div>';
+  }).join('');
+}
+function anUnsHtml(){
+  const rs=(_anE.qr||[]).filter(r=>r.o && r.c!=='s'); if(!rs.length||!anOn('cm')||!anOn('da')) return '';
+  const T={}; rs.forEach(r=>{ const k=r.s+'\u203a'+r.t; (T[k]=T[k]||{n:r.t,recs:[]}).recs.push(r); });
+  const list=Object.values(T).sort((x,y)=>y.recs.length-x.recs.length), lab={b:'50\u201350',t:'1 in 3',g:'Guess'};
+  let h='<div class="card"><button type="button" onclick="anTogQ()" aria-expanded="'+_anOQ+'" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:transparent;border:none;padding:4px 0;text-align:left;color:inherit;"><span><b style="font-size:15px;">Right but unsure \u00b7 '+rs.length+'</b><br><span class="muted" style="font-size:12px;">Revise from your source, then read the explanation. Not counted as mistakes.</span></span><span>'+(_anOQ?'\u25B4':'\u25BE')+'</span></button>';
+  if(_anOQ) h+=list.map((t,ti)=>{ const ch=['b','t','g'].map(c=>{ const n=t.recs.filter(r=>r.c===c).length; return n?'<span style="font-size:12px;padding:2px 9px;border:1px solid var(--line,#ddd);border-radius:8px;margin-right:6px;">'+lab[c]+' \u00d7'+n+'</span>':''; }).join(''), op=!!_anOT[ti];
+    return '<div style="border-top:1px solid var(--line,#ddd);padding:10px 0 2px;margin-top:6px;"><div style="display:flex;justify-content:space-between;"><b>'+escH(t.n)+'</b><button type="button" class="secondary" style="padding:3px 10px;font-size:12px;" onclick="anTogT('+ti+')">'+t.recs.length+' questions '+(op?'\u25B4':'\u25BE')+'</button></div><div style="margin:8px 0;">'+ch+'</div>'+anTicks(t.recs)+(op?t.recs.map((r,i)=>{ const q=qById(r.i)||{}; return '<div style="border-top:1px dashed var(--line,#ddd);margin-top:8px;padding-top:8px;">'+qHtml(q.text||'',(i+1)+'. ')+explBlock(q)+'</div>'; }).join(''):'')+'</div>'; }).join('');
+  return h+'</div>';
+}
+function anRefresh(){ const r=document.getElementById('anRank'), u=document.getElementById('anUns'), s=document.getElementById('anSum'); if(s) s.innerHTML=anSummaryHtml(); if(r) r.innerHTML=anRankHtml(); if(u) u.innerHTML=anUnsHtml(); }
+function anTogS(i){ const n=_anSN[i]; _anOS[n]=!_anOS[n]; anRefresh(); }
+function anTogQ(){ _anOQ=!_anOQ; anRefresh(); }
+function anTogT(i){ _anOT[i]=!_anOT[i]; anRefresh(); }
+function openAnalysis(){
+  const el=document.getElementById('testResults'), e=(session&&session.hEntry); if(!e||!e.qr) return;
+  _anE=e; _anBack=el.innerHTML; _anW=e.qr.filter(r=>!r.o); _anOS={}; _anOQ=false; _anOT={};
+  const first=anGroup(_anW)[0]; if(first) _anOS[first.s]=true;
+  el.innerHTML='<div class="card"><div class="row" style="justify-content:space-between;align-items:center;"><h3 style="margin:0;">Detailed analysis</h3><button class="secondary" onclick="closeAnalysis()">Back to results</button></div><div id="anSum" style="margin-top:8px;">'+anSummaryHtml()+'</div></div>'
+    +'<div id="anConf">'+anConfCard()+'</div>'+(_anW.length?'<div class="card"><h3 style="margin:0 0 4px;">Fix the biggest first</h3><div id="anRank">'+anRankHtml()+'</div></div><h3 style="margin-top:6px;">Why did you miss each one?</h3>':'<div class="card muted">No wrong answers in this test.</div>')
+    +_anW.map((r,k)=>'<div class="card" id="anC-'+k+'">'+anCardInner(k)+'</div>').join('')+'<div id="anUns">'+anUnsHtml()+'</div>';
+  window.scrollTo(0,0);
+}
+/* ----- stage 4: confidence report + Progress history (last test per topic, past tests on demand) ----- */
+const CL=[['s','Sure'],['b','50\u201350'],['t','1 in 3'],['g','Guess']]; let _anCS={};
+function anRow(lab,n,c,sc){
+  const acc=n?c/n*100:0, g=c*sc.r, l=(n-c)*sc.w, net=g-l, be=(sc.r+sc.w)?sc.w/(sc.r+sc.w)*100:0, pos=net>=0, f=x=>x.toFixed(2);
+  return '<div style="border-top:1px solid var(--line,#ddd);padding:9px 0;"><div style="display:flex;justify-content:space-between;"><b>'+lab+'</b><span class="muted" style="font-size:12px;">'+c+' of '+n+' correct \u00b7 '+acc.toFixed(1)+'%'+(n<10?' \u00b7 small sample':'')+'</span></div>'
+   +'<div style="position:relative;margin:8px 0;height:10px;"><div style="height:10px;border-radius:5px;background:var(--bg2,#eee);overflow:hidden;"><div style="width:'+acc+'%;height:10px;background:'+(pos?'#00C853':'var(--red)')+';"></div></div><div style="position:absolute;top:-3px;left:'+be+'%;height:16px;width:2px;background:var(--text,#000);"></div></div>'
+   +'<div style="font-size:12px;">+'+f(g)+' \u2212'+f(l)+' = <b style="color:'+(pos?'var(--green)':'var(--red)')+';">'+(pos?'+':'\u2212')+f(Math.abs(net))+' marks</b></div></div>';
+}
+function anConfCard(){
+  if(!anOn('cm')||!anOn('cr')||!_anE||!_anE.qr) return '';
+  const sc=_anE.sch||{r:1,w:0}, tally=(rs)=>CL.map(c=>{ const x=rs.filter(r=>r.c===c[0]); return [c[1],x.length,x.filter(r=>r.o).length]; });
+  const subs={}; _anE.qr.forEach(r=>{ (subs[r.s]=subs[r.s]||[]).push(r); });
+  let h='<div class="card"><h3 style="margin:0 0 2px;">How sure vs how right</h3><div class="muted" style="font-size:12px;">Marking: +'+sc.r+' right, \u2212'+sc.w+' wrong (this test). Black tick = break-even accuracy.</div>'+tally(_anE.qr).map(t=>anRow(t[0],t[1],t[2],sc)).join('');
+  const G=_anE.qr.filter(r=>r.o).length*sc.r-_anE.qr.filter(r=>!r.o).length*sc.w;
+  h+='<div style="border-top:1px solid var(--line,#ddd);padding-top:8px;font-size:13px;">All marked answers: net <b>'+(G>=0?'+':'\u2212')+Math.abs(G).toFixed(2)+'</b> marks</div><h3 style="margin:14px 0 2px;font-size:14px;">By subject, this test only</h3>';
+  Object.keys(subs).forEach(n=>{ const t=tally(subs[n]), open=!!_anCS[n];
+    h+='<div style="border-top:1px solid var(--line,#ddd);"><button type="button" onclick="anTogC(this.dataset.n)" data-n="'+escH(n)+'" style="width:100%;background:transparent;border:none;padding:9px 0;text-align:left;color:inherit;"><div style="display:flex;justify-content:space-between;"><b>'+escH(n)+'</b><span>'+(open?'\u25B4':'\u25BE')+'</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px;font-size:12px;">'+t.map(x=>'<span><b style="font-size:14px;">'+(x[1]?Math.round(x[2]/x[1]*100):0)+'%</b><br><span class="muted">'+x[0]+'</span></span>').join('')+'</div></button>'+(open?t.map(x=>anRow(x[0],x[1],x[2],sc)).join(''):'')+'</div>'; });
+  return h+'</div>';
+}
+function anTogC(n){ _anCS[n]=!_anCS[n]; const el=document.getElementById('anConf'); if(el) el.innerHTML=anConfCard(); }
+/* Progress history: latest test per topic; earlier tests only when you ask. Built from history entries that carry qr. */
+let _anSrc='all', _anHS={}, _anHP={}, _anHQ={};
+const AN_SRC=[['all','Combined'],['practice','Practice'],['pyq','PYQ'],['series','Test Series']], AN_SL={practice:'Practice',pyq:'PYQ',series:'Test Series'};
+function anDL(e){ const d=new Date(e.date); return (isNaN(d)?String(e.date||''):d.toLocaleDateString(undefined,{day:'numeric',month:'short'}))+' \u00b7 '+(AN_SL[e.src]||'No source'); }
+function anBarT(c,tot){ const col=[ANC[0][2],ANC[1][2],ANC[2][2],ANC[3][2],'#9aa0a6'], AX=25; return '<div style="position:relative;margin:7px 0;"><div style="display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--bg2,#eee);">'+c.map((v,i)=>v?'<div style="width:'+(v/(tot||1)/(AX/100)*100)+'%;background:'+col[i]+';border-right:1.5px solid var(--card,#fff);box-sizing:border-box;"></div>':'').join('')+'</div><div style="position:absolute;top:-3px;left:'+(2/AX*100)+'%;height:15px;width:2px;background:var(--text,#000);"></div></div>'; }
+function renderAnHist(){
+  const host=document.getElementById('anHistCard'); if(!host) return;
+  if(!anOn('da')){ host.style.display='none'; return; }
+  const es=(history||[]).filter(e=>e.qr&&(_anSrc==='all'||e.src===_anSrc)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const S={}; es.forEach(e=>{ const per={}; e.qr.filter(r=>!r.o).forEach(r=>{ const k=r.s+'\u0001'+r.t, x=per[k]||(per[k]={s:r.s,t:r.t,c:[0,0,0,0,0],recs:[]}); x.c[r.g?'csrk'.indexOf(r.g):4]++; x.recs.push(r); });
+    Object.values(per).forEach(x=>{ const sj=S[x.s]||(S[x.s]={s:x.s,T:{}}); (sj.T[x.t]=sj.T[x.t]||{n:x.t,tests:[]}).tests.push({e:e,c:x.c,recs:x.recs}); }); });
+  const subs=Object.values(S).map(sj=>{ const T=Object.values(sj.T), c=[0,0,0,0,0]; T.forEach(t=>t.tests[0].c.forEach((v,i)=>{ c[i]+=v; })); T.sort((a,b)=>anCmp({c:b.tests[0].c},{c:a.tests[0].c})); return {s:sj.s,T:T,c:c,last:T.map(t=>t.tests[0].e).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]}; }).sort(anCmp);
+  let h='<h3 style="margin:0 0 6px;">Test analysis history</h3><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;">'+AN_SRC.map(c=>'<button type="button" class="secondary" style="padding:6px 2px;font-size:12px;'+(_anSrc===c[0]?'outline:2px solid var(--accent);':'')+'" onclick="anSetSrc(\''+c[0]+'\')">'+c[1]+'</button>').join('')+'</div><div class="muted" style="font-size:12px;">Latest test per topic. The black line is the 2% goal.</div>';
+  if(!subs.length) h+='<p class="muted">No analysed tests yet.</p>';
+  subs.forEach((sj,si)=>{ const open=!!_anHS[sj.s];
+    h+='<div style="border-top:1px solid var(--line,#ddd);margin-top:8px;"><button type="button" onclick="anHTogS('+si+')" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:transparent;border:none;padding:9px 0;text-align:left;color:inherit;"><span><b style="font-size:15px;">'+escH(sj.s)+'</b><br><span class="muted" style="font-size:12px;">'+sj.T.length+' topic'+(sj.T.length>1?'s':'')+' \u00b7 '+anDL(sj.last)+'</span></span><span>'+anSm(sj.c)+' mistakes '+(open?'\u25B4':'\u25BE')+'</span></button>';
+    if(open) h+=sj.T.map((t,ti)=>{ const L=t.tests[0], key=si+'-'+ti, po=!!_anHP[key], n=t.tests.length-1;
+      let x='<div style="border-top:1px solid var(--line,#ddd);padding:8px 0;"><div style="display:flex;justify-content:space-between;"><b>'+escH(t.n)+'</b><span class="muted" style="font-size:12px;">'+anDL(L.e)+'</span></div>'+anBarT(L.c,L.e.total)+'<div style="font-size:12px;line-height:1.8;">'+anCounts(L.c)+'</div>';
+      if(n>0) x+='<button type="button" class="secondary" style="width:100%;margin-top:8px;font-size:12px;" onclick="anHTogP(\''+key+'\')">'+(po?'Hide past tests':'Show past tests ('+n+')')+'</button>';
+      if(po) x+=t.tests.slice(1).map((p,j)=>{ const qk=key+'-'+j, qo=!!_anHQ[qk];
+        return '<div style="border-top:1px solid var(--line,#ddd);margin-top:8px;padding-top:6px;"><div style="display:flex;justify-content:space-between;font-size:12px;"><span class="muted">'+anDL(p.e)+'</span><button type="button" class="secondary" style="padding:2px 9px;font-size:12px;" onclick="anHTogQ(\''+qk+'\')">'+anSm(p.c)+' mistakes \u00b7 questions '+(qo?'\u25B4':'\u25BE')+'</button></div>'+anBarT(p.c,p.e.total)+'<div style="font-size:12px;line-height:1.8;">'+anCounts(p.c)+'</div>'+(qo?anRecs(p.recs):'')+'</div>'; }).join('');
+      return x+'</div>'; }).join('');
+    h+='</div>'; });
+  host.style.display=''; host.innerHTML=h; window._anHSubs=subs;
+}
+function anRecs(recs){ const nm={c:'Conceptual',s:'Silly',r:'Revision void',k:'Knowledge gap'}, cf={s:'Sure',b:'50\u201350',t:'1 in 3',g:'Guess'};
+  return recs.map(r=>{ const q=qById(r.i)||{}; return '<div style="border-top:1px dashed var(--line,#ddd);margin-top:6px;padding-top:6px;font-size:12px;">'+qHtml(q.text||'(question no longer in bank)','')+'<div class="muted">You: '+escH(String(r.a||''))+' \u00b7 Correct: '+escH(String(r.k||''))+' \u00b7 '+(cf[r.c]||'Sure')+' \u00b7 '+(nm[r.g]||'Pending')+(r.sr?' \u00b7 source revised':'')+(r.er?' \u00b7 explanation read':'')+'</div></div>'; }).join(''); }
+function anSetSrc(k){ _anSrc=k; renderAnHist(); }
+function anHTogS(i){ const n=window._anHSubs[i].s; _anHS[n]=!_anHS[n]; renderAnHist(); }
+function anHTogP(k){ _anHP[k]=!_anHP[k]; renderAnHist(); }
+function anHTogQ(k){ _anHQ[k]=!_anHQ[k]; renderAnHist(); }
+function closeAnalysis(){ const el=document.getElementById('testResults'); if(_anBack) el.innerHTML=_anBack; window.scrollTo(0,0); }
+function anPick(k,c){ const r=_anW[k]; if(!r) return; r.g=c; anSave(); anRefresh(); const d=document.getElementById('anC-'+k); if(d) d.innerHTML=anCardInner(k); }
+function anFlag(k){ const r=_anW[k], q=qById(r.i); if(!q) return; q.flagged=!q.flagged; try{ srOnFlag(q,q.flagged); persistQuestion(q); }catch(e){ console.warn(e); } r.f=q.flagged?1:0; anSave(); const d=document.getElementById('anC-'+k); if(d) d.innerHTML=anCardInner(k); }
 function finishTest(){
   if(!session) return;
   qBank();
@@ -8419,6 +8618,7 @@ function finishTest(){
   const entry = {date:new Date().toISOString(), mode:session.mode, tm:session.testMode||'practice', total, correct, incorrect, unattempted, accuracy, timeSec, topicBreakdown};
   if(mk){ Object.values(marksBy).forEach(b=>{ b.m=Math.round(b.m*100)/100; b.x=Math.round(b.x*100)/100; }); entry.marks=Math.round((correct*mk.r-incorrect*mk.w)*100)/100; entry.maxMarks=Math.round(total*mk.r*100)/100; entry.marksBy=marksBy; }
   if(R.subSec && Object.keys(R.subSec).length){ Object.keys(R.subSec).forEach(k=>{ R.subSec[k]=Math.round(R.subSec[k]); }); entry.subSec=R.subSec; }
+  try{ if(anOn('cm')||anOn('da')) addAnalysis(entry,session,mk); }catch(e){ console.warn(e); }
   history.push(entry);
   persistHistoryEntry(entry);
   document.getElementById('testRunning').style.display='none';
@@ -8449,6 +8649,7 @@ function renderResults(total,correct,incorrect,unattempted,accuracy,timeSec,wron
     <div class="row">
       ${wrongIds.length ? `<button class="primary" onclick='startRetest(${JSON.stringify(wrongIds)})'>Retest incorrect (${wrongIds.length})</button>` : ''}
       <button class="secondary" onclick="openNotesAfterTest()"><svg class="nsvg" aria-hidden="true"><use href="#ico-notes"/></svg> Add a note</button>
+      ${(typeof anOn==='function' && anOn('da') && session && session.hEntry && session.hEntry.qr) ? '<button class="primary" onclick="openAnalysis()">Detailed analysis</button>' : ''}
       <button class="secondary" onclick="backToIdle()">New test</button>
     </div></div>
     ${buildReviewHtml(reviewItems)}`;
@@ -9485,6 +9686,7 @@ function renderProfile(){
   $h('pfName').value=nm; $h('pfAvatar').textContent=(nm.trim().charAt(0)||'S').toUpperCase();
   $h('pfExam').value=settings.examName||'';
   renderThemeSeg(); renderSrSettings(); { const ch=$h('autoUnflagChk'); if(ch) ch.checked=autoUnflagOn(); }
+  { const m={afwChk:afwOn(),anCm:anOn('cm'),anCr:anOn('cr'),anDa:anOn('da'),anSf:anOn('sf')}; Object.keys(m).forEach(id=>{ const e=$h(id); if(e) e.checked=m[id]; }); const c=$h('anCr'); if(c) c.disabled=!anOn('cm'); const f=$h('anSf'); if(f) f.disabled=!anOn('da'); }
   { const t=(settings.theme==='dark'||settings.theme==='light')?settings.theme:'auto'; const e=$h('pfThemeSub'); if(e) e.textContent=t==='auto'?'Auto':(t==='dark'?'Dark':'Light'); const r=$h('pfRevSub'); if(r) r.textContent=smartOn()?'Smart revision':'Manual spaced repetition'; }
   $h('pfSolved').textContent=fmtN(totalAttempted()); $h('pfStreak').textContent=($h('streakN')||{}).textContent||'0'; $h('pfTests').textContent=(history||[]).length;
 }
