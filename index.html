@@ -120,6 +120,9 @@ button:disabled{opacity:0.4;}
 .del-x{background:none;border:none;color:var(--muted);font-size:15px;padding:2px 6px;cursor:pointer;}
 
 .opt{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;}
+.opt.conf-wait{opacity:.5;cursor:not-allowed;}
+#footerInfo.tl-low{color:var(--red,#c62828);font-weight:700;}
+@keyframes cfShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .opt.correct{background:var(--green-bg);border-color:var(--green);color:var(--green);font-weight:700;}
 .opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red);font-weight:700;}
 .opt.reveal{background:var(--green-bg);border-color:var(--green);color:var(--green);font-weight:700;}
@@ -1171,6 +1174,18 @@ Ans. (b)
         <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer;"><input type="checkbox" id="simToggle" class="sw" checked onchange="setSimilar(this.checked)">Skip very similar questions</label>
         <div id="simNote" class="muted" style="flex:1 1 100%;font-size:11.5px;"></div>
       </div>
+      <div class="row" style="margin:8px 0;align-items:center;">
+        <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer;"><input type="checkbox" id="unattToggle" class="sw" onchange="setUnatt(this.checked)">Only questions I have not attempted yet</label>
+      </div>
+      <div class="row" id="cfRow" style="margin:8px 0;align-items:center;display:none;">
+        <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer;"><input type="checkbox" id="cfToggle" class="sw" checked onchange="setConfPref(this.checked)">Confidence analysis</label>
+        <div class="muted" style="flex:1 1 100%;font-size:11.5px;">Before each answer you say how sure you are. The options unlock after that.</div>
+      </div>
+      <div class="row" id="tlRow" style="margin:8px 0;align-items:center;flex-wrap:wrap;gap:8px;">
+        <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer;"><input type="checkbox" id="tlToggle" class="sw" onchange="setTimeLimitOn(this.checked)">Time limit</label>
+        <span id="tlBox" style="display:none;align-items:center;gap:6px;"><input type="number" id="tlMin" class="num-input" min="1" max="1000" step="1" inputmode="numeric" style="width:72px;" oninput="setTimeLimitMin(this.value)"><span class="muted">minutes</span></span>
+        <div id="tlNote" class="muted" style="flex:1 1 100%;font-size:11.5px;display:none;">The test is submitted by itself when the time ends.</div>
+      </div>
       <div class="row" id="maskRow" style="margin:8px 0;align-items:center;flex-wrap:wrap;gap:8px;">
         <label class="muted" style="margin:0;">Hide options first:</label>
         <span class="chips" id="maskModeChips"><button type="button" data-v="off" onclick="setMaskMode(this.dataset.v)">Off</button><button type="button" data-v="repeats" onclick="setMaskMode(this.dataset.v)">Repeats</button><button type="button" data-v="all" onclick="setMaskMode(this.dataset.v)">All</button></span>
@@ -1506,7 +1521,7 @@ function applyHeavy(q, r){
   HEAVY.forEach(k=>{ if(!Object.prototype.hasOwnProperty.call(q,k) && r[k]!==undefined) Object.defineProperty(q,k,{value:r[k], writable:true, enumerable:true, configurable:true}); });
   LEAN.delete(q); _hyd.delete(q.id); _hyd.set(q.id,q); LEAN_STATS.hydrated++;
 }
-async function qHydrate(list){
+async function qHydrate(list, fg){
   if(!LEAN_OK || !list || !list.length) return;
   const need=[]; for(let i=0;i<list.length;i++){ const q=list[i]; if(q && LEAN.has(q)) need.push(q); }
   if(!need.length){ list.forEach(q=>{ if(q && _hyd.has(q.id)){ _hyd.delete(q.id); _hyd.set(q.id,q); } }); return; }
@@ -1525,7 +1540,7 @@ async function qHydrate(list){
     part.forEach((q,j)=>{ const r=recs[j]; if(r && typeof r.text==='string' && LEAN.has(q)) applyHeavy(q,r); else if(LEAN.has(q)) miss.push(q); });
     if(need.length>600) await _tick();
   }
-  if(miss.length && typeof hydrateFromCloud==='function'){ const bar=cloudBar(miss.length); try{ await hydrateFromCloud(miss, bar.set); }catch(e){} finally{ bar.close(); } }
+  if(miss.length && typeof hydrateFromCloud==='function'){ const bar=cloudBar(miss.length, !!fg); try{ await hydrateFromCloud(miss, bar.set); }catch(e){} finally{ bar.close(); } }
   miss.forEach(q=>{ if(LEAN.has(q)) HYD_FAIL.add(q); });
   qEvictExtra(new Set(list.map(q=>q&&q.id)));
 }
@@ -1596,13 +1611,28 @@ function leanVocab(){
   return v;
 }
 /* Progress while questions are downloaded from the online database (shown only if it takes more than a moment) */
-function cloudBar(total){
-  let el=null, last=[0,total]; const t=setTimeout(()=>{ if(el) return; el=document.createElement('div'); el.id='cloudBar';
-    el.style.cssText='position:fixed;inset:0;z-index:99997;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px;';
-    el.innerHTML='<div style="background:#1e293b;color:#fff;border-radius:14px;padding:18px 20px;width:min(340px,100%);box-shadow:0 8px 30px rgba(0,0,0,.35);font-size:14px;"><div style="font-weight:600;margin-bottom:10px;">Downloading your questions\u2026</div><div style="height:8px;border-radius:6px;background:rgba(255,255,255,.2);overflow:hidden;"><div id="cloudBarFill" style="height:100%;width:0;background:#38bdf8;transition:width .2s;"></div></div><div id="cloudBarTxt" style="margin-top:8px;font-size:12px;opacity:.85;"></div></div>';
-    document.body.appendChild(el); draw(); }, 350);
-  const draw=()=>{ if(!el) return; const [d,n]=last, p=n?Math.min(100,Math.round(d*100/n)):0, f=document.getElementById('cloudBarFill'), x=document.getElementById('cloudBarTxt'); if(f) f.style.width=p+'%'; if(x) x.textContent=d+' of '+n+' ('+p+'%)'; };
-  return { set:(d,n)=>{ last=[d,n||total]; draw(); }, close:()=>{ clearTimeout(t); if(el){ el.remove(); el=null; } } };
+function cloudBar(total, fg){
+  /* fg = the person is waiting for these questions to go on (starting or resuming a test, opening one question): a centred box.
+     Everything else (lists, backups, saving, results screen) downloads quietly: a small pill that never covers or blocks the screen. */
+  let el=null, bg=!fg, last=[0,total], dead=false;
+  const t=setTimeout(()=>{ if(dead||el) return; make(); }, fg?350:900);
+  const make=()=>{
+    el=document.createElement('div'); el.id='cloudBar';
+    if(bg){
+      el.style.cssText='position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:99996;pointer-events:none;background:#1e293b;color:#fff;padding:8px 14px;border-radius:999px;font-size:12.5px;box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap;';
+      el.innerHTML='<span id="cloudBarTxt"></span>';
+    } else {
+      el.style.cssText='position:fixed;inset:0;z-index:99997;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+      el.innerHTML='<div style="position:relative;background:#1e293b;color:#fff;border-radius:14px;padding:18px 20px;width:min(340px,100%);box-shadow:0 8px 30px rgba(0,0,0,.35);font-size:14px;"><button type="button" id="cloudBarX" aria-label="Close" title="Keep downloading in the background" style="position:absolute;top:8px;right:8px;width:28px;height:28px;min-height:0;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:14px;line-height:1;">\u2715</button><div style="font-weight:600;margin:0 30px 10px 0;">Downloading your questions\u2026</div><div style="height:8px;border-radius:6px;background:rgba(255,255,255,.2);overflow:hidden;"><div id="cloudBarFill" style="height:100%;width:0;background:#38bdf8;transition:width .2s;"></div></div><div id="cloudBarTxt" style="margin-top:8px;font-size:12px;opacity:.85;"></div></div>';
+    }
+    document.body.appendChild(el);
+    const x=el.querySelector('#cloudBarX'); if(x) x.onclick=()=>{ el.remove(); el=null; bg=true; make(); };   // the cross: carry on in the background
+    draw();
+  };
+  const draw=()=>{ if(!el) return; const [d,n]=last, p=n?Math.min(100,Math.round(d*100/n)):0, f=el.querySelector('#cloudBarFill'), x=el.querySelector('#cloudBarTxt');
+    if(f) f.style.width=p+'%';
+    if(x) x.textContent = el.style.pointerEvents==='none' ? ('Downloading your questions in the background\u2026 '+p+'%') : (d+' of '+n+' ('+p+'%)'); };
+  return { set:(d,n)=>{ last=[d,n||total]; draw(); }, close:()=>{ dead=true; clearTimeout(t); if(el){ el.remove(); el=null; } } };
 }
 let _busyEl=null, _busyT=null;
 function leanBusy(msg){
@@ -2011,6 +2041,7 @@ let settings = {target:500, examDate:null};
 let testMode = 'practice';
 let testMixFlagged = false;   // true = add every flagged question (any subject) to the test pool
 let testFilterSel = null; // null = all subjects & topics; else {subject: 'all'|Set(topics)}
+let testUnatt = false, testConfPref = true, testTL = {on:false, min:0};   // More options (this screen only): only never-attempted questions / confidence marking for this test / time limit in minutes
 let kwList = [];          // focus keywords for the next test, e.g. ["Article 21"]; kept while the app is open
 let filterPickerOpen = false;
 let expandedFilterSubjects = new Set();
@@ -2225,17 +2256,87 @@ function makeNs(uid){
     doc: path => { const parts = path.split('/'); let ref = root; for(let i=0;i<parts.length;i+=2) ref = ref.collection(parts[i]).doc(parts[i+1]); return ref; }
   };
 }
+/* ---------- Signed out of the Google account: tell the student and ask to sign in again (build index-38) ----------
+   Before, a device that lost its Google sign-in (browser cleared it, a long break, an expired session) quietly started a NEW empty anonymous account,
+   and students thought their data was gone. Now the device remembers that it had a Google account (gc_gsync); if that sign-in is missing at start,
+   or disappears while the app is open, a notice asks to sign in again first. "Not now" starts a temporary empty session and the notice returns next time. */
+const GS_KEY='gc_gsync';
+function gsMark(email, uid){ try{ localStorage.setItem(GS_KEY, JSON.stringify({email:email||'', uid:uid||'', at:Date.now()})); }catch(e){} }
+function gsMarker(){ try{ const t=localStorage.getItem(GS_KEY); return t ? (JSON.parse(t)||null) : null; }catch(e){ return null; } }
+function gsClear(){ try{ localStorage.removeItem(GS_KEY); }catch(e){} }
+let _gsAsking=false, _gsWatching=false;
+function askSignInAgain(mk, midSession){
+  return new Promise(resolve=>{
+    if(document.getElementById('reSignIn')){ resolve(null); return; }
+    _gsAsking=true;
+    mk = mk || {};
+    const o=document.createElement('div'); o.id='reSignIn';
+    o.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;';
+    o.innerHTML='<div style="position:relative;background:var(--card,#fff);color:var(--text,#111);border-radius:18px;max-width:400px;width:100%;padding:20px 20px 18px;box-shadow:0 10px 40px rgba(0,0,0,.35);">'
+      +'<button type="button" id="rsX" aria-label="Close" style="position:absolute;top:10px;right:10px;width:30px;height:30px;min-height:0;padding:0;border:0;border-radius:50%;background:var(--bg,#eee);color:inherit;font-size:14px;line-height:1;">\u2715</button>'
+      +'<h3 style="margin:0 30px 8px 0;font-size:18px;">You have been signed out</h3>'
+      +'<p style="margin:0 0 10px;font-size:14px;line-height:1.5;"><b>Your questions and progress are not lost.</b> They are safe in your Google account'+(mk.email?' (<b>'+escH(mk.email)+'</b>)':'')+'. Sign in again to get them back'+(midSession?' before you carry on':'')+'.</p>'
+      +'<p id="rsMsg" class="muted" style="margin:0 0 10px;font-size:12.5px;min-height:0;"></p>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;"><button type="button" class="primary" id="rsGo">Sign in with Google</button><button type="button" class="secondary" id="rsLater">Not now</button></div>'
+      +'<p class="muted" style="margin:10px 0 0;font-size:11.5px;line-height:1.45;">If you tap Not now, this device starts empty for now and anything you do will not reach your account until you sign in.</p></div>';
+    document.body.appendChild(o);
+    const msg=t=>{ const m=o.querySelector('#rsMsg'); if(m) m.textContent=t||''; };
+    const done=u=>{ _gsAsking=false; o.remove(); resolve(u||null); };
+    o.querySelector('#rsX').onclick=()=>done(null);
+    o.querySelector('#rsLater').onclick=()=>done(null);
+    const go=o.querySelector('#rsGo');
+    go.onclick=async()=>{
+      go.disabled=true; msg('Opening Google\u2026');
+      try{
+        const r=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        const em=String(r.user.email||'').toLowerCase();
+        if(mk.email && em && em!==String(mk.email).toLowerCase()){
+          msg('That was a different Google account ('+em+'). Please sign in with '+mk.email+'.');
+          try{ await firebase.auth().signOut(); }catch(e){}
+          go.disabled=false; return;
+        }
+        done(r.user);
+      }catch(e){
+        const c=e&&e.code;
+        msg(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request' ? 'Sign-in was cancelled. Tap the button to try again.'
+          : c==='auth/popup-blocked' ? 'The sign-in pop-up was blocked. Allow pop-ups and try again.'
+          : c==='auth/network-request-failed' ? 'No internet connection. Check it and try again.'
+          : (c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported') ? 'Sign-in does not work inside this view. Open Test Maker in Chrome or Safari.'
+          : 'Sign-in failed. Please try again.');
+        go.disabled=false;
+      }
+    };
+  });
+}
+/* While the app is open: if the Google sign-in disappears, ask again (and again when the student comes back to the app, if still signed out). */
+async function gsCheckSignedOut(){
+  try{
+    if(_gsAsking || typeof firebase==='undefined' || !gsMarker() || firebase.auth().currentUser) return;
+    const mk=gsMarker(), u=await askSignInAgain(mk, true);
+    if(u){ if(u.uid!==fbUid){ location.reload(); return; } syncAccount=true; gsMark(u.email||mk.email, u.uid); try{ showToast('Signed in again \u2713','info'); }catch(e){} try{ refreshFromCloud(false); }catch(e){} }
+  }catch(e){}
+}
+function gsWatch(){
+  if(_gsWatching) return; _gsWatching=true;
+  try{ firebase.auth().onAuthStateChanged(u=>{ if(!u) setTimeout(gsCheckSignedOut, 300); }); }catch(e){}
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(gsCheckSignedOut, 400); });
+}
 async function initFirebase(){
   if(!firebaseConfig.apiKey || firebaseConfig.apiKey==='PASTE_YOUR_API_KEY') return null;   // not configured yet
   try{
     firebase.initializeApp(firebaseConfig);
-    const user = await Promise.race([
+    let user = await Promise.race([
       new Promise((resolve,reject)=>{
-        const stop = firebase.auth().onAuthStateChanged(u=>{ stop(); if(u) resolve(u); else firebase.auth().signInAnonymously().catch(reject); }, reject);
+        const stop = firebase.auth().onAuthStateChanged(u=>{ stop(); if(u) resolve(u); else if(gsMarker()) resolve(null); else firebase.auth().signInAnonymously().catch(reject); }, reject);   // this device had a Google account: do NOT quietly start a new empty one
       }),
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('firebase-timeout: sign-in took too long, check that Anonymous sign-in is enabled')), 8000))
     ]);
+    if(!user){   // signed out of the Google account: say so and ask to sign in again first, then carry on
+      user = await askSignInAgain(gsMarker(), false);
+      if(!user){ user = (await firebase.auth().signInAnonymously()).user; try{ showToast('You are not signed in. Your saved questions will not show until you sign in.','warn'); }catch(e){} }
+    }
     fbUid = user.uid; syncAccount = !user.isAnonymous;
+    if(syncAccount){ gsMark(user.email || (user.providerData[0] && user.providerData[0].email) || '', user.uid); gsWatch(); }
     setTimeout(()=>{ try{ flushIssues(); }catch(e){} }, 0);
     return makeNs(fbUid);
   }catch(e){ console.warn('Firebase unavailable this session, using local storage instead', e); return null; }
@@ -4874,7 +4975,7 @@ function parseFullText(text, solutionsText){
 }
 /* ---------- Parse report: a short, text-only summary of what the parser found and what it could not read.
    Students tap the button and send it to the app owner; it holds no question bank, no answers and no personal data. ---------- */
-const APP_BUILD = 'index-37';
+const APP_BUILD = 'index-38';
 let lastParseDiag = null;
 /* Shows whitespace in a report: line breaks as a pilcrow, invisible characters as <U+code>, so the layout around a failure is visible. */
 function diagVis(t){ return String(t).replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000\uFEFF]/g,c=>'<U+'+c.charCodeAt(0).toString(16).toUpperCase()+'>').replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,' \u00B6 ').trim(); }   // odd invisible characters are spelled out
@@ -4962,7 +5063,7 @@ async function googleSyncSignIn(){
   const provider = new firebase.auth.GoogleAuthProvider();
   try{
     await user.linkWithPopup(provider);   // first device: this browser's ID becomes the Google account's ID, no data moves
-    syncAccount = true;
+    syncAccount = true; gsMark(syncEmail(), fbUid); gsWatch();
     showToast('Signed in \u2713 Your data now follows your Google account.', 'info');
     renderStorageSheet();
   }catch(e){
@@ -4973,7 +5074,7 @@ async function googleSyncSignIn(){
         const pend = {from: fbUid, at: new Date().toISOString(), bank: await bankFullItems(), history: history.slice(), settings: JSON.parse(JSON.stringify(settings))};
         await idbSet('tm_pending_merge', pend);   // safety copy: if anything is interrupted, the merge is finished on the next start
         const cred = await firebase.auth().signInWithCredential(e.credential);
-        fbUid = cred.user.uid; syncAccount = true; dbNS = makeNs(fbUid); setTimeout(()=>{ try{ flushIssues(); }catch(e){} }, 0);
+        fbUid = cred.user.uid; syncAccount = true; gsMark(cred.user.email||syncEmail(), fbUid); gsWatch(); dbNS = makeNs(fbUid); setTimeout(()=>{ try{ flushIssues(); }catch(e){} }, 0);
         await loadFromDb();
         await finishPendingMerge();
         pingVisit(); renderBank(); renderHistory(); renderStorageSheet();
@@ -5005,6 +5106,7 @@ async function googleSyncSignOut(){
   if(!confirm(msg)) return;
   try{ await cacheDrop(); }catch(e){}
   try{ await idbRun([IDB_OB],st=>{ st[IDB_OB].clear(); }); }catch(e){}   // nothing of this account stays on the device
+  gsClear();   // a deliberate sign-out: the device must not ask to sign in again
   try{ await firebase.auth().signOut(); }catch(e){}
   location.reload();
 }
@@ -6035,7 +6137,7 @@ function buildMeta(){
 const SESS_KEY='gc_session'; let _sessAt=0, _sessT=null;
 function sessSnapshot(){
   if(!session || session.done) return null;
-  return {v:1, ord:session.ord||{}, ids:session.questions.map(q=>q.id), answers:session.answers, cur:session.currentIdx, elapsed:Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000), qt:(qBank(),session.qt), mode:session.mode, testMode:session.testMode, marking:session.marking||null, am:session.arch||{}, bmk:session.bm||{}, mk:session.mask||{}, cf:session.conf||{}, src:session.src||null, rm:session.recallMiss||{}, pf:Object.keys(session.pendFlag||{}), lf:Object.keys(session.liveFlag||{}), savedAt:Date.now()};
+  return {v:1, ord:session.ord||{}, ids:session.questions.map(q=>q.id), answers:session.answers, cur:session.currentIdx, elapsed:Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000), qt:(qBank(),session.qt), mode:session.mode, testMode:session.testMode, marking:session.marking||null, am:session.arch||{}, bmk:session.bm||{}, mk:session.mask||{}, cf:session.conf||{}, co:(session.cfOn===undefined?undefined:(session.cfOn?1:0)), lm:session.lim||0, src:session.src||null, rm:session.recallMiss||{}, pf:Object.keys(session.pendFlag||{}), lf:Object.keys(session.liveFlag||{}), savedAt:Date.now()};
 }
 function saveSession(){
   clearTimeout(_sessT); _sessAt=Date.now();
@@ -6085,7 +6187,7 @@ function settleSnapshot(s){
   return n;
 }
 async function resumeSession(s){
-  if(LEAN_ACTIVE){ const byId=new Map(bank.map(q=>[q.id,q])), need=(s.ids||[]).map(id=>byId.get(id)).filter(Boolean), d=leanBusy('Loading your test\u2026'); try{ await qHydrate(need); } finally{ d(); } }
+  if(LEAN_ACTIVE){ const byId=new Map(bank.map(q=>[q.id,q])), need=(s.ids||[]).map(id=>byId.get(id)).filter(Boolean), d=leanBusy('Loading your test\u2026'); try{ await qHydrate(need, true); } finally{ d(); } }
   return resumeSession0(s);
 }
 function resumeSession0(s){
@@ -6100,6 +6202,7 @@ function resumeSession0(s){
   Object.keys(s.mk||{}).forEach(i=>{ if(map[i]!==undefined) session.mask[map[i]]=s.mk[i]; });
   session.recallMiss={}; Object.keys(s.rm||{}).forEach(i=>{ if(map[i]!==undefined) session.recallMiss[map[i]]=1; });
   session.conf={}; Object.keys(s.cf||{}).forEach(i=>{ if(map[i]!==undefined) session.conf[map[i]]=s.cf[i]; }); session.src=s.src||null;
+  session.cfOn = (s.co===undefined) ? anOn('cm') : !!s.co; session.lim = s.lm||0;
   session.pendFlag={}; (s.pf||[]).forEach(id=>{ const q=byId.get(id); if(q){ if(!q.flagged){ q.flagged=true; srOnFlag(q,true); } session.pendFlag[id]=1; } });   // flags raised during the test but not yet saved online
   session.liveFlag={}; (s.lf||[]).forEach(id=>{ session.liveFlag[id]=1; });
   Object.keys(s.qt||{}).forEach(i=>{ if(map[i]!==undefined) session.qt[map[i]]=s.qt[i]; }); qResume();   // time spent away is not counted
@@ -7138,7 +7241,7 @@ let editDraft = null;
 async function startEdit(id){
   const q = bank.find(x=>x.id===id);
   if(!q) return;
-  if(LEAN.has(q)){ await qHydrate([q]); if(LEAN.has(q)){ showToast('Could not load this question. Please try again.','error'); return; } }
+  if(LEAN.has(q)){ await qHydrate([q], true); if(LEAN.has(q)){ showToast('Could not load this question. Please try again.','error'); return; } }
   editDraft = {id, text:q.text, options:q.options.map(o=>({...o})), correctKey:q.correctKey, subject:q.subject, topic:q.topic, sourceTag:q.sourceTag||''};
   renderIssueList();
 }
@@ -7878,11 +7981,27 @@ function renderExamPicker(){
   box.innerHTML=h;
   const nl=document.getElementById('examList'); if(nl) nl.scrollTop=st;
 }
-function getFilteredBank(){
+function getFilteredBank(skipUnatt){
   const p=subjectPool();
   const e=examActive() ? p.filter(examOk) : p;
-  return kwActive() ? kwFilter(e) : e;
+  const k=kwActive() ? kwFilter(e) : e;
+  return (testUnatt && !skipUnatt) ? k.filter(q=>!(q.attemptCount>0)) : k;   // "Only questions I have not attempted yet"
 }
+function setUnatt(v){ testUnatt=!!v; try{ updateFilterSummary(); }catch(e){} }
+function renderCfRow(){ const r=document.getElementById('cfRow'); if(!r) return; r.style.display = anOn('cm') ? 'flex' : 'none'; const c=document.getElementById('cfToggle'); if(c) c.checked=testConfPref; }
+function setConfPref(v){ testConfPref=!!v; }
+function renderTlRow(){
+  const t=document.getElementById('tlToggle'), b=document.getElementById('tlBox'), m=document.getElementById('tlMin'), n=document.getElementById('tlNote'); if(!t) return;
+  t.checked=testTL.on; if(b) b.style.display=testTL.on?'flex':'none'; if(n) n.style.display=testTL.on?'block':'none';
+  if(m && document.activeElement!==m) m.value = testTL.min>0 ? testTL.min : '';
+}
+function setTimeLimitOn(v){
+  testTL.on=!!v;
+  if(testTL.on && !(testTL.min>0)){ const q=parseInt((document.getElementById('qCount')||{}).value,10); let n=q>0 ? q : 0; if(!n){ try{ n=Math.min(getFilteredBank().length,100); }catch(e){} } testTL.min=Math.max(1,n||30); }   // starts at 1 minute per question
+  renderTlRow();
+}
+function setTimeLimitMin(v){ const n=Math.floor(Number(v)); testTL.min = n>0 ? Math.min(n,1000) : 0; }
+function fmtLeft(sec){ sec=Math.max(0,Math.floor(sec)); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), x=sec%60; return (h?h+':'+String(m).padStart(2,'0'):String(m).padStart(2,'0'))+':'+String(x).padStart(2,'0'); }
 function subjectPool(){
   if(testFilterSel === null) return liveBank();
   return liveBank().filter(q=>{
@@ -7900,7 +8019,8 @@ function updateFilterSummary(){ refreshNotesBtn(); try{ kwRender(); }catch(e){}
   if(!txt) return;
   const filtered = getFilteredBank();
   try{ renderMaskCount(filtered); }catch(e){}
-  document.getElementById('flagBtnCount').textContent = filtered.filter(q=>q.flagged).length;
+  { const ut=document.getElementById('unattToggle'); if(ut) ut.checked=testUnatt; }
+  document.getElementById('flagBtnCount').textContent = (testUnatt ? getFilteredBank(true) : filtered).filter(q=>q.flagged).length;   // flagged questions have been attempted, so this count ignores the unattempted tick
   updateExamSummary(filtered.length); renderExamPicker();
   if(testFilterSel === null){
     txt.textContent = `All subjects & topics · ${filtered.length} question${filtered.length===1?'':'s'} available`;
@@ -7916,6 +8036,7 @@ function updateFilterSummary(){ refreshNotesBtn(); try{ kwRender(); }catch(e){}
 function renderTestIdle(){
   try{ renderMaskControls(); }catch(e){}
   try{ renderSrcRow(); }catch(e){}
+  try{ renderTlRow(); }catch(e){}
   document.getElementById('testIdle').style.display='block';
   document.getElementById('testRunning').style.display='none';
   document.getElementById('testResults').style.display='none';
@@ -7946,7 +8067,7 @@ function beginSession(source, mode, _skipKeys){
   if(document.getElementById('keysIntro')) return;
   if(!_skipKeys && !settings.keysIntroHide && !_keysIntroSeen){ _keysIntroSeen=true; showKeysIntro(()=>beginSession(source,mode,true)); return; }
   explOpen = {};
-  session = {questions:source, answers:{}, startTime:Date.now(), mode, testMode, done:false, currentIdx:0, marking: getMarking(), qt:{}, qAt:Date.now(), ord:{}, conf:{}, src:(anOn('da')||anOn('cm'))?testSrc:null};
+  session = {questions:source, answers:{}, startTime:Date.now(), mode, testMode, done:false, currentIdx:0, marking: getMarking(), qt:{}, qAt:Date.now(), ord:{}, conf:{}, src:(anOn('da')||anOn('cm'))?testSrc:null, cfOn:(anOn('cm') && testConfPref), lim:(((mode==='all'||mode==='flagged') && testTL.on && testTL.min>0) ? Math.round(testTL.min*60) : 0)};
   session.mask = (testMode==='practice') ? buildMasks(source, mode) : {};
   document.getElementById('testIdle').style.display='none';
   document.getElementById('testResults').style.display='none';
@@ -8007,7 +8128,7 @@ async function pickUniqA(pool, n, plain, noCool){
     want=Math.min(pool.length, want*2);
   }
   const fin = got.length>n ? pk(got,n) : got;
-  await qHydrate(fin);
+  await qHydrate(fin, true);
   return fin;
 }
 /* ===== Focus keywords =====
@@ -8057,11 +8178,14 @@ function kwRender(){
 }
 let _startBusy=false;
 async function startTest(mode){
-  if(_startBusy) return; _startBusy=true;
+  if(_startBusy) return;
+  if(testTL.on && !(testTL.min>0)){ showToast('Enter the time limit in minutes, or switch the time limit off.','warn'); return; }
+  _startBusy=true;
   const done=leanBusy('Choosing questions\u2026');
   try{
-    let source = getFilteredBank();
+    let source = getFilteredBank(mode==='flagged');
     if(mode==='flagged') source = source.filter(q=>q.flagged);
+    if(!source.length && testUnatt && mode!=='flagged'){ showToast('No unattempted questions left in this selection.','info'); done(); _startBusy=false; return; }
     const n = parseInt(document.getElementById('qCount').value,10);
     const kw = kwActive(), noCool = kw || mode==='flagged';   // keyword tests and the flagged (wrong-answer) test ignore the 2-day cooldown
     if(n && n>0) source = await pickUniqA(source, n, !document.getElementById('sapToggle').checked, noCool);
@@ -8180,12 +8304,13 @@ function renderRunning(){
   const div = document.createElement('div');
   div.className = 'card';
   div.id = 'qc-'+idx;
+  const _cfWait = confNeeded(idx) && !session.answers[idx];
   let optsHtml = ordOpts(q).map(o=>
-    `<button class="opt" data-key="${o.key}" onclick="answerQ(${idx},'${o.key}')">${escH(o.key.toUpperCase())}. ${escH(o.text)}</button>`
+    `<button class="opt${_cfWait?' conf-wait':''}" data-key="${o.key}" onclick="answerQ(${idx},'${o.key}')">${escH(o.key.toUpperCase())}. ${escH(o.text)}</button>`
   ).join('');
   const _mkPending = !!(session.mask && session.mask[idx]==='hide' && !session.answers[idx]);
   if(_mkPending) optsHtml = maskBoxHtml(idx);
-  if(anOn('cm') && !_mkPending) optsHtml = confRowHtml(idx) + optsHtml;
+  if(confOn() && !_mkPending) optsHtml = confRowHtml(idx) + optsHtml;
   const tagHtml = srcTagHtml(q.sourceTag);
   // Disputed (*) questions have no single right answer, so unlike a normal reveal this note/explanation
   // is shown immediately — in both practice and exam mode — rather than withheld until the test ends.
@@ -8232,6 +8357,7 @@ function applyAnsweredState(idx){
 }
 function answerQ(idx,key){
   if(session.mask && session.mask[idx]==='hide') return;
+  if(confNeeded(idx)){ confNudge(idx); return; }   // confidence analysis: pick how sure you are first
   const exam = session.testMode==='exam' && !session.done;      // exam mode: change the answer as often as you like until you finish
   if(session.answers[idx] && !exam) return;
   if(session.answers[idx]===key) return;
@@ -8336,7 +8462,13 @@ function updateFooter(){
   const elapsed = Math.floor(((session.pausedAt||Date.now())-session.startTime)/1000);
   const mm = String(Math.floor(elapsed/60)).padStart(2,'0');
   const ss = String(elapsed%60).padStart(2,'0');
-  document.getElementById('footerInfo').textContent = `${answered} / ${total} answered · ${mm}:${ss}`;
+  const fi = document.getElementById('footerInfo');
+  if(session.lim){   // time limit: show what is left; the test is submitted by itself at zero
+    const left = session.lim - elapsed;
+    fi.textContent = `${answered} / ${total} answered · \u23F3 ${fmtLeft(left)} left`;
+    fi.classList.toggle('tl-low', left<=60);
+    if(left<=0 && !session.done && !session.autoSub){ session.autoSub=true; fi.classList.remove('tl-low'); try{ showToast('Time is up. Your test has been submitted.','warn'); }catch(e){} finishTest(); return; }
+  } else { fi.classList.remove('tl-low'); fi.textContent = `${answered} / ${total} answered · ${mm}:${ss}`; }
   const qe = document.getElementById('qtimer'); if(qe) qe.textContent = '⏱ '+fmtQ(qTimeNow());
   try{ renderQPal(); }catch(e){}
   if(!session.done && Date.now()-_sessAt>10000) saveSession();   // keeps the elapsed time fresh
@@ -8422,23 +8554,33 @@ function anOn(k){ return !!(settings.an && settings.an[k]===true); }
 function afwOn(){ return settings.afw!==false; }   /* flag wrong answers automatically: on by default, as before */
 function setAn(k,v){ settings.an=settings.an||{}; settings.an[k]=!!v; persistSettings(); try{ renderProfile(); renderSrcRow(); }catch(e){} }
 function setAfw(v){ settings.afw=!!v; persistSettings(); }
-const CONF=[['b','50\u201350'],['t','1 in 3'],['g','Guess']];   /* no tap = Sure */
+const CONF=[['s','Sure'],['b','50\u201350'],['t','1 in 3'],['g','Guess']];   /* the student must pick one before the options unlock */
+function confOn(){ return !!session && (session.cfOn===undefined ? anOn('cm') : !!session.cfOn); }
+function confNeeded(idx){ return confOn() && !(session.conf||{})[idx]; }
 function confRowHtml(idx){
   const cur=(session.conf||{})[idx], lock=!!session.answers[idx] && session.testMode!=='exam';
-  return '<div id="cf-'+idx+'" style="display:flex;align-items:center;gap:6px;margin:0 0 8px;"><span class="muted" style="font-size:12px;white-space:nowrap;">How sure?</span>'
-    + CONF.map(c=>'<button type="button" class="secondary" style="flex:1;padding:6px 4px;font-size:13px;'+(cur===c[0]?'outline:2px solid var(--accent);':'')+'"'+(lock?' disabled':'')+' onclick="setConf('+idx+',\''+c[0]+'\')">'+c[1]+'</button>').join('')+'</div>';
+  return '<div id="cf-'+idx+'" style="display:flex;align-items:center;gap:6px;margin:0 0 '+(cur||session.answers[idx]?'8':'2')+'px;"><span class="muted" style="font-size:12px;white-space:nowrap;">How sure?</span>'
+    + CONF.map(c=>'<button type="button" class="secondary" style="flex:1;padding:6px 4px;font-size:13px;'+(cur===c[0]?'outline:2px solid var(--accent);':'')+'"'+(lock?' disabled':'')+' onclick="setConf('+idx+',\''+c[0]+'\')">'+c[1]+'</button>').join('')+'</div>'
+    + ((cur||session.answers[idx]) ? '' : '<div id="cfh-'+idx+'" class="muted" style="font-size:11.5px;margin:0 0 8px;">Choose how sure you are. The options unlock after that.</div>');
 }
 function setConf(idx,k){
   if(!session || (session.answers[idx] && session.testMode!=='exam')) return;
   session.conf=session.conf||{};
-  if(session.conf[idx]===k) delete session.conf[idx]; else session.conf[idx]=k;
+  session.conf[idx]=k;   // a choice is required, so tapping the same one again keeps it
   const r=document.getElementById('cf-'+idx);
   if(r) r.querySelectorAll('button').forEach((b,i)=>{ b.style.outline=(session.conf[idx]===CONF[i][0])?'2px solid var(--accent)':''; });
+  const card=document.getElementById('qc-'+idx); if(card) card.querySelectorAll('.opt.conf-wait').forEach(b=>b.classList.remove('conf-wait'));   // unlock the options
+  const h=document.getElementById('cfh-'+idx); if(h) h.remove(); if(r) r.style.marginBottom='8px';
   saveSession();
+}
+function confNudge(idx){
+  try{ showToast('First choose how sure you are.','info'); }catch(e){}
+  const r=document.getElementById('cf-'+idx); if(r){ try{ r.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:260}); }catch(e){} }
 }
 function confLock(idx){ if(!session || session.testMode==='exam') return; const r=document.getElementById('cf-'+idx); if(r) r.querySelectorAll('button').forEach(b=>{ b.disabled=true; }); }
 function setTestSrc(k){ testSrc=k; renderSrcRow(); }
 function renderSrcRow(){
+  try{ renderCfRow(); }catch(e){}
   const el=document.getElementById('srcRow'); if(!el) return;
   const on=anOn('da')||anOn('cm'); el.style.display=on?'flex':'none'; if(!on) return;
   el.innerHTML='<span class="muted" style="font-size:12px;">Source</span>'+[['practice','Practice'],['pyq','PYQ'],['series','Test Series']].map(c=>'<button type="button" class="modebtn'+(testSrc===c[0]?' active-mode':'')+'" style="flex:1;" onclick="setTestSrc(\''+c[0]+'\')">'+c[1]+'</button>').join('');
@@ -8450,7 +8592,8 @@ function addAnalysis(entry,sess,mk){
   const qr=[];
   sess.questions.forEach((q,i)=>{
     const a=sess.answers[i]; if(!a) return;
-    const rec={i:q.id, s:q.subject||'General', t:q.topic||'General', a:a, k:q.correctKey, o:(a===q.correctKey||q.correctKey==='*')?1:0, c:(sess.conf&&sess.conf[i])||'s', f:q.flagged?1:0};
+    const rec={i:q.id, s:q.subject||'General', t:q.topic||'General', a:a, k:q.correctKey, o:(a===q.correctKey||q.correctKey==='*')?1:0, f:q.flagged?1:0};
+    if(sess.cfOn===undefined ? anOn('cm') : sess.cfOn) rec.c=(sess.conf&&sess.conf[i])||'s';   // tests without confidence marking carry no c
     const sec=sess.qt&&sess.qt[i]; if(sec>0) rec.d=Math.round(sec);
     qr.push(rec);
   });
@@ -8465,7 +8608,7 @@ function anSummaryHtml(){
   const e=_anE, qr=e.qr||[], tot=e.total||qr.length||1, n={c:0,s:0,r:0,k:0,p:0};
   _anW.forEach(r=>{ if(r.g) n[r.g]++; else n.p++; });
   const cs=n.c+n.s, rate=cs/tot*100, allowed=Math.max(0,Math.ceil(0.02*tot)-1), cut=Math.max(0,cs-allowed);
-  const unsure=qr.filter(r=>r.o && r.c!=='s').length, done=_anW.length-n.p, AX=25;
+  const unsure=qr.filter(r=>r.o && r.c && r.c!=='s').length, done=_anW.length-n.p, AX=25;
   const seg=(k,col)=>n[k]?'<div style="width:'+(n[k]/tot/(AX/100)*100)+'%;background:'+col+';border-right:1.5px solid var(--card,#fff);box-sizing:border-box;"></div>':'';
   const dot=(c,t)=>'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;"><span style="width:9px;height:9px;border-radius:50%;background:'+c+';display:inline-block;"></span>'+t+'</span>';
   return '<div class="stats"><div class="stat"><div class="num" style="color:var(--green)">'+e.correct+'</div><div class="lbl">Correct</div></div><div class="stat"><div class="num" style="color:var(--red)">'+e.incorrect+'</div><div class="lbl">Wrong</div></div><div class="stat"><div class="num">'+e.unattempted+'</div><div class="lbl">Unattempted</div></div></div>'
@@ -8480,11 +8623,11 @@ function anSummaryHtml(){
    +(anOn('cm')?'<div class="muted" style="font-size:12px;margin-top:8px;">Right but unsure: '+unsure+'</div>':'');
 }
 function anCardInner(k){
-  const r=_anW[k], q=qById(r.i)||{}, conf={s:'Sure',b:'50\u201350',t:'1 in 3',g:'Guess'}[r.c]||'Sure';
+  const r=_anW[k], q=qById(r.i)||{}, conf={s:'Sure',b:'50\u201350',t:'1 in 3',g:'Guess'}[r.c]||'';
   let ans='';
   try{ const o=ordOpts(q), g=key=>{ const x=o.find(z=>z.key===key); return x?key.toUpperCase()+'. '+escH(x.text):escH(String(key||'')); }; ans='You: '+g(r.a)+'<br>Correct: '+g(r.k); }catch(e){}
   const flagged=!!q.flagged;
-  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span class="muted" style="font-size:11px;">'+escH(r.s)+' \u203a '+escH(r.t)+'</span>'+(anOn('cm')?'<span class="muted" style="font-size:11px;border:1px solid var(--line,#ddd);border-radius:6px;padding:1px 7px;">You marked: '+conf+'</span>':'')+'</div>'
+  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span class="muted" style="font-size:11px;">'+escH(r.s)+' \u203a '+escH(r.t)+'</span>'+((anOn('cm') && conf)?'<span class="muted" style="font-size:11px;border:1px solid var(--line,#ddd);border-radius:6px;padding:1px 7px;">You marked: '+conf+'</span>':'')+'</div>'
    +'<div class="qhead">'+qHtml(q.text||'',(k+1)+'. ')+'</div><div class="muted" style="font-size:12px;margin:6px 0;">'+ans+'</div>'
    +((anOn('cm') && r.c==='s')?'<div style="background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:12px;margin:6px 0;">Sure but wrong. Revise this from your own source, not from the explanation.</div>':'')
    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;">'+ANC.map(c=>'<button type="button" class="secondary" style="min-height:44px;'+(r.g===c[0]?'background:'+c[2]+';color:'+c[3]+';border:2px solid '+c[2]+';':'')+'" onclick="anPick('+k+',\''+c[0]+'\')"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+c[2]+';margin-right:7px;vertical-align:-1px;"></span>'+c[1]+'</button>').join('')+'</div>'
@@ -8524,7 +8667,7 @@ function anRankHtml(){
   }).join('');
 }
 function anUnsHtml(){
-  const rs=(_anE.qr||[]).filter(r=>r.o && r.c!=='s'); if(!rs.length||!anOn('cm')||!anOn('da')) return '';
+  const rs=(_anE.qr||[]).filter(r=>r.o && r.c && r.c!=='s'); if(!rs.length||!anOn('cm')||!anOn('da')) return '';
   const T={}; rs.forEach(r=>{ const k=r.s+'\u203a'+r.t; (T[k]=T[k]||{n:r.t,recs:[]}).recs.push(r); });
   const list=Object.values(T).sort((x,y)=>y.recs.length-x.recs.length), lab={b:'50\u201350',t:'1 in 3',g:'Guess'};
   let h='<div class="card"><button type="button" onclick="anTogQ()" aria-expanded="'+_anOQ+'" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:transparent;border:none;padding:4px 0;text-align:left;color:inherit;"><span><b style="font-size:15px;">Right but unsure \u00b7 '+rs.length+'</b><br><span class="muted" style="font-size:12px;">Revise from your source, then read the explanation. Not counted as mistakes.</span></span><span>'+(_anOQ?'\u25B4':'\u25BE')+'</span></button>';
@@ -8555,10 +8698,11 @@ function anRow(lab,n,c,sc){
 }
 function anConfCard(){
   if(!anOn('cm')||!anOn('cr')||!_anE||!_anE.qr) return '';
+  const qrAll=_anE.qr, qrC=qrAll.filter(r=>r.c); if(!qrC.length) return '';   // only answers that were marked for confidence
   const sc=_anE.sch||{r:1,w:0}, tally=(rs)=>CL.map(c=>{ const x=rs.filter(r=>r.c===c[0]); return [c[1],x.length,x.filter(r=>r.o).length]; });
-  const subs={}; _anE.qr.forEach(r=>{ (subs[r.s]=subs[r.s]||[]).push(r); });
-  let h='<div class="card"><h3 style="margin:0 0 2px;">How sure vs how right</h3><div class="muted" style="font-size:12px;">Marking: +'+sc.r+' right, \u2212'+sc.w+' wrong (this test). Black tick = break-even accuracy.</div>'+tally(_anE.qr).map(t=>anRow(t[0],t[1],t[2],sc)).join('');
-  const G=_anE.qr.filter(r=>r.o).length*sc.r-_anE.qr.filter(r=>!r.o).length*sc.w;
+  const subs={}; qrC.forEach(r=>{ (subs[r.s]=subs[r.s]||[]).push(r); });
+  let h='<div class="card"><h3 style="margin:0 0 2px;">How sure vs how right</h3><div class="muted" style="font-size:12px;">Marking: +'+sc.r+' right, \u2212'+sc.w+' wrong (this test). Black tick = break-even accuracy.</div>'+tally(qrC).map(t=>anRow(t[0],t[1],t[2],sc)).join('');
+  const G=qrC.filter(r=>r.o).length*sc.r-qrC.filter(r=>!r.o).length*sc.w;
   h+='<div style="border-top:1px solid var(--line,#ddd);padding-top:8px;font-size:13px;">All marked answers: net <b>'+(G>=0?'+':'\u2212')+Math.abs(G).toFixed(2)+'</b> marks</div><h3 style="margin:14px 0 2px;font-size:14px;">By subject, this test only</h3>';
   Object.keys(subs).forEach(n=>{ const t=tally(subs[n]), open=!!_anCS[n];
     h+='<div style="border-top:1px solid var(--line,#ddd);"><button type="button" onclick="anTogC(this.dataset.n)" data-n="'+escH(n)+'" style="width:100%;background:transparent;border:none;padding:9px 0;text-align:left;color:inherit;"><div style="display:flex;justify-content:space-between;"><b>'+escH(n)+'</b><span>'+(open?'\u25B4':'\u25BE')+'</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px;font-size:12px;">'+t.map(x=>'<span><b style="font-size:14px;">'+(x[1]?Math.round(x[2]/x[1]*100):0)+'%</b><br><span class="muted">'+x[0]+'</span></span>').join('')+'</div></button>'+(open?t.map(x=>anRow(x[0],x[1],x[2],sc)).join(''):'')+'</div>'; });
@@ -8591,7 +8735,7 @@ function renderAnHist(){
   host.style.display=''; host.innerHTML=h; window._anHSubs=subs;
 }
 function anRecs(recs){ const nm={c:'Conceptual',s:'Silly',r:'Revision void',k:'Knowledge gap'}, cf={s:'Sure',b:'50\u201350',t:'1 in 3',g:'Guess'};
-  return recs.map(r=>{ const q=qById(r.i)||{}; return '<div style="border-top:1px dashed var(--line,#ddd);margin-top:6px;padding-top:6px;font-size:12px;">'+qHtml(q.text||'(question no longer in bank)','')+'<div class="muted">You: '+escH(String(r.a||''))+' \u00b7 Correct: '+escH(String(r.k||''))+' \u00b7 '+(cf[r.c]||'Sure')+' \u00b7 '+(nm[r.g]||'Pending')+(r.sr?' \u00b7 source revised':'')+(r.er?' \u00b7 explanation read':'')+'</div></div>'; }).join(''); }
+  return recs.map(r=>{ const q=qById(r.i)||{}; return '<div style="border-top:1px dashed var(--line,#ddd);margin-top:6px;padding-top:6px;font-size:12px;">'+qHtml(q.text||'(question no longer in bank)','')+'<div class="muted">You: '+escH(String(r.a||''))+' \u00b7 Correct: '+escH(String(r.k||''))+' \u00b7 '+(cf[r.c]?cf[r.c]+' \u00b7 ':'')+(nm[r.g]||'Pending')+(r.sr?' \u00b7 source revised':'')+(r.er?' \u00b7 explanation read':'')+'</div></div>'; }).join(''); }
 function anSetSrc(k){ _anSrc=k; renderAnHist(); }
 function anHTogS(i){ const n=window._anHSubs[i].s; _anHS[n]=!_anHS[n]; renderAnHist(); }
 function anHTogP(k){ _anHP[k]=!_anHP[k]; renderAnHist(); }
@@ -10613,7 +10757,7 @@ function renderMaskCard(){
     if(!LEAN_ACTIVE || !source.some(q=>LEAN.has(q))) return go(source);
     if(_beginBusy) return; _beginBusy=true;
     const done=leanBusy('Loading '+source.length.toLocaleString('en-IN')+' questions\u2026');
-    return qHydrate(source).then(()=>{
+    return qHydrate(source, true).then(()=>{
       const ok=source.filter(q=>!LEAN.has(q));
       done(); _beginBusy=false;
       if(!ok.length){ showToast('Could not load those questions from this device. Please try again.','error'); return; }
